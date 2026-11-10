@@ -42,7 +42,19 @@ export function TableHead({ children, className }: { children: React.ReactNode; 
   return <th className={clsx("px-4 py-3.5", className)}>{children}</th>;
 }
 
-export function TableCell({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <td className={clsx("px-4 py-3.5 text-sm", className)}>{children}</td>;
+export function TableCell({
+  children,
+  className,
+  onClick,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  onClick?: (e: React.MouseEvent) => void;
+}) {
+  return (
+    <td onClick={onClick} className={clsx("px-4 py-3.5 text-sm", className)}>
+      {children}
+    </td>
+  );
 }
 

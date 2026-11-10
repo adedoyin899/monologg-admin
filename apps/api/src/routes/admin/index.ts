@@ -1,5 +1,6 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import type { AdminRole, UserType, BookingState } from "@prisma/client";
+import { randomUUID, createHmac } from "node:crypto";
 import { prisma } from "../../db/client.js";
 import { adminRoPrisma, getMaterializedViewLastRefreshed } from "../../db/adminRoClient.js";
 import { env } from "../../config/env.js";
@@ -7,7 +8,15 @@ import { requireAdmin, requirePermission } from "../../middlewares/adminAuth.js"
 import { getRolePermissions } from "../../config/adminPermissions.js";
 import { audit } from "../../services/adminAudit.js";
 import { kpiService, type KpiFilterOptions } from "../../admin/kpi/index.js";
-import { maskEmail, maskName } from "../../lib/masking.js";
+import { maskEmail, maskName, maskPhone, maskAccount } from "../../lib/masking.js";
+import { revokeAllUserSessions } from "../../services/auth.js";
+import { notifyProvider } from "../../providers/index.js";
+import { cacheProvider } from "../../providers/cache.js";
+import {
+  ATTRIBUTE_FIELD_NAMES,
+  type AttributeFieldName,
+  type VisibilityMap,
+} from "../../services/attributes.js";
 
 export async function adminRoutes(app: FastifyInstance): Promise<void> {
   // All routes in this plugin are prefixed with /api/v1/admin and require requireAdmin
@@ -918,19 +927,648 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
   );
 
   // ── M3 Users & Directory ────────────────────────────────────────────────
+  function isSensitiveNotification(kind: string): boolean {
+    const k = (kind || "").toLowerCase();
+    return (
+      k.includes("otp") ||
+      k.includes("signin") ||
+      k.includes("sign_in") ||
+      k.includes("login") ||
+      k.includes("password") ||
+      k.includes("auth") ||
+      k.includes("token") ||
+      k.includes("code") ||
+      k.includes("verification")
+    );
+  }
+
   app.get(
     "/api/v1/admin/users",
     { preHandler: [requirePermission("users", "read")] },
-    async (_request: FastifyRequest, reply: FastifyReply) => {
-      return reply.send({ status: "ok", module: "users" });
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const query = request.query as {
+        search?: string;
+        userType?: string;
+        verification?: string;
+        authProvider?: string;
+        accountOrigin?: string;
+        country?: string;
+        cohortTag?: string;
+        signupDateFrom?: string;
+        signupDateTo?: string;
+        lastActiveFrom?: string;
+        lastActiveTo?: string;
+        hasBooking?: string;
+        hasEarnings?: string;
+        suspended?: string;
+        cursor?: string;
+        limit?: string;
+        sort?: string;
+        order?: string;
+        includeTestUsers?: string;
+      };
+
+      const db = adminRoPrisma || prisma;
+      const limit = Math.min(Math.max(parseInt(query.limit || "50", 10) || 50, 1), 50);
+      const sortField = query.sort === "lastActiveAt" ? "lastActiveAt" : "createdAt";
+      const sortOrder: "asc" | "desc" = query.order === "asc" ? "asc" : "desc";
+
+      const where: any = {};
+
+      if (query.includeTestUsers !== "true") {
+        where.isTestUser = false;
+      }
+
+      if (query.userType && (query.userType === "TALENT" || query.userType === "CLIENT")) {
+        where.userType = query.userType;
+      }
+
+      if (query.authProvider) {
+        where.authProvider = query.authProvider;
+      }
+
+      if (query.accountOrigin) {
+        where.accountOrigin = query.accountOrigin;
+      }
+
+      if (query.suspended === "true") {
+        where.suspendedAt = { not: null };
+      } else if (query.suspended === "false") {
+        where.suspendedAt = null;
+      }
+
+      if (query.signupDateFrom || query.signupDateTo) {
+        where.createdAt = {};
+        if (query.signupDateFrom) where.createdAt.gte = new Date(query.signupDateFrom);
+        if (query.signupDateTo) where.createdAt.lte = new Date(query.signupDateTo);
+      }
+
+      if (query.lastActiveFrom || query.lastActiveTo) {
+        where.lastActiveAt = {};
+        if (query.lastActiveFrom) where.lastActiveAt.gte = new Date(query.lastActiveFrom);
+        if (query.lastActiveTo) where.lastActiveAt.lte = new Date(query.lastActiveTo);
+      }
+
+      if (query.verification) {
+        where.creator = { ...where.creator, verification: query.verification };
+      }
+
+      if (query.hasBooking === "true") {
+        where.OR = [
+          { creator: { bookings: { some: {} } } },
+          { client: { bookings: { some: {} } } },
+        ];
+      } else if (query.hasBooking === "false") {
+        where.AND = [
+          ...(where.AND || []),
+          { creator: { bookings: { none: {} } } },
+          { client: { bookings: { none: {} } } },
+        ];
+      }
+
+      if (query.hasEarnings === "true") {
+        where.creator = {
+          ...where.creator,
+          bookings: { some: { state: "PAYMENT_RELEASED" } },
+        };
+      } else if (query.hasEarnings === "false") {
+        where.creator = {
+          ...where.creator,
+          bookings: { none: { state: "PAYMENT_RELEASED" } },
+        };
+      }
+
+      if (query.cohortTag) {
+        const tagged = await db.userTag.findMany({
+          where: { tag: query.cohortTag.trim() },
+          select: { userId: true },
+        });
+        const taggedIds = tagged.map((t) => t.userId);
+        where.id = where.id ? { ...where.id, in: taggedIds } : { in: taggedIds };
+      }
+
+      if (query.country) {
+        const acquisitions = await db.userAcquisition.findMany({
+          where: { signupCountry: query.country.trim().toUpperCase() },
+          select: { userId: true },
+        });
+        const acqIds = acquisitions.map((a) => a.userId);
+        where.id = where.id ? { ...where.id, in: acqIds } : { in: acqIds };
+      }
+
+      if (query.search && query.search.trim()) {
+        const term = query.search.trim();
+        const searchConditions = [
+          { id: { contains: term, mode: "insensitive" } },
+          { email: { contains: term, mode: "insensitive" } },
+          { creator: { name: { contains: term, mode: "insensitive" } } },
+          { client: { name: { contains: term, mode: "insensitive" } } },
+          { creator: { referralCode: { contains: term, mode: "insensitive" } } },
+        ];
+        if (where.OR) {
+          where.AND = [...(where.AND || []), { OR: searchConditions }];
+        } else {
+          where.OR = searchConditions;
+        }
+      }
+
+      const users = await db.user.findMany({
+        where,
+        take: limit + 1,
+        skip: query.cursor ? 1 : 0,
+        cursor: query.cursor ? { id: query.cursor } : undefined,
+        orderBy: { [sortField]: sortOrder },
+        include: {
+          creator: {
+            select: {
+              id: true,
+              name: true,
+              verification: true,
+              referralCode: true,
+              niche: true,
+              _count: { select: { bookings: true } },
+            },
+          },
+          client: {
+            select: {
+              id: true,
+              name: true,
+              orgName: true,
+              _count: { select: { bookings: true } },
+            },
+          },
+        },
+      });
+
+      const hasMore = users.length > limit;
+      const pageUsers = hasMore ? users.slice(0, limit) : users;
+      const nextCursor = hasMore && pageUsers.length > 0 ? pageUsers[pageUsers.length - 1].id : null;
+
+      const userIds = pageUsers.map((u) => u.id);
+
+      const [tags, acquisitions, totalCount] = await Promise.all([
+        userIds.length > 0 ? db.userTag.findMany({ where: { userId: { in: userIds } } }) : [],
+        userIds.length > 0
+          ? db.userAcquisition.findMany({ where: { userId: { in: userIds } } })
+          : [],
+        db.user.count({ where }).catch(() => pageUsers.length),
+      ]);
+
+      const tagsByUserId = new Map<string, string[]>();
+      for (const t of tags) {
+        const arr = tagsByUserId.get(t.userId) || [];
+        arr.push(t.tag);
+        tagsByUserId.set(t.userId, arr);
+      }
+
+      const acqByUserId = new Map<string, (typeof acquisitions)[0]>();
+      for (const a of acquisitions) {
+        acqByUserId.set(a.userId, a);
+      }
+
+      const formatted = pageUsers.map((u) => {
+        const acq = acqByUserId.get(u.id);
+        const rawName = u.creator?.name || u.client?.name || "";
+        const source =
+          acq?.utmSource ||
+          acq?.referrerDomain ||
+          (acq?.referralCodeUsed ? `ref:${acq.referralCodeUsed}` : null) ||
+          "direct";
+        const bookingsCount =
+          (u.creator?._count?.bookings ?? 0) + (u.client?._count?.bookings ?? 0);
+
+        return {
+          id: u.id,
+          name: maskName(rawName),
+          email: maskEmail(u.email),
+          maskedEmail: maskEmail(u.email),
+          phone: maskPhone(u.phone),
+          type: u.userType,
+          userType: u.userType,
+          authProvider: u.authProvider,
+          accountOrigin: u.accountOrigin,
+          signedUp: u.createdAt.toISOString(),
+          createdAt: u.createdAt.toISOString(),
+          lastActive: u.lastActiveAt ? u.lastActiveAt.toISOString() : null,
+          lastActiveAt: u.lastActiveAt ? u.lastActiveAt.toISOString() : null,
+          country: acq?.signupCountry || null,
+          source,
+          verification: u.creator?.verification || "N/A",
+          bookings: bookingsCount,
+          tags: tagsByUserId.get(u.id) || [],
+          suspended: Boolean(u.suspendedAt),
+          suspendedAt: u.suspendedAt ? u.suspendedAt.toISOString() : null,
+          suspendedReason: u.suspendedReason,
+        };
+      });
+
+      return reply.send({
+        users: formatted,
+        nextCursor,
+        hasMore,
+        totalCount,
+      });
     },
   );
 
   app.get(
     "/api/v1/admin/users/:id",
     { preHandler: [requirePermission("users", "read")] },
-    async (_request: FastifyRequest, reply: FastifyReply) => {
-      return reply.send({ status: "ok", module: "users_detail" });
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const { id } = request.params as { id: string };
+      const db = adminRoPrisma || prisma;
+
+      const user = await db.user.findUnique({
+        where: { id },
+        include: {
+          creator: {
+            include: {
+              media: { orderBy: { createdAt: "desc" } },
+              rateCards: true,
+              mediaKit: true,
+              physicalAttributes: true,
+              bookings: {
+                orderBy: { createdAt: "desc" },
+                take: 50,
+                include: {
+                  client: { select: { name: true } },
+                },
+              },
+              applications: {
+                orderBy: { createdAt: "desc" },
+                take: 50,
+                include: {
+                  brief: {
+                    select: {
+                      id: true,
+                      projectName: true,
+                      projectType: true,
+                      budgetAmount: true,
+                      budgetCurrency: true,
+                      status: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          client: {
+            include: {
+              briefs: {
+                orderBy: { createdAt: "desc" },
+                take: 50,
+                include: {
+                  _count: { select: { applications: true } },
+                },
+              },
+              bookings: {
+                orderBy: { createdAt: "desc" },
+                take: 50,
+                include: {
+                  creator: { select: { name: true } },
+                },
+              },
+            },
+          },
+          calendarConnection: true,
+          refreshTokens: {
+            where: { revokedAt: null, expiresAt: { gt: new Date() } },
+          },
+          notes: {
+            orderBy: { createdAt: "desc" },
+          },
+          supportTickets: {
+            orderBy: { createdAt: "desc" },
+          },
+          withdrawalRequests: {
+            orderBy: { createdAt: "desc" },
+          },
+          notifications: {
+            orderBy: { createdAt: "desc" },
+            take: 50,
+          },
+          authEvents: {
+            orderBy: { createdAt: "desc" },
+            take: 50,
+          },
+        },
+      });
+
+      if (!user) {
+        return reply.status(404).send({ error: "User not found." });
+      }
+
+      const [tags, acquisition, productEvents] = await Promise.all([
+        db.userTag.findMany({ where: { userId: id } }).catch(() => []),
+        db.userAcquisition.findUnique({ where: { userId: id } }).catch(() => null),
+        db.productEvent
+          .findMany({
+            where: { userId: id },
+            orderBy: { occurredAt: "desc" },
+            take: 50,
+          })
+          .catch(() => []),
+      ]);
+
+      const rawName = user.creator?.name || user.client?.name || "";
+      const maskedUserName = maskName(rawName);
+      const maskedUserEmail = maskEmail(user.email);
+      const maskedUserPhone = maskPhone(user.phone);
+
+      // Attributes privacy calculation
+      const phys = user.creator?.physicalAttributes;
+      const visMap = (phys?.visibility as VisibilityMap) || {};
+      let filledAttributesCount = 0;
+      const attributesValues: Record<string, { value: string | null; visibility: string }> = {};
+
+      for (const field of [...ATTRIBUTE_FIELD_NAMES, "distinctiveFeatures" as const]) {
+        const val = phys ? (phys as any)[field] : null;
+        if (val !== null && val !== undefined) {
+          filledAttributesCount++;
+        }
+        const visibility = visMap[field as AttributeFieldName] || "SEARCHABLE";
+        // NON-NEGOTIABLE #3 / Section 5: Standard view returns PUBLIC values ONLY.
+        // SEARCHABLE and PRIVATE return value: null.
+        if (visibility === "PUBLIC") {
+          attributesValues[field] = { value: val ?? null, visibility: "PUBLIC" };
+        } else if (visibility === "SEARCHABLE") {
+          attributesValues[field] = { value: null, visibility: "SEARCHABLE" };
+        } else {
+          attributesValues[field] = { value: null, visibility: "PRIVATE" };
+        }
+      }
+
+      const attributeCompleteness = {
+        filled: filledAttributesCount,
+        total: ATTRIBUTE_FIELD_NAMES.length,
+        percentage: Math.round((filledAttributesCount / ATTRIBUTE_FIELD_NAMES.length) * 100),
+      };
+
+      // Money calculation (derived from bookings and withdrawals per currency)
+      const allUserBookings = [
+        ...(user.creator?.bookings || []),
+        ...(user.client?.bookings || []),
+      ];
+
+      const currencies = ["NGN", "USD", "GBP"];
+      const moneyByCurrency: Record<
+        string,
+        {
+          currency: string;
+          earned: number;
+          escrowHeld: number;
+          withdrawn: number;
+          pendingWithdrawal: number;
+          feesPaid: number;
+          totalSpend: number;
+        }
+      > = {};
+
+      for (const curr of currencies) {
+        let earned = 0;
+        let escrowHeld = 0;
+        let feesPaid = 0;
+        let totalSpend = 0;
+
+        if (user.userType === "TALENT") {
+          for (const b of user.creator?.bookings || []) {
+            if (b.currency?.toUpperCase() === curr) {
+              if (b.state === "PAYMENT_RELEASED") earned += b.baseAmount;
+              if (b.state === "ESCROW_LOCKED" || b.state === "DELIVERABLES_PROVIDED") {
+                escrowHeld += b.baseAmount;
+              }
+              feesPaid += b.talentFeeAmount || 0;
+            }
+          }
+        } else {
+          for (const b of user.client?.bookings || []) {
+            if (b.currency?.toUpperCase() === curr) {
+              const bookingTotal = b.baseAmount + (b.clientFeeAmount || 0);
+              if (b.state === "PAYMENT_RELEASED") totalSpend += bookingTotal;
+              if (b.state === "ESCROW_LOCKED" || b.state === "DELIVERABLES_PROVIDED") {
+                escrowHeld += bookingTotal;
+              }
+              feesPaid += b.clientFeeAmount || 0;
+            }
+          }
+        }
+
+        let withdrawn = 0;
+        let pendingWithdrawal = 0;
+        for (const w of user.withdrawalRequests || []) {
+          if (w.currency?.toUpperCase() === curr) {
+            if (w.status === "COMPLETED") withdrawn += w.amount;
+            if (w.status === "PENDING_OTP" || w.status === "APPROVED") pendingWithdrawal += w.amount;
+          }
+        }
+
+        moneyByCurrency[curr] = {
+          currency: curr,
+          earned,
+          escrowHeld,
+          withdrawn,
+          pendingWithdrawal,
+          feesPaid,
+          totalSpend,
+        };
+      }
+
+      // Sanitized notifications: Never return payload for OTP and sign-in notice kinds
+      const sanitizedNotifications = (user.notifications || []).map((n) => ({
+        id: n.id,
+        kind: n.kind,
+        createdAt: n.createdAt.toISOString(),
+        readAt: n.readAt ? n.readAt.toISOString() : null,
+        isRead: n.readAt !== null,
+        payload: isSensitiveNotification(n.kind) ? null : n.payload,
+      }));
+
+      // Media list with short-lived preview endpoint
+      const mediaList = (user.creator?.media || []).map((m) => ({
+        id: m.id,
+        kind: m.kind,
+        url: m.url,
+        sizeBytes: m.sizeBytes,
+        durationSec: m.durationSec,
+        taggingStatus: m.taggingStatus,
+        createdAt: m.createdAt.toISOString(),
+        previewUrl: `/api/v1/admin/media/${m.id}/signed-url`,
+      }));
+
+      return reply.send({
+        overview: {
+          id: user.id,
+          name: maskedUserName,
+          email: maskedUserEmail,
+          phone: maskedUserPhone,
+          userType: user.userType,
+          authProvider: user.authProvider,
+          accountOrigin: user.accountOrigin,
+          createdAt: user.createdAt.toISOString(),
+          lastActiveAt: user.lastActiveAt ? user.lastActiveAt.toISOString() : null,
+          suspended: Boolean(user.suspendedAt),
+          suspendedAt: user.suspendedAt ? user.suspendedAt.toISOString() : null,
+          suspendedReason: user.suspendedReason,
+          acquisition: acquisition
+            ? {
+                firstSeenAt: acquisition.firstSeenAt?.toISOString() || null,
+                landingPath: acquisition.landingPath,
+                referrerDomain: acquisition.referrerDomain,
+                utmSource: acquisition.utmSource,
+                utmMedium: acquisition.utmMedium,
+                utmCampaign: acquisition.utmCampaign,
+                referralCodeUsed: acquisition.referralCodeUsed,
+                signupCountry: acquisition.signupCountry,
+                signupDeviceClass: acquisition.signupDeviceClass,
+              }
+            : null,
+          tags: tags.map((t) => t.tag),
+          notes: (user.notes || []).map((n) => ({
+            id: n.id,
+            adminId: n.adminId,
+            body: n.body,
+            createdAt: n.createdAt.toISOString(),
+          })),
+        },
+        profile: {
+          name: maskedUserName,
+          userType: user.userType,
+          ...(user.userType === "TALENT"
+            ? {
+                niche: user.creator?.niche,
+                location: user.creator?.location,
+                bio: user.creator?.bio,
+                avatarUrl: user.creator?.avatarUrl,
+                badges: {
+                  celebrityBadge: user.creator?.celebrityBadge ?? false,
+                },
+                styleTags: user.creator?.styleTags || [],
+                verification: user.creator?.verification || "UNVERIFIED",
+                mediaKitMode: user.creator?.mediaKit?.mode || "AUTO",
+                rateCards: (user.creator?.rateCards || []).map((rc) => ({
+                  id: rc.id,
+                  serviceTitle: rc.serviceTitle,
+                  tier: (rc as any).tier,
+                  priceAmount: (rc as any).priceAmount,
+                  currency: (rc as any).currency,
+                })),
+                availabilitySummary: {
+                  hasCalendarConnected: user.calendarConnection?.status === "CONNECTED",
+                },
+                media: mediaList,
+                attributes: {
+                  completeness: attributeCompleteness,
+                  values: attributesValues,
+                },
+              }
+            : {
+                orgName: user.client?.orgName,
+                orgType: user.client?.orgType,
+                location: user.client?.location,
+                avatarUrl: user.client?.avatarUrl,
+              }),
+        },
+        calendar: {
+          connection: {
+            connected: user.calendarConnection?.status === "CONNECTED",
+            provider: user.calendarConnection?.provider || null,
+            connectedAt: user.calendarConnection?.connectedAt?.toISOString() || null,
+          },
+        },
+        bookings: allUserBookings.map((b) => ({
+          id: b.id,
+          engagementType: b.engagementType,
+          slotDate: b.slotDate.toISOString(),
+          slotStart: b.slotStart,
+          slotEnd: b.slotEnd,
+          baseAmount: b.baseAmount,
+          currency: b.currency,
+          talentFeeAmount: b.talentFeeAmount,
+          clientFeeAmount: b.clientFeeAmount,
+          state: b.state,
+          origin: b.origin,
+          createdAt: b.createdAt.toISOString(),
+          otherPartyName: maskName(
+            user.userType === "TALENT"
+              ? (b as any).client?.name || "Client"
+              : (b as any).creator?.name || "Talent",
+          ),
+        })),
+        projects:
+          user.userType === "TALENT"
+            ? (user.creator?.applications || []).map((app) => ({
+                id: app.id,
+                briefId: app.briefId,
+                projectName: app.brief?.projectName,
+                projectType: app.brief?.projectType,
+                budgetAmount: app.brief?.budgetAmount,
+                budgetCurrency: app.brief?.budgetCurrency,
+                pitch: app.pitch,
+                status: app.status,
+                createdAt: app.createdAt.toISOString(),
+              }))
+            : (user.client?.briefs || []).map((br) => ({
+                id: br.id,
+                projectName: br.projectName,
+                projectType: br.projectType,
+                budgetAmount: br.budgetAmount,
+                budgetCurrency: br.budgetCurrency,
+                status: br.status,
+                applicantCap: br.applicantCap,
+                applicationsOpen: br.applicationsOpen,
+                applicationCount: br._count?.applications ?? 0,
+                createdAt: br.createdAt.toISOString(),
+              })),
+        money: {
+          label: "Derived from bookings and withdrawals",
+          byCurrency: moneyByCurrency,
+          withdrawals: (user.withdrawalRequests || []).map((w) => ({
+            id: w.id,
+            amount: w.amount,
+            currency: w.currency,
+            bankName: w.bankName,
+            accountNumber: maskAccount(w.accountNumber),
+            accountName: maskName(w.accountName),
+            status: w.status,
+            flagged: w.flagged,
+            flagReason: w.flagReason,
+            createdAt: w.createdAt.toISOString(),
+          })),
+        },
+        notifications: sanitizedNotifications,
+        activity: productEvents.map((e) => ({
+          id: e.id.toString(),
+          occurredAt: e.occurredAt.toISOString(),
+          name: e.name,
+          source: e.source,
+          path: e.path,
+          country: e.country,
+          deviceClass: e.deviceClass,
+          props: e.props,
+        })),
+        support: {
+          tickets: (user.supportTickets || []).map((t) => ({
+            id: t.id,
+            subject: t.subject,
+            message: t.message,
+            status: t.status,
+            createdAt: t.createdAt.toISOString(),
+          })),
+        },
+        auth: {
+          authProvider: user.authProvider,
+          supabaseUserId: user.supabaseUserId,
+          activeSessionCount: user.refreshTokens.length,
+          authEvents: (user.authEvents || []).map((a) => ({
+            id: a.id,
+            provider: a.provider,
+            event: a.event,
+            ipHash: a.ipHash,
+            userAgent: a.userAgent,
+            createdAt: a.createdAt.toISOString(),
+          })),
+        },
+      });
     },
   );
 
@@ -940,23 +1578,128 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     async (request: FastifyRequest, reply: FastifyReply) => {
       const { id } = request.params as { id: string };
       const { reason } = (request.body as { reason?: string }) || {};
+
+      if (!reason || !reason.trim()) {
+        return reply.status(400).send({
+          error: "Bad Request",
+          message: "A valid non-empty reason is required for PII reveal.",
+          statusCode: 400,
+        });
+      }
+
+      const db = adminRoPrisma || prisma;
+      const user = await db.user.findUnique({
+        where: { id },
+        include: {
+          creator: { include: { physicalAttributes: true } },
+          client: true,
+        },
+      });
+
+      if (!user) {
+        return reply.status(404).send({ error: "User not found." });
+      }
+
+      // Mandatory audit log entry for every PII reveal
       await audit({
         adminId: request.adminUser!.id,
-        action: "PII_REVEAL",
+        action: "PII_REVEALED",
         targetType: "User",
         targetId: id,
-        reason: reason || "Audited PII reveal",
+        reason: reason.trim(),
         ip: request.ip,
       });
-      return reply.send({ status: "ok", module: "reveal_pii" });
+
+      const unmaskedName = user.creator?.name || user.client?.name || "User";
+      const unmaskedEmail = user.email;
+      const unmaskedPhone = user.phone;
+
+      // Attributes reveal rules:
+      // SUPER_ADMIN and OPS can see SEARCHABLE attributes after reveal with reason.
+      // PRIVATE attributes are NEVER returned under any circumstances.
+      const adminRole = request.adminUser!.role;
+      const canSeeSearchable = adminRole === "SUPER_ADMIN" || adminRole === "OPS";
+
+      const phys = user.creator?.physicalAttributes;
+      const visMap = (phys?.visibility as VisibilityMap) || {};
+      const revealedAttributes: Record<string, { value: string | null; visibility: string }> = {};
+
+      if (phys) {
+        for (const field of [...ATTRIBUTE_FIELD_NAMES, "distinctiveFeatures" as const]) {
+          const val = (phys as any)[field] ?? null;
+          const visibility = visMap[field as AttributeFieldName] || "SEARCHABLE";
+
+          if (visibility === "PRIVATE") {
+            // Strictly forbidden: PRIVATE attributes are never returned
+            revealedAttributes[field] = { value: null, visibility: "PRIVATE" };
+          } else if (visibility === "SEARCHABLE") {
+            revealedAttributes[field] = {
+              value: canSeeSearchable ? val : null,
+              visibility: "SEARCHABLE",
+            };
+          } else {
+            // PUBLIC
+            revealedAttributes[field] = { value: val, visibility: "PUBLIC" };
+          }
+        }
+      }
+
+      return reply.send({
+        unmaskedName,
+        unmaskedEmail,
+        unmaskedPhone,
+        attributes: revealedAttributes,
+        revealedAt: new Date().toISOString(),
+      });
     },
   );
 
   app.post(
     "/api/v1/admin/users/:id/notes",
-    { preHandler: [requirePermission("tickets", "write")] },
-    async (_request: FastifyRequest, reply: FastifyReply) => {
-      return reply.send({ status: "ok", module: "notes" });
+    { preHandler: [requirePermission("user_actions", "write")] },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const { id } = request.params as { id: string };
+      const { body } = (request.body as { body?: string }) || {};
+
+      if (!body || !body.trim()) {
+        return reply.status(400).send({
+          error: "Bad Request",
+          message: "Note body cannot be empty.",
+          statusCode: 400,
+        });
+      }
+
+      const user = await prisma.user.findUnique({ where: { id } });
+      if (!user) {
+        return reply.status(404).send({ error: "User not found." });
+      }
+
+      const note = await prisma.userNote.create({
+        data: {
+          userId: id,
+          adminId: request.adminUser!.id,
+          body: body.trim(),
+        },
+      });
+
+      await audit({
+        adminId: request.adminUser!.id,
+        action: "USER_NOTE_ADDED",
+        targetType: "User",
+        targetId: id,
+        reason: body.trim().slice(0, 100),
+        ip: request.ip,
+      });
+
+      return reply.status(201).send({
+        note: {
+          id: note.id,
+          userId: note.userId,
+          adminId: note.adminId,
+          body: note.body,
+          createdAt: note.createdAt.toISOString(),
+        },
+      });
     },
   );
 
@@ -966,15 +1709,82 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     async (request: FastifyRequest, reply: FastifyReply) => {
       const { id } = request.params as { id: string };
       const { reason } = (request.body as { reason?: string }) || {};
+
+      if (!reason || !reason.trim()) {
+        return reply.status(400).send({
+          error: "Bad Request",
+          message: "A valid non-empty reason is required to suspend a user.",
+          statusCode: 400,
+        });
+      }
+
+      const user = await prisma.user.findUnique({ where: { id } });
+      if (!user) {
+        return reply.status(404).send({ error: "User not found." });
+      }
+
+      await prisma.user.update({
+        where: { id },
+        data: {
+          suspendedAt: new Date(),
+          suspendedReason: reason.trim(),
+        },
+      });
+
+      // Revoke all active sessions on suspension
+      const revokedCount = await revokeAllUserSessions(id);
+
       await audit({
         adminId: request.adminUser!.id,
-        action: "USER_SUSPEND",
+        action: "USER_SUSPENDED",
         targetType: "User",
         targetId: id,
-        reason: reason || "Suspended by admin",
+        reason: reason.trim(),
+        metadata: { revokedCount },
         ip: request.ip,
       });
-      return reply.send({ status: "ok", module: "suspend" });
+
+      return reply.send({
+        success: true,
+        message: "User suspended and all active sessions revoked.",
+        revokedCount,
+      });
+    },
+  );
+
+  app.post(
+    "/api/v1/admin/users/:id/unsuspend",
+    { preHandler: [requirePermission("user_actions", "write")] },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const { id } = request.params as { id: string };
+      const { reason } = (request.body as { reason?: string }) || {};
+
+      const user = await prisma.user.findUnique({ where: { id } });
+      if (!user) {
+        return reply.status(404).send({ error: "User not found." });
+      }
+
+      await prisma.user.update({
+        where: { id },
+        data: {
+          suspendedAt: null,
+          suspendedReason: null,
+        },
+      });
+
+      await audit({
+        adminId: request.adminUser!.id,
+        action: "USER_UNSUSPENDED",
+        targetType: "User",
+        targetId: id,
+        reason: reason?.trim() || "Unsuspended by admin",
+        ip: request.ip,
+      });
+
+      return reply.send({
+        success: true,
+        message: "User unsuspended successfully.",
+      });
     },
   );
 
@@ -983,31 +1793,250 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     { preHandler: [requirePermission("user_actions", "write")] },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const { id } = request.params as { id: string };
+
+      const user = await prisma.user.findUnique({ where: { id } });
+      if (!user) {
+        return reply.status(404).send({ error: "User not found." });
+      }
+
+      const revokedCount = await revokeAllUserSessions(id);
+
       await audit({
         adminId: request.adminUser!.id,
-        action: "USER_REVOKE_SESSIONS",
+        action: "USER_SESSIONS_REVOKED",
         targetType: "User",
         targetId: id,
+        metadata: { revokedCount },
         ip: request.ip,
       });
-      return reply.send({ status: "ok", module: "revoke_sessions" });
+
+      return reply.send({
+        success: true,
+        revokedCount,
+        message: `Revoked ${revokedCount} active session(s).`,
+      });
     },
   );
 
   app.post(
     "/api/v1/admin/users/:id/resend-verification",
+    { preHandler: [requirePermission("user_actions", "write")] },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const { id } = request.params as { id: string };
+
+      const user = await prisma.user.findUnique({ where: { id } });
+      if (!user) {
+        return reply.status(404).send({ error: "User not found." });
+      }
+
+      if (user.emailVerified) {
+        return reply.status(400).send({
+          error: "Bad Request",
+          message: "User email is already verified.",
+          statusCode: 400,
+        });
+      }
+
+      const verifyToken = randomUUID();
+      await cacheProvider.set(`auth:verify:${verifyToken}`, user.id, 24 * 60 * 60);
+      await notifyProvider.email(user.email, "verify_email", { token: verifyToken });
+
+      await audit({
+        adminId: request.adminUser!.id,
+        action: "USER_VERIFICATION_RESENT",
+        targetType: "User",
+        targetId: id,
+        ip: request.ip,
+      });
+
+      return reply.send({
+        success: true,
+        message: "Verification email resent successfully.",
+      });
+    },
+  );
+
+  app.post(
+    "/api/v1/admin/users/:id/tickets",
     { preHandler: [requirePermission("tickets", "write")] },
-    async (_request: FastifyRequest, reply: FastifyReply) => {
-      return reply.send({ status: "ok", module: "resend_verification" });
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const { id } = request.params as { id: string };
+      const { subject, message } = (request.body as { subject?: string; message?: string }) || {};
+
+      if (!subject || !subject.trim() || !message || !message.trim()) {
+        return reply.status(400).send({
+          error: "Bad Request",
+          message: "Subject and message are required to create a ticket.",
+          statusCode: 400,
+        });
+      }
+
+      const user = await prisma.user.findUnique({ where: { id } });
+      if (!user) {
+        return reply.status(404).send({ error: "User not found." });
+      }
+
+      const ticket = await prisma.supportTicket.create({
+        data: {
+          userId: id,
+          subject: subject.trim(),
+          message: message.trim(),
+          status: "OPEN",
+        },
+      });
+
+      await audit({
+        adminId: request.adminUser!.id,
+        action: "TICKET_CREATED_ON_BEHALF",
+        targetType: "SupportTicket",
+        targetId: ticket.id,
+        reason: `Created on behalf of user ${id}: ${subject.trim()}`,
+        ip: request.ip,
+      });
+
+      return reply.status(201).send({
+        ticket: {
+          id: ticket.id,
+          userId: ticket.userId,
+          subject: ticket.subject,
+          message: ticket.message,
+          status: ticket.status,
+          createdAt: ticket.createdAt.toISOString(),
+        },
+      });
     },
   );
 
   app.post(
     "/api/v1/admin/users/tags",
     { preHandler: [requirePermission("user_actions", "write")] },
-    async (_request: FastifyRequest, reply: FastifyReply) => {
-      return reply.send({ status: "ok", module: "tags" });
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const { userIds, tag, action } =
+        (request.body as {
+          userIds?: string[];
+          tag?: string;
+          action?: "ADD" | "REMOVE";
+        }) || {};
+
+      if (!Array.isArray(userIds) || userIds.length === 0) {
+        return reply.status(400).send({
+          error: "Bad Request",
+          message: "A non-empty userIds array is required.",
+          statusCode: 400,
+        });
+      }
+
+      if (!tag || !tag.trim()) {
+        return reply.status(400).send({
+          error: "Bad Request",
+          message: "A non-empty tag is required.",
+          statusCode: 400,
+        });
+      }
+
+      if (action !== "ADD" && action !== "REMOVE") {
+        return reply.status(400).send({
+          error: "Bad Request",
+          message: 'Action must be either "ADD" or "REMOVE".',
+          statusCode: 400,
+        });
+      }
+
+      const cleanTag = tag.trim();
+
+      if (action === "ADD") {
+        for (const uid of userIds) {
+          await prisma.userTag.upsert({
+            where: { userId_tag: { userId: uid, tag: cleanTag } },
+            create: {
+              userId: uid,
+              tag: cleanTag,
+              createdById: request.adminUser!.id,
+            },
+            update: {},
+          });
+        }
+
+        await audit({
+          adminId: request.adminUser!.id,
+          action: "USER_TAG_BULK_APPLIED",
+          targetType: "UserTag",
+          targetId: cleanTag,
+          reason: `Bulk applied tag "${cleanTag}" to ${userIds.length} users.`,
+          metadata: { userIds, count: userIds.length },
+          ip: request.ip,
+        });
+      } else {
+        const deleted = await prisma.userTag.deleteMany({
+          where: {
+            tag: cleanTag,
+            userId: { in: userIds },
+          },
+        });
+
+        await audit({
+          adminId: request.adminUser!.id,
+          action: "USER_TAG_BULK_REMOVED",
+          targetType: "UserTag",
+          targetId: cleanTag,
+          reason: `Bulk removed tag "${cleanTag}" from ${userIds.length} users.`,
+          metadata: { userIds, count: deleted.count },
+          ip: request.ip,
+        });
+      }
+
+      return reply.send({
+        success: true,
+        count: userIds.length,
+        action,
+        tag: cleanTag,
+      });
     },
+  );
+
+  // ── Media Previews (Signed URLs) ──────────────────────────────────────────
+  const handleMediaSignedUrl = async (request: FastifyRequest, reply: FastifyReply) => {
+    const { id } = request.params as { id: string };
+
+    const media = await prisma.mediaAsset.findUnique({ where: { id } });
+    if (!media) {
+      return reply.status(404).send({ error: "Media asset not found." });
+    }
+
+    // Audited as MEDIA_VIEWED (PRD M3.2 / AC3 / Phase A5 item 4)
+    await audit({
+      adminId: request.adminUser!.id,
+      action: "MEDIA_VIEWED",
+      targetType: "MediaAsset",
+      targetId: id,
+      ip: request.ip,
+    });
+
+    // 5-minute signed URL
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+    const signature = createHmac("sha256", env.JWT_ACCESS_SECRET)
+      .update(`${media.id}:${expiresAt}`)
+      .digest("hex");
+    const signedUrl = `${media.url}?exp=${encodeURIComponent(expiresAt)}&sig=${signature}`;
+
+    return reply.send({
+      id: media.id,
+      kind: media.kind,
+      signedUrl,
+      expiresAt,
+    });
+  };
+
+  app.get(
+    "/api/v1/admin/media/:id/signed-url",
+    { preHandler: [requirePermission("users", "read")] },
+    handleMediaSignedUrl,
+  );
+
+  app.post(
+    "/api/v1/admin/media/:id/signed-url",
+    { preHandler: [requirePermission("users", "read")] },
+    handleMediaSignedUrl,
   );
 
   // ── M4/M5 Bookings & Order Rooms ─────────────────────────────────────────

@@ -288,6 +288,360 @@ export class AdminClient {
     const qs = params.toString();
     return this.request<FeedResponse>(`/api/v1/admin/feed${qs ? `?${qs}` : ""}`);
   }
+
+  // ── M3 Users & Directory ──────────────────────────────────────────────────
+  async getUsers(filters?: UserListFilterOptions): Promise<UserListResponse> {
+    const params = new URLSearchParams();
+    if (filters?.search) params.set("search", filters.search);
+    if (filters?.userType && filters.userType !== "ALL") params.set("userType", filters.userType);
+    if (filters?.verification) params.set("verification", filters.verification);
+    if (filters?.authProvider) params.set("authProvider", filters.authProvider);
+    if (filters?.accountOrigin) params.set("accountOrigin", filters.accountOrigin);
+    if (filters?.country) params.set("country", filters.country);
+    if (filters?.cohortTag) params.set("cohortTag", filters.cohortTag);
+    if (filters?.signupDateFrom) params.set("signupDateFrom", filters.signupDateFrom);
+    if (filters?.signupDateTo) params.set("signupDateTo", filters.signupDateTo);
+    if (filters?.lastActiveFrom) params.set("lastActiveFrom", filters.lastActiveFrom);
+    if (filters?.lastActiveTo) params.set("lastActiveTo", filters.lastActiveTo);
+    if (filters?.hasBooking) params.set("hasBooking", filters.hasBooking);
+    if (filters?.hasEarnings) params.set("hasEarnings", filters.hasEarnings);
+    if (filters?.suspended && filters.suspended !== "ALL") params.set("suspended", filters.suspended);
+    if (filters?.cursor) params.set("cursor", filters.cursor);
+    if (filters?.limit) params.set("limit", filters.limit.toString());
+    if (filters?.sort) params.set("sort", filters.sort);
+    if (filters?.order) params.set("order", filters.order);
+    if (filters?.includeTestUsers) params.set("includeTestUsers", "true");
+
+    const qs = params.toString();
+    return this.request<UserListResponse>(`/api/v1/admin/users${qs ? `?${qs}` : ""}`);
+  }
+
+  async getUser(id: string): Promise<User360Response> {
+    return this.request<User360Response>(`/api/v1/admin/users/${id}`);
+  }
+
+  async revealUser(id: string, reason: string): Promise<UserRevealResponse> {
+    return this.request<UserRevealResponse>(`/api/v1/admin/users/${id}/reveal`, {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  async addUserNote(id: string, body: string): Promise<{ note: any }> {
+    return this.request<{ note: any }>(`/api/v1/admin/users/${id}/notes`, {
+      method: "POST",
+      body: JSON.stringify({ body }),
+    });
+  }
+
+  async suspendUser(id: string, reason: string): Promise<{ success: boolean; message: string; revokedCount: number }> {
+    return this.request<{ success: boolean; message: string; revokedCount: number }>(
+      `/api/v1/admin/users/${id}/suspend`,
+      {
+        method: "POST",
+        body: JSON.stringify({ reason }),
+      },
+    );
+  }
+
+  async unsuspendUser(id: string, reason?: string): Promise<{ success: boolean; message: string }> {
+    return this.request<{ success: boolean; message: string }>(
+      `/api/v1/admin/users/${id}/unsuspend`,
+      {
+        method: "POST",
+        body: JSON.stringify({ reason }),
+      },
+    );
+  }
+
+  async revokeUserSessions(id: string): Promise<{ success: boolean; revokedCount: number; message: string }> {
+    return this.request<{ success: boolean; revokedCount: number; message: string }>(
+      `/api/v1/admin/users/${id}/revoke-sessions`,
+      {
+        method: "POST",
+      },
+    );
+  }
+
+  async resendUserVerification(id: string): Promise<{ success: boolean; message: string }> {
+    return this.request<{ success: boolean; message: string }>(
+      `/api/v1/admin/users/${id}/resend-verification`,
+      {
+        method: "POST",
+      },
+    );
+  }
+
+  async createUserTicket(
+    id: string,
+    data: { subject: string; message: string },
+  ): Promise<{ ticket: any }> {
+    return this.request<{ ticket: any }>(`/api/v1/admin/users/${id}/tickets`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async bulkUpdateUserTags(
+    userIds: string[],
+    tag: string,
+    action: "ADD" | "REMOVE",
+  ): Promise<{ success: boolean; count: number; action: string; tag: string }> {
+    return this.request<{ success: boolean; count: number; action: string; tag: string }>(
+      "/api/v1/admin/users/tags",
+      {
+        method: "POST",
+        body: JSON.stringify({ userIds, tag, action }),
+      },
+    );
+  }
+
+  async getMediaSignedUrl(
+    mediaId: string,
+  ): Promise<{ id: string; kind: string; signedUrl: string; expiresAt: string }> {
+    return this.request<{ id: string; kind: string; signedUrl: string; expiresAt: string }>(
+      `/api/v1/admin/media/${mediaId}/signed-url`,
+    );
+  }
+}
+
+export interface UserListItem {
+  id: string;
+  name: string;
+  email: string;
+  maskedEmail: string;
+  phone: string;
+  type: "TALENT" | "CLIENT";
+  userType: "TALENT" | "CLIENT";
+  authProvider: string;
+  accountOrigin: string;
+  signedUp: string;
+  createdAt: string;
+  lastActive: string | null;
+  lastActiveAt: string | null;
+  country: string | null;
+  source: string;
+  verification: string;
+  bookings: number;
+  tags: string[];
+  suspended: boolean;
+  suspendedAt: string | null;
+  suspendedReason: string | null;
+}
+
+export interface UserListFilterOptions {
+  search?: string;
+  userType?: "ALL" | "TALENT" | "CLIENT";
+  verification?: string;
+  authProvider?: string;
+  accountOrigin?: string;
+  country?: string;
+  cohortTag?: string;
+  signupDateFrom?: string;
+  signupDateTo?: string;
+  lastActiveFrom?: string;
+  lastActiveTo?: string;
+  hasBooking?: string;
+  hasEarnings?: string;
+  suspended?: "ALL" | "true" | "false";
+  cursor?: string;
+  limit?: number;
+  sort?: "createdAt" | "lastActiveAt";
+  order?: "asc" | "desc";
+  includeTestUsers?: boolean;
+}
+
+export interface UserListResponse {
+  users: UserListItem[];
+  nextCursor: string | null;
+  hasMore: boolean;
+  totalCount: number;
+}
+
+export interface User360Response {
+  overview: {
+    id: string;
+    name: string;
+    email: string;
+    phone: string;
+    userType: "TALENT" | "CLIENT";
+    authProvider: string;
+    accountOrigin: string;
+    createdAt: string;
+    lastActiveAt: string | null;
+    suspended: boolean;
+    suspendedAt: string | null;
+    suspendedReason: string | null;
+    acquisition: {
+      firstSeenAt: string | null;
+      landingPath: string | null;
+      referrerDomain: string | null;
+      utmSource: string | null;
+      utmMedium: string | null;
+      utmCampaign: string | null;
+      referralCodeUsed: string | null;
+      signupCountry: string | null;
+      signupDeviceClass: string | null;
+    } | null;
+    tags: string[];
+    notes: Array<{
+      id: string;
+      adminId: string;
+      body: string;
+      createdAt: string;
+    }>;
+  };
+  profile: {
+    name: string;
+    userType: "TALENT" | "CLIENT";
+    niche?: string;
+    location?: string;
+    bio?: string | null;
+    avatarUrl?: string | null;
+    badges?: { celebrityBadge: boolean };
+    styleTags?: string[];
+    verification?: string;
+    mediaKitMode?: string;
+    rateCards?: Array<{
+      id: string;
+      serviceTitle: string;
+      tier?: string;
+      priceAmount?: number;
+      currency?: string;
+    }>;
+    availabilitySummary?: { hasCalendarConnected: boolean };
+    media?: Array<{
+      id: string;
+      kind: string;
+      url: string;
+      sizeBytes: number;
+      durationSec: number | null;
+      taggingStatus: string;
+      createdAt: string;
+      previewUrl: string;
+    }>;
+    attributes?: {
+      completeness: {
+        filled: number;
+        total: number;
+        percentage: number;
+      };
+      values: Record<string, { value: string | null; visibility: string }>;
+    };
+    orgName?: string | null;
+    orgType?: string | null;
+  };
+  calendar: {
+    connection: {
+      connected: boolean;
+      provider: string | null;
+      connectedAt: string | null;
+    };
+  };
+  bookings: Array<{
+    id: string;
+    engagementType: string;
+    slotDate: string;
+    slotStart: string;
+    slotEnd: string;
+    baseAmount: number;
+    currency: string;
+    talentFeeAmount: number;
+    clientFeeAmount: number;
+    state: string;
+    origin: string;
+    createdAt: string;
+    otherPartyName: string;
+  }>;
+  projects: Array<{
+    id: string;
+    briefId?: string;
+    projectName?: string;
+    projectType?: string;
+    budgetAmount?: number;
+    budgetCurrency?: string;
+    pitch?: string | null;
+    status: string;
+    applicantCap?: number | null;
+    applicationsOpen?: boolean;
+    applicationCount?: number;
+    createdAt: string;
+  }>;
+  money: {
+    label: string;
+    byCurrency: Record<
+      string,
+      {
+        currency: string;
+        earned: number;
+        escrowHeld: number;
+        withdrawn: number;
+        pendingWithdrawal: number;
+        feesPaid: number;
+        totalSpend: number;
+      }
+    >;
+    withdrawals: Array<{
+      id: string;
+      amount: number;
+      currency: string;
+      bankName: string;
+      accountNumber: string;
+      accountName: string;
+      status: string;
+      flagged: boolean;
+      flagReason: string | null;
+      createdAt: string;
+    }>;
+  };
+  notifications: Array<{
+    id: string;
+    kind: string;
+    createdAt: string;
+    readAt: string | null;
+    isRead: boolean;
+    payload: any;
+  }>;
+  activity: Array<{
+    id: string;
+    occurredAt: string;
+    name: string;
+    source: string;
+    path: string | null;
+    country: string | null;
+    deviceClass: string | null;
+    props: any;
+  }>;
+  support: {
+    tickets: Array<{
+      id: string;
+      subject: string;
+      message: string;
+      status: string;
+      createdAt: string;
+    }>;
+  };
+  auth: {
+    authProvider: string;
+    supabaseUserId: string | null;
+    activeSessionCount: number;
+    authEvents: Array<{
+      id: string;
+      provider: string;
+      event: string;
+      ipHash: string | null;
+      userAgent: string | null;
+      createdAt: string;
+    }>;
+  };
+}
+
+export interface UserRevealResponse {
+  unmaskedName: string;
+  unmaskedEmail: string;
+  unmaskedPhone: string | null;
+  attributes: Record<string, { value: string | null; visibility: string }>;
+  revealedAt: string;
 }
 
 export const adminClient = new AdminClient();

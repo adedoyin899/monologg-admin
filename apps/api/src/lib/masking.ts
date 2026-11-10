@@ -65,3 +65,15 @@ export function maskPhone(phone: string | null | undefined): string {
   return `${prefix}***${suffix}`;
 }
 
+/**
+ * Masks a bank account number, preserving only the last 4 digits.
+ * e.g. `0123456789` -> `******6789`
+ */
+export function maskAccount(account: string | null | undefined): string {
+  if (!account || account.length < 4) {
+    return "******";
+  }
+  return `******${account.trim().slice(-4)}`;
+}
+
+

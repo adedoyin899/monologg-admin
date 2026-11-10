@@ -2,6 +2,8 @@ import argon2 from "argon2";
 import jwt from "jsonwebtoken";
 import { createHash } from "node:crypto";
 import { env } from "../config/env.js";
+import { prisma } from "../db/client.js";
+import { cacheProvider } from "../providers/cache.js";
 
 // ---------------------------------------------------------------------------
 // Authentication Services
@@ -77,4 +79,33 @@ export function verifyAccessToken(token: string): AccessTokenPayload {
  */
 export function verifyRefreshToken(token: string): RefreshTokenPayload {
   return jwt.verify(token, env.JWT_REFRESH_SECRET) as RefreshTokenPayload;
+}
+
+/**
+ * Revokes all active refresh tokens for a user across the platform
+ * and denylists their hashes in the cache. Used for security revocation,
+ * suspension, and password resets.
+ */
+export async function revokeAllUserSessions(userId: string): Promise<number> {
+  const activeTokens = await prisma.refreshToken.findMany({
+    where: { userId, revokedAt: null },
+    select: { id: true, tokenHash: true },
+  });
+
+  if (activeTokens.length === 0) return 0;
+
+  await prisma.refreshToken.updateMany({
+    where: { userId, revokedAt: null },
+    data: { revokedAt: new Date() },
+  });
+
+  for (const token of activeTokens) {
+    if (token.tokenHash) {
+      await cacheProvider
+        .set(`auth:denylist:${token.tokenHash}`, "revoked", 30 * 24 * 60 * 60)
+        .catch(() => {});
+    }
+  }
+
+  return activeTokens.length;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useTransition, useCallback } from "react";
+import React, { useEffect, useState, useTransition, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import {
   Users,
@@ -23,7 +23,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { adminClient, type OverviewResponse } from "@/lib/admin-client";
 import { useAuth } from "@/lib/auth-context";
 
-export default function OverviewPage() {
+function OverviewContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -709,3 +709,12 @@ export default function OverviewPage() {
     </div>
   );
 }
+
+export default function OverviewPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-sm text-gray-500">Loading overview...</div>}>
+      <OverviewContent />
+    </Suspense>
+  );
+}
+

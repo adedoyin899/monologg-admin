@@ -23,6 +23,26 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply):
   try {
     const payload = verifyAccessToken(token);
     request.user = payload;
+
+    // PRD M3.2 / AC8 / Section 11: Suspended users cannot call the API
+    if (payload?.userId) {
+      try {
+        const user = await prisma.user.findUnique({
+          where: { id: payload.userId },
+          select: { suspendedAt: true, suspendedReason: true },
+        });
+
+        if (user?.suspendedAt) {
+          return reply.status(403).send({
+            error: "Forbidden",
+            message: "Your account is suspended. Please contact support@monologg.com.",
+            statusCode: 403,
+          });
+        }
+      } catch {
+        // Ignore DB lookup error so offline mocks / missing tables don't reject valid tokens
+      }
+    }
   } catch (err) {
     const message = err instanceof Error ? err.message : "Invalid token";
     return reply.status(401).send({

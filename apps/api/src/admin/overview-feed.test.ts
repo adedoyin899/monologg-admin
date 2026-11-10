@@ -343,7 +343,7 @@ describe("Phase A4: Overview, Live Feed and KPIs (PRD M2)", () => {
         { state: "PAYMENT_RELEASED", _count: { id: 5 } },
       ] as any);
 
-      vi.mocked(adminRoPrisma.booking.findMany).mockImplementation((args: any) => {
+      vi.mocked(adminRoPrisma.booking.findMany as any).mockImplementation((args: any) => {
         if (args?.select?.currency) {
           return Promise.resolve([
             { createdAt: new Date(), currency: "NGN", baseAmount: 25000000 },
@@ -538,7 +538,7 @@ describe("Phase A4: Overview, Live Feed and KPIs (PRD M2)", () => {
         },
       ];
 
-      vi.mocked(adminRoPrisma.productEvent.findMany).mockImplementation((args: any) => {
+      vi.mocked(adminRoPrisma.productEvent.findMany as any).mockImplementation((args: any) => {
         if (args?.where?.id?.lt) {
           // Page 2 request with cursor
           return Promise.resolve(eventBatch.filter((e) => e.id < args.where.id.lt) as any);

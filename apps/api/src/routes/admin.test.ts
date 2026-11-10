@@ -37,6 +37,11 @@ vi.mock("../db/client.js", () => {
       },
       user: {
         findUnique: vi.fn(),
+        update: vi.fn().mockResolvedValue({ id: "usr-1" }),
+      },
+      refreshToken: {
+        findMany: vi.fn().mockResolvedValue([]),
+        updateMany: vi.fn().mockResolvedValue({ count: 0 }),
       },
       $queryRaw: vi.fn(),
     },
@@ -46,7 +51,16 @@ vi.mock("../db/client.js", () => {
 vi.mock("../db/adminRoClient.js", () => {
   return {
     adminRoPrisma: {
-      user: { findMany: vi.fn().mockResolvedValue([]), count: vi.fn().mockResolvedValue(0) },
+      user: {
+        findMany: vi.fn().mockResolvedValue([]),
+        findUnique: vi.fn().mockResolvedValue({
+          id: "usr-1",
+          email: "usr-1@example.com",
+          creator: null,
+          client: null,
+        }),
+        count: vi.fn().mockResolvedValue(0),
+      },
       userTag: { findMany: vi.fn().mockResolvedValue([]) },
       creator: { count: vi.fn().mockResolvedValue(0) },
       client: { count: vi.fn().mockResolvedValue(0) },
@@ -113,6 +127,12 @@ describe("Phase A1: Admin Foundation Routes & Auth", () => {
     vi.mocked(prisma.adminSession.findFirst).mockResolvedValue(session as any);
     vi.mocked(prisma.adminSession.update).mockResolvedValue(session as any);
     vi.mocked(prisma.adminAuditLog.create).mockResolvedValue({ id: "audit-1" } as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      id: "usr-1",
+      email: "usr-1@example.com",
+      creator: null,
+      client: null,
+    } as any);
 
     return { admin, session };
   }
