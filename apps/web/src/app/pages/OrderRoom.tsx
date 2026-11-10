@@ -87,6 +87,37 @@ export function OrderRoom() {
   const [showOrderInfoModal, setShowOrderInfoModal] = useState(false);
   const [paymentReleased, setPaymentReleased] = useState(false);
 
+  // Dispute workflow state (PRD M8, Phase A9)
+  const [disputeReason, setDisputeReason] = useState("NOT_DELIVERED");
+  const [disputeDesc, setDisputeDesc] = useState("");
+  const [isSubmittingDispute, setIsSubmittingDispute] = useState(false);
+  const [isDisputed, setIsDisputed] = useState(false);
+  const [disputeSuccessMsg, setDisputeSuccessMsg] = useState<string | null>(null);
+
+  const handleSubmitDispute = async () => {
+    if (!disputeDesc.trim()) return;
+    setIsSubmittingDispute(true);
+    try {
+      const res = await apiClient.openBookingDispute(orderId, {
+        reason: disputeReason,
+        description: disputeDesc.trim(),
+      });
+      setIsDisputed(true);
+      setShowDisputeModal(false);
+      setDisputeSuccessMsg("Dispute raised. Escrow funds remain securely locked while mediation reviews the evidence.");
+      trackEvent("dispute_opened", {
+        disputeId: res.dispute?.id,
+        bookingId: orderId,
+        reason: disputeReason,
+        openedByRole: role === "client" ? "CLIENT" : "TALENT",
+      });
+    } catch (err: any) {
+      alert(err.message || "Failed to raise dispute");
+    } finally {
+      setIsSubmittingDispute(false);
+    }
+  };
+
   // Desktop Contextual Inspector Rail visibility
   const [showInspectorRail, setShowInspectorRail] = useState(true);
   const [railScriptExpanded, setRailScriptExpanded] = useState(false);
@@ -920,6 +951,18 @@ export function OrderRoom() {
                 })}
               </div>
             </div>
+
+            {/* Dispute Status Banner (PRD M8 AC3) */}
+            {(isDisputed || disputeSuccessMsg) && (
+              <div className="bg-amber-500/10 border border-amber-500/20 text-amber-900 dark:text-amber-200 px-3.5 py-2.5 rounded-xl text-xs flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                  <span>
+                    <strong>Dispute under review:</strong> Escrow funds remain securely locked. Monologg mediation staff are reviewing statements, files, and order room conversation.
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* ── Unified Contextual Command & Alignment Bar (Shown in Messages View Only) ── */}
             {workspaceTab === "chat" && (() => {
@@ -2328,7 +2371,7 @@ export function OrderRoom() {
         defaultCategory="BOOKING"
       />
 
-      {/* Dispute Modal */}
+      {/* Dispute Modal (Phase A9: PRD M8) */}
       <AnimatePresence>
         {showDisputeModal && (
           <Modal onClose={() => setShowDisputeModal(false)} strength="strong">
@@ -2336,29 +2379,67 @@ export function OrderRoom() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-sm rounded-2xl p-6 bg-white dark:bg-[#18181b] border border-zinc-200 dark:border-zinc-800 shadow-xl"
+              className="w-full max-w-md rounded-2xl p-6 bg-white dark:bg-[#18181b] border border-zinc-200 dark:border-zinc-800 shadow-xl"
               onClick={e => e.stopPropagation()}
             >
-              <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-100 dark:border-amber-900/50">
-                <AlertTriangle className="w-6 h-6 text-amber-600 dark:text-amber-500" />
+              <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 bg-red-50 dark:bg-red-950/40 border border-red-100 dark:border-red-900/50">
+                <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-500" />
               </div>
-              <h3 className="font-display text-lg font-semibold text-center mb-1 text-zinc-900 dark:text-zinc-100">Raise a Dispute</h3>
-              <p className="text-sm text-center text-zinc-500 dark:text-zinc-400 mb-4">
-                Our mediation team will review order evidence. Escrow stays locked until resolved.
+              <h3 className="font-display text-lg font-semibold text-center mb-1 text-zinc-900 dark:text-zinc-100">Open a Dispute</h3>
+              <p className="text-xs text-center text-zinc-500 dark:text-zinc-400 mb-4">
+                Escrow funds remain securely held. Monologg mediation staff will review order evidence and conversation history.
               </p>
-              <textarea
-                className="w-full px-4 py-3 rounded-xl text-sm border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 mb-4 resize-none focus:outline-none focus:ring-2 focus:ring-red-500/30"
-                rows={4}
-                placeholder="Describe the issue in detail…"
-              />
+
+              <div className="space-y-3.5 mb-4">
+                <div>
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                    Dispute Reason
+                  </label>
+                  <select
+                    value={disputeReason}
+                    onChange={(e) => setDisputeReason(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl text-sm border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500/30"
+                  >
+                    <option value="NOT_DELIVERED">Deliverables not provided</option>
+                    <option value="QUALITY">Quality does not meet agreement</option>
+                    <option value="NO_SHOW">No-show for scheduled live session</option>
+                    <option value="NOT_AS_DESCRIBED">Deliverable differs significantly from brief</option>
+                    <option value="PAYMENT">Payment or calculation dispute</option>
+                    <option value="OTHER">Other issue</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                    Description of Issue
+                  </label>
+                  <textarea
+                    value={disputeDesc}
+                    onChange={(e) => setDisputeDesc(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl text-sm border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 resize-none focus:outline-none focus:ring-2 focus:ring-red-500/30"
+                    rows={4}
+                    placeholder="Provide details on what went wrong, including timelines or expectations agreed upon…"
+                  />
+                </div>
+
+                {/* Privacy & Conversation Review Disclosure (PRD M8 AC2) */}
+                <div className="p-3 bg-zinc-50 dark:bg-zinc-900/70 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs text-zinc-600 dark:text-zinc-400">
+                  <div className="font-medium text-zinc-900 dark:text-zinc-200 mb-0.5">Mediation Review Disclosure</div>
+                  Conversations and order room messages may be reviewed by Monologg staff to adjudicate this dispute.
+                </div>
+              </div>
+
               <div className="flex gap-2.5">
-                <Button variant="secondary" className="flex-1 h-10 text-sm" onClick={() => setShowDisputeModal(false)}>Cancel</Button>
+                <Button variant="secondary" className="flex-1 h-10 text-sm" onClick={() => setShowDisputeModal(false)}>
+                  Cancel
+                </Button>
                 <button
                   type="button"
-                  className="flex-1 h-10 rounded-xl text-sm font-semibold bg-red-600 hover:bg-red-700 text-white transition-all shadow-sm active:scale-[0.98] cursor-pointer"
-                  onClick={() => setShowDisputeModal(false)}
+                  disabled={!disputeDesc.trim() || isSubmittingDispute}
+                  className="flex-1 h-10 rounded-xl text-sm font-semibold bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white transition-all shadow-sm active:scale-[0.98] cursor-pointer"
+                  onClick={handleSubmitDispute}
                 >
-                  Submit
+                  {isSubmittingDispute ? "Opening…" : "Submit Dispute"}
                 </button>
               </div>
             </motion.div>

@@ -43,6 +43,12 @@ vi.mock("../db/client.js", () => {
         findMany: vi.fn().mockResolvedValue([]),
         updateMany: vi.fn().mockResolvedValue({ count: 0 }),
       },
+      dispute: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        findMany: vi.fn().mockResolvedValue([]),
+        update: vi.fn().mockResolvedValue({ id: "disp-1", status: "RESOLVED" }),
+        count: vi.fn().mockResolvedValue(0),
+      },
       $queryRaw: vi.fn(),
     },
   };
@@ -74,6 +80,7 @@ vi.mock("../db/adminRoClient.js", () => {
       withdrawalRequest: { findMany: vi.fn().mockResolvedValue([]), count: vi.fn().mockResolvedValue(0) },
       productEvent: { findMany: vi.fn().mockResolvedValue([]), count: vi.fn().mockResolvedValue(0) },
       supportTicket: { findMany: vi.fn().mockResolvedValue([]), count: vi.fn().mockResolvedValue(0) },
+      dispute: { findMany: vi.fn().mockResolvedValue([]), findFirst: vi.fn().mockResolvedValue(null), count: vi.fn().mockResolvedValue(0) },
       alertEvent: { count: vi.fn().mockResolvedValue(0), findMany: vi.fn().mockResolvedValue([]) },
       $queryRaw: vi.fn(),
     },

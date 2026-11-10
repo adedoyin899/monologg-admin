@@ -9,5 +9,6 @@ export * from "./orderMessage.js";
 export * from "./legal.js";
 export * from "./transaction.js";
 export * from "./support.js";
+export * from "./dispute.js";
 export * from "./application.js";
 export * from "./publicStorefront.js";

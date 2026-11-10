@@ -1279,6 +1279,43 @@ export const apiClient = {
       body: JSON.stringify({ email, source }),
     });
   },
+
+  /**
+   * Phase A9: Open a dispute for a booking after ESCROW_LOCKED.
+   */
+  async openBookingDispute(
+    bookingId: string,
+    input: { reason: string; description: string },
+  ): Promise<{ dispute: any; state: string }> {
+    if (API_MODE !== "live") {
+      return {
+        dispute: {
+          id: `dsp-${Date.now()}`,
+          bookingId,
+          reason: input.reason,
+          description: input.description,
+          status: "OPEN",
+          openedAt: new Date().toISOString(),
+        },
+        state: "DISPUTED",
+      };
+    }
+    return request<{ dispute: any; state: string }>(`/bookings/${bookingId}/dispute`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+
+  async getBookingDispute(bookingId: string): Promise<{ dispute: any; bookingState: string } | null> {
+    if (API_MODE !== "live") {
+      return null;
+    }
+    try {
+      return await request<{ dispute: any; bookingState: string }>(`/bookings/${bookingId}/dispute`);
+    } catch {
+      return null;
+    }
+  },
 };
 
 /** The raw Booking row POST /bookings returns — not the display-mapped Order

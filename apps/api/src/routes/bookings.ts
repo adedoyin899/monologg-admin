@@ -8,6 +8,7 @@ import { paginationQuerySchema, paginate, toSkipTake } from "../lib/pagination.j
 import { formatMoney } from "../lib/display.js";
 import { createBooking, transitionBooking, IllegalBookingTransitionError } from "../services/booking.js";
 import { SlotUnavailableError } from "../services/availability.js";
+import { openDispute, DisputeError } from "../services/disputes.js";
 import {
   initEscrowForBooking,
   releaseEscrowForBooking,
@@ -384,11 +385,35 @@ export async function bookingRoutes(app: FastifyInstance): Promise<void> {
     },
   );
 
-  // PATCH /bookings/:id/dispute — either participant can flag a dispute while
-  // funds are held. No dedicated admin/resolution flow exists yet (not part of
-  // any phase through Phase 6) — refund below is a placeholder resolution path
-  // reachable by either participant until real dispute adjudication lands.
-  app.patch(
+  // PATCH & POST /bookings/:id/dispute — either participant can flag a dispute while
+  // funds are held. Moves booking to DISPUTED, creates Dispute record & linked SupportTicket,
+  // notifies counterparty, and emits dispute_opened.
+  const handleDispute = async (request: FastifyRequest, reply: FastifyReply) => {
+    const { id } = request.params as { id: string };
+    const body = (request.body as any) ?? {};
+
+    try {
+      const result = await openDispute(id, request.user!.userId, body);
+      return reply.send({
+        ...result.booking,
+        dispute: result.dispute,
+      });
+    } catch (err) {
+      if (err instanceof DisputeError) {
+        return reply.status(err.statusCode).send({ error: err.name, message: err.message, statusCode: err.statusCode });
+      }
+      if (err instanceof IllegalBookingTransitionError) {
+        return reply.status(409).send({ error: "Conflict", message: err.message, statusCode: 409 });
+      }
+      throw err;
+    }
+  };
+
+  app.patch("/api/v1/bookings/:id/dispute", { preHandler: [requireAuth] }, handleDispute);
+  app.post("/api/v1/bookings/:id/dispute", { preHandler: [requireAuth] }, handleDispute);
+
+  // GET /bookings/:id/dispute — view dispute details for a booking
+  app.get(
     "/api/v1/bookings/:id/dispute",
     { preHandler: [requireAuth] },
     async (request: FastifyRequest, reply: FastifyReply) => {
@@ -401,15 +426,8 @@ export async function bookingRoutes(app: FastifyInstance): Promise<void> {
         return reply.status(403).send({ error: "Forbidden", message: "You are not a participant in this booking", statusCode: 403 });
       }
 
-      try {
-        const updated = await transitionBooking(id, "DISPUTED");
-        return reply.send(updated);
-      } catch (err) {
-        if (err instanceof IllegalBookingTransitionError) {
-          return reply.status(409).send({ error: "Conflict", message: err.message, statusCode: 409 });
-        }
-        throw err;
-      }
+      const dispute = await prisma.dispute.findUnique({ where: { bookingId: id } });
+      return reply.send({ dispute, bookingState: booking.state });
     },
   );
 

@@ -121,3 +121,4 @@ export function AlphaFeedbackPrompt({ compact = false }: AlphaFeedbackPromptProp
     </div>
   );
 }
+

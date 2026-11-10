@@ -116,3 +116,4 @@ export function formatTicketNumber(num?: number | null, fallbackId?: string): st
   }
   return "MNL-0001";
 }
+

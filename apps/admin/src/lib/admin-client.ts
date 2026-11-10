@@ -559,6 +559,75 @@ export class AdminClient {
       body: JSON.stringify(payload),
     });
   }
+
+  // ── Disputes & Conversation Review (PRD M8 / Phase A9) ───────────────────
+  async getDisputes(filters?: {
+    status?: string;
+    search?: string;
+    cursor?: string;
+    limit?: number;
+  }): Promise<DisputeListResponse> {
+    const params = new URLSearchParams();
+    if (filters?.status && filters.status !== "ALL") params.set("status", filters.status);
+    if (filters?.search) params.set("search", filters.search);
+    if (filters?.cursor) params.set("cursor", filters.cursor);
+    if (filters?.limit) params.set("limit", String(filters.limit));
+    const qs = params.toString();
+    return this.request<DisputeListResponse>(`/api/v1/admin/disputes${qs ? `?${qs}` : ""}`);
+  }
+
+  async getDispute(id: string): Promise<DisputeDetailResponse> {
+    return this.request<DisputeDetailResponse>(`/api/v1/admin/disputes/${id}`);
+  }
+
+  async reviewDisputeChat(id: string, reason: string): Promise<DisputeChatReviewResponse> {
+    return this.request<DisputeChatReviewResponse>(`/api/v1/admin/disputes/${id}/review-chat`, {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  async requestDisputeEvidence(
+    id: string,
+    payload: { targetParty: "TALENT" | "CLIENT"; note: string },
+  ): Promise<{ success: boolean; dispute: any }> {
+    return this.request<{ success: boolean; dispute: any }>(`/api/v1/admin/disputes/${id}/request-evidence`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async resolveDispute(
+    id: string,
+    payload: {
+      resolution: "RELEASE_TO_TALENT" | "REFUND_CLIENT" | "SPLIT";
+      resolutionNote: string;
+      splitTalentPct?: number;
+    },
+    idempotencyKey?: string,
+  ): Promise<DisputeResolveResponse> {
+    const headers: Record<string, string> = {};
+    if (idempotencyKey) headers["idempotency-key"] = idempotencyKey;
+    return this.request<DisputeResolveResponse>(`/api/v1/admin/disputes/${id}/resolve`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async approveDispute(
+    id: string,
+    payload?: { resolutionNote?: string },
+    idempotencyKey?: string,
+  ): Promise<DisputeResolveResponse> {
+    const headers: Record<string, string> = {};
+    if (idempotencyKey) headers["idempotency-key"] = idempotencyKey;
+    return this.request<DisputeResolveResponse>(`/api/v1/admin/disputes/${id}/approve`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(payload ?? {}),
+    });
+  }
 }
 
 export interface UserListItem {
@@ -1326,6 +1395,162 @@ export interface CreateTicketOnBehalfPayload {
   priority?: string;
   source?: string;
   bookingId?: string;
+}
+
+// ── Dispute Interfaces (PRD M8 / Phase A9) ──────────────────────────────────
+export interface DisputeListItem {
+  id: string;
+  bookingId: string;
+  openedByUserId: string;
+  openedByRole: "TALENT" | "CLIENT";
+  reason: string;
+  description: string;
+  status: "OPEN" | "UNDER_REVIEW" | "AWAITING_EVIDENCE" | "RESOLVED";
+  resolution?: string | null;
+  splitTalentPct?: number | null;
+  resolutionNote?: string | null;
+  resolvedByAdminId?: string | null;
+  approvedByAdminId?: string | null;
+  openedAt: string;
+  resolvedAt?: string | null;
+  ageHours: number;
+  ageDays: number;
+  isOverdue: boolean;
+  isFourEyesRequired: boolean;
+  booking?: {
+    id: string;
+    state: string;
+    currency: string;
+    baseAmount: number;
+    talentFeeAmount: number;
+    clientFeeAmount: number;
+    creator?: {
+      id: string;
+      userId: string;
+      name: string;
+    };
+    client?: {
+      id: string;
+      userId: string;
+      name: string;
+      orgName?: string | null;
+    };
+    payment?: {
+      id: string;
+      status: string;
+      amount: number;
+      currency: string;
+      provider: string;
+    } | null;
+  } | null;
+}
+
+export interface DisputeListResponse {
+  disputes: DisputeListItem[];
+  nextCursor: string | null;
+  totalCount: number;
+}
+
+export interface DisputeDetailResponse {
+  dispute: {
+    id: string;
+    bookingId: string;
+    openedByUserId: string;
+    openedByRole: "TALENT" | "CLIENT";
+    reason: string;
+    description: string;
+    status: "OPEN" | "UNDER_REVIEW" | "AWAITING_EVIDENCE" | "RESOLVED";
+    resolution?: string | null;
+    splitTalentPct?: number | null;
+    resolutionNote?: string | null;
+    resolvedByAdminId?: string | null;
+    approvedByAdminId?: string | null;
+    evidenceRequestedAt?: string | null;
+    openedAt: string;
+    resolvedAt?: string | null;
+    isOverdue: boolean;
+    fourEyes: {
+      required: boolean;
+      thresholdMinor: number;
+      isApproved: boolean;
+      resolvedByAdminId?: string | null;
+      approvedByAdminId?: string | null;
+    };
+  };
+  booking?: {
+    id: string;
+    state: string;
+    currency: string;
+    baseAmount: number;
+    talentFeeAmount: number;
+    clientFeeAmount: number;
+    slotDate: string;
+    creator?: {
+      id: string;
+      userId: string;
+      name: string;
+    };
+    client?: {
+      id: string;
+      userId: string;
+      name: string;
+      orgName?: string | null;
+    };
+    payment?: {
+      id: string;
+      status: string;
+      amount: number;
+      currency: string;
+      provider: string;
+      providerRef?: string | null;
+      escrowHeld: boolean;
+    } | null;
+  } | null;
+  deliveryFiles: Array<{
+    id: string;
+    senderId: string;
+    content: string;
+    createdAt: string;
+  }>;
+  timeline: Array<{
+    timestamp: string;
+    title: string;
+    detail: string;
+    source: string;
+  }>;
+  linkedTickets: Array<{
+    id: string;
+    number: number;
+    status: string;
+    priority: string;
+    category: string;
+    subject: string;
+    message: string;
+    createdAt: string;
+  }>;
+}
+
+export interface DisputeChatReviewResponse {
+  disputeId: string;
+  bookingId: string;
+  messageCount: number;
+  banner: string;
+  messages: Array<{
+    id: string;
+    senderId: string;
+    kind: string;
+    content: string;
+    createdAt: string;
+  }>;
+}
+
+export interface DisputeResolveResponse {
+  success: boolean;
+  alreadyResolved?: boolean;
+  requiresApproval?: boolean;
+  message?: string;
+  dispute?: any;
+  paymentResult?: any;
 }
 
 export const adminClient = new AdminClient();

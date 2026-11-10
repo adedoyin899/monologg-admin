@@ -347,6 +347,7 @@ model Booking {
   meetUrl         String? // Google Meet live call
   payment         Payment?
   orderRoom       OrderRoom?
+  dispute         Dispute?
   createdAt       DateTime       @default(now())
   // features.md Phase 16 (FA-5): the external, logged-out booking flow.
   // origin=PUBLIC_LINK bookings are created via services/externalBooking.ts —
@@ -630,6 +631,56 @@ model TicketMessage {
   createdAt   DateTime      @default(now())
 
   @@index([ticketId, createdAt])
+}
+
+// =============================================================================
+// Disputes & Mediation (PRD Module M8, Phase A9)
+// =============================================================================
+
+model Dispute {
+  id                  String             @id @default(cuid())
+  bookingId           String             @unique
+  booking             Booking            @relation(fields: [bookingId], references: [id])
+  openedByUserId      String
+  openedByRole        UserType
+  reason              DisputeReason
+  description         String
+  status              DisputeStatus      @default(OPEN)
+  resolution          DisputeResolution?
+  splitTalentPct      Int?               // 0 to 100, only for SPLIT
+  resolutionNote      String?
+  resolvedByAdminId   String?
+  approvedByAdminId   String?            // second approver above the four-eyes threshold
+  evidenceRequestedAt DateTime?
+  openedAt            DateTime           @default(now())
+  resolvedAt          DateTime?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @default(now()) @updatedAt
+
+  @@index([status, openedAt])
+  @@index([bookingId])
+}
+
+enum DisputeReason {
+  NOT_DELIVERED
+  QUALITY
+  NO_SHOW
+  NOT_AS_DESCRIBED
+  PAYMENT
+  OTHER
+}
+
+enum DisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  AWAITING_EVIDENCE
+  RESOLVED
+}
+
+enum DisputeResolution {
+  RELEASE_TO_TALENT
+  REFUND_CLIENT
+  SPLIT
 }
 
 // =============================================================================

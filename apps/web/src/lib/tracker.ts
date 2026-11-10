@@ -30,6 +30,7 @@ export const ALLOWED_WEB_EVENTS: Record<string, readonly string[]> = {
   help_opened: ["category", "bookingId"],
   ticket_created: ["ticketId", "category", "priority", "bookingId"],
   feedback_submitted: ["rating", "hasComment"],
+  dispute_opened: ["disputeId", "bookingId", "reason", "openedByRole"],
   project_viewed: ["briefId", "cap"],
 };
 

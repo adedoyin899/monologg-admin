@@ -69,6 +69,18 @@ const EN_TEMPLATES: Record<string, TemplateRenderer> = {
     subject: `New support ticket: ${data.subject}`,
     body: `Ticket ${data.ticketId} from user ${data.userId}:\n\n${data.message}`,
   }),
+  dispute_opened: (data) => ({
+    subject: `Dispute opened for booking ${data.bookingId}`,
+    body: `A dispute has been opened for booking ${data.bookingId}. Escrow funds remain securely held while our mediation team reviews the evidence. Order room messages and deliverables may be reviewed to resolve this dispute.`,
+  }),
+  dispute_evidence_requested: (data) => ({
+    subject: `Evidence requested for dispute on booking ${data.bookingId}`,
+    body: `Monologg mediation has requested additional evidence for your dispute on booking ${data.bookingId}.\n\nNote: ${data.note || "Please submit requested deliverables or clarifying documentation."}`,
+  }),
+  dispute_resolved: (data) => ({
+    subject: `Dispute resolved for booking ${data.bookingId}`,
+    body: `The dispute for booking ${data.bookingId} has been resolved (${data.outcome}).\n\nResolution note: ${data.note || "Mediation concluded."}`,
+  }),
 };
 
 const LOCALES: Record<string, Record<string, TemplateRenderer>> = {
