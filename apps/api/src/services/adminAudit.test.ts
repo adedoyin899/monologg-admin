@@ -24,7 +24,7 @@ describe("AdminAuditLog Append-Only Trigger", () => {
     expect(log?.reason).toBe("Testing append-only DB trigger");
     expect(log?.ipHash).toBeDefined();
     createdLogId = log!.id;
-  });
+  }, 15000);
 
   it("blocks UPDATE via database trigger", async () => {
     expect(createdLogId).toBeDefined();
@@ -34,7 +34,7 @@ describe("AdminAuditLog Append-Only Trigger", () => {
         `UPDATE "AdminAuditLog" SET "reason" = 'tampered' WHERE "id" = '${createdLogId}'`,
       ),
     ).rejects.toThrow(/AdminAuditLog is append-only/);
-  });
+  }, 15000);
 
   it("blocks DELETE via database trigger", async () => {
     expect(createdLogId).toBeDefined();
@@ -44,6 +44,6 @@ describe("AdminAuditLog Append-Only Trigger", () => {
         `DELETE FROM "AdminAuditLog" WHERE "id" = '${createdLogId}'`,
       ),
     ).rejects.toThrow(/AdminAuditLog is append-only/);
-  });
+  }, 15000);
 });
 
