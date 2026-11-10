@@ -403,6 +403,31 @@ export class AdminClient {
       `/api/v1/admin/media/${mediaId}/signed-url`,
     );
   }
+
+  // ── M5 Bookings & Order Rooms ─────────────────────────────────────────────
+  async getBookings(filters?: BookingListFilterOptions): Promise<BookingListResponse> {
+    const params = new URLSearchParams();
+    if (filters?.search) params.set("search", filters.search);
+    if (filters?.state && filters.state !== "ALL") params.set("state", filters.state);
+    if (filters?.origin && filters.origin !== "ALL") params.set("origin", filters.origin);
+    if (filters?.currency && filters.currency !== "ALL") params.set("currency", filters.currency);
+    if (filters?.niche && filters.niche !== "ALL") params.set("niche", filters.niche);
+    if (filters?.talent) params.set("talent", filters.talent);
+    if (filters?.client) params.set("client", filters.client);
+    if (filters?.dateFrom) params.set("dateFrom", filters.dateFrom);
+    if (filters?.dateTo) params.set("dateTo", filters.dateTo);
+    if (filters?.hasDispute !== undefined) params.set("hasDispute", String(filters.hasDispute));
+    if (filters?.stuck !== undefined) params.set("stuck", String(filters.stuck));
+    if (filters?.cursor) params.set("cursor", filters.cursor);
+    if (filters?.limit) params.set("limit", filters.limit.toString());
+
+    const qs = params.toString();
+    return this.request<BookingListResponse>(`/api/v1/admin/bookings${qs ? `?${qs}` : ""}`);
+  }
+
+  async getBooking(id: string): Promise<BookingDetailResponse> {
+    return this.request<BookingDetailResponse>(`/api/v1/admin/bookings/${id}`);
+  }
 }
 
 export interface UserListItem {
@@ -642,6 +667,190 @@ export interface UserRevealResponse {
   unmaskedPhone: string | null;
   attributes: Record<string, { value: string | null; visibility: string }>;
   revealedAt: string;
+}
+
+export interface BookingListFilterOptions {
+  state?: string;
+  origin?: string;
+  currency?: string;
+  niche?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  talent?: string;
+  client?: string;
+  hasDispute?: string | boolean;
+  stuck?: string | boolean;
+  search?: string;
+  cursor?: string;
+  limit?: number;
+}
+
+export interface BookingListItem {
+  id: string;
+  state: string;
+  origin: string;
+  currency: string;
+  baseAmount: number;
+  clientFeeAmount: number;
+  talentFeeAmount: number;
+  clientTotal: number;
+  talentNet: number;
+  slotDate: string;
+  slotStart: string;
+  slotEnd: string;
+  engagementType: string;
+  recurrence: string | null;
+  meetUrl: string | null;
+  contextNote: string | null;
+  slotHoldExpiresAt: string | null;
+  createdAt: string;
+  talent: {
+    id: string;
+    userId: string;
+    name: string;
+    niche: string;
+    avatarUrl: string | null;
+    referralCode: string | null;
+  };
+  client: {
+    id: string;
+    userId: string;
+    name: string;
+    orgName: string | null;
+    avatarUrl: string | null;
+  };
+  service: {
+    id: string | null;
+    title: string;
+  };
+  payment: {
+    id: string | null;
+    status: string | null;
+    provider: string | null;
+    providerRef: string | null;
+    escrowHeld: boolean;
+    amount: number | null;
+  } | null;
+  ageInState: {
+    ms: number;
+    seconds: number;
+    human: string;
+  };
+  isStuck: boolean;
+  stuckReason: string | null;
+  hasDispute: boolean;
+}
+
+export interface BookingListResponse {
+  bookings: BookingListItem[];
+  nextCursor: string | null;
+  hasMore: boolean;
+  totalCount: number;
+}
+
+export interface BookingTimelineItem {
+  id: string;
+  type: "STATE_CHANGE" | "PAYMENT_EVENT" | "SYSTEM_MESSAGE" | "MILESTONE" | "GAP";
+  title: string;
+  description: string;
+  timestamp: string;
+  actor?: string;
+  source?: string;
+  isGap?: boolean;
+  metadata?: Record<string, unknown>;
+}
+
+export interface OrderRoomMetadata {
+  exists: boolean;
+  totalMessages: number;
+  countsByKind: {
+    TEXT: number;
+    VOICE: number;
+    DOCUMENT: number;
+    CALL: number;
+    SYSTEM: number;
+  };
+  fileCount: number;
+  callLinks: string[];
+  lastActivityAt: string | null;
+}
+
+export interface BookingDetailResponse {
+  booking: {
+    id: string;
+    state: string;
+    origin: string;
+    currency: string;
+    baseAmount: number;
+    clientFeeAmount: number;
+    talentFeeAmount: number;
+    clientTotal: number;
+    talentNet: number;
+    feeBreakdownLabel: string;
+    slotDate: string;
+    slotStart: string;
+    slotEnd: string;
+    engagementType: string;
+    recurrence: string | null;
+    meetUrl: string | null;
+    contextNote: string | null;
+    slotHoldExpiresAt: string | null;
+    createdAt: string;
+    talent: {
+      id: string;
+      userId: string;
+      name: string;
+      email: string;
+      phone: string;
+      niche: string;
+      bio: string | null;
+      avatarUrl: string | null;
+      celebrityBadge: boolean;
+      referralCode: string | null;
+    };
+    client: {
+      id: string;
+      userId: string;
+      name: string;
+      email: string;
+      phone: string;
+      orgName: string | null;
+      orgType: string | null;
+      avatarUrl: string | null;
+    };
+    service: {
+      id: string | null;
+      title: string;
+      deliveryTimeline: number | null;
+    };
+    payment: {
+      id: string | null;
+      status: string | null;
+      provider: string | null;
+      providerRef: string | null;
+      escrowHeld: boolean;
+      amount: number | null;
+      currency: string | null;
+      createdAt: string | null;
+    } | null;
+    ageInState: {
+      ms: number;
+      seconds: number;
+      human: string;
+    };
+    isStuck: boolean;
+    stuckReason: string | null;
+    hasDispute: boolean;
+    canReviewConversation: boolean;
+    reviewDisabledReason: string | null;
+    disputeDetail?: {
+      status: string;
+      subject?: string;
+      ticketId?: string;
+    } | null;
+  };
+  orderRoom: OrderRoomMetadata;
+  timeline: BookingTimelineItem[];
 }
 
 export const adminClient = new AdminClient();

@@ -17,6 +17,11 @@ import {
   type AttributeFieldName,
   type VisibilityMap,
 } from "../../services/attributes.js";
+import {
+  listAdminBookings,
+  getAdminBookingDetail,
+  type BookingFilters,
+} from "../../services/adminBookings.js";
 
 export async function adminRoutes(app: FastifyInstance): Promise<void> {
   // All routes in this plugin are prefixed with /api/v1/admin and require requireAdmin
@@ -2040,20 +2045,62 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
   );
 
   // ── M4/M5 Bookings & Order Rooms ─────────────────────────────────────────
+  const handleGetBookings = async (request: FastifyRequest, reply: FastifyReply) => {
+    const query = request.query as Record<string, string | undefined>;
+    const filters: BookingFilters = {
+      state: query.state,
+      origin: query.origin,
+      currency: query.currency,
+      niche: query.niche,
+      dateFrom: query.dateFrom || query.from,
+      dateTo: query.dateTo || query.to,
+      talent: query.talent,
+      client: query.client,
+      hasDispute: query.hasDispute,
+      stuck: query.stuck,
+      search: query.search || query.q,
+      cursor: query.cursor,
+      limit: query.limit ? parseInt(query.limit, 10) : 50,
+    };
+
+    const result = await listAdminBookings(filters);
+    return reply.send(result);
+  };
+
   app.get(
     "/api/v1/admin/bookings",
     { preHandler: [requirePermission("bookings", "read")] },
-    async (_request: FastifyRequest, reply: FastifyReply) => {
-      return reply.send({ status: "ok", module: "bookings" });
-    },
+    handleGetBookings,
   );
+  app.get(
+    "/admin/bookings",
+    { preHandler: [requirePermission("bookings", "read")] },
+    handleGetBookings,
+  );
+
+  const handleGetBookingDetail = async (request: FastifyRequest, reply: FastifyReply) => {
+    const { id } = request.params as { id: string };
+    const result = await getAdminBookingDetail(id);
+    if (!result) {
+      return reply.status(404).send({
+        error: "Not Found",
+        message: `Booking with ID ${id} not found.`,
+        statusCode: 404,
+      });
+    }
+
+    return reply.send(result);
+  };
 
   app.get(
     "/api/v1/admin/bookings/:id",
     { preHandler: [requirePermission("bookings", "read")] },
-    async (_request: FastifyRequest, reply: FastifyReply) => {
-      return reply.send({ status: "ok", module: "bookings_detail" });
-    },
+    handleGetBookingDetail,
+  );
+  app.get(
+    "/admin/bookings/:id",
+    { preHandler: [requirePermission("bookings", "read")] },
+    handleGetBookingDetail,
   );
 
   app.post(
