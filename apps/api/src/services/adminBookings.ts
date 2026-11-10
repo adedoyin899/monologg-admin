@@ -330,7 +330,10 @@ export async function listAdminBookings(
   const nextCursor = hasMore && items.length > 0 ? items[items.length - 1].id : null;
 
   // Approximate total count
-  const totalCount = await dbClient.booking.count({ where }).catch(() => items.length);
+  const totalCount =
+    typeof dbClient.booking?.count === "function"
+      ? await dbClient.booking.count({ where }).catch(() => items.length)
+      : items.length;
 
   // Fetch RateCards for titles in bulk
   const rateCardIds = Array.from(

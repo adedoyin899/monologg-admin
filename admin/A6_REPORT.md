@@ -95,3 +95,4 @@ Phase A6 implements the full lifecycle management for bookings and order rooms a
 
 **Carry forward:**
 "A6 done. Bookings list and detail with timeline and stuck detection are in. Chat content is not exposed here."
+

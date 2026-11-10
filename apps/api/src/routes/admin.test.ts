@@ -71,7 +71,7 @@ vi.mock("../db/adminRoClient.js", () => {
         groupBy: vi.fn().mockResolvedValue([]),
       },
       payment: { findMany: vi.fn().mockResolvedValue([]), count: vi.fn().mockResolvedValue(0) },
-      withdrawalRequest: { findMany: vi.fn().mockResolvedValue([]) },
+      withdrawalRequest: { findMany: vi.fn().mockResolvedValue([]), count: vi.fn().mockResolvedValue(0) },
       productEvent: { findMany: vi.fn().mockResolvedValue([]), count: vi.fn().mockResolvedValue(0) },
       supportTicket: { count: vi.fn().mockResolvedValue(0) },
       alertEvent: { count: vi.fn().mockResolvedValue(0), findMany: vi.fn().mockResolvedValue([]) },

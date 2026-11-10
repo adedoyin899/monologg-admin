@@ -22,6 +22,17 @@ import {
   getAdminBookingDetail,
   type BookingFilters,
 } from "../../services/adminBookings.js";
+import {
+  getFinanceSummary,
+  listAdminPayments,
+  getAdminPaymentDetail,
+  getAdminPaymentRawWebhook,
+  listAdminWithdrawals,
+  getAdminEarnings,
+  type PaymentFilters,
+  type WithdrawalFilters,
+} from "../../services/adminFinance.js";
+import { runAllFinanceMismatchDetectors } from "../../services/financeMismatches.js";
 
 export async function adminRoutes(app: FastifyInstance): Promise<void> {
   // All routes in this plugin are prefixed with /api/v1/admin and require requireAdmin
@@ -2127,21 +2138,205 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     },
   );
 
-  // ── M6/M7 Payments & Withdrawals ─────────────────────────────────────────
+  // ── M6 Finance, Payments, Withdrawals & Earnings ───────────────────────
+  const handleGetFinanceSummary = async (request: FastifyRequest, reply: FastifyReply) => {
+    const query = request.query as Record<string, string | undefined>;
+    const result = await getFinanceSummary({
+      dateFrom: query.dateFrom || query.from,
+      dateTo: query.dateTo || query.to,
+    });
+    return reply.send(result);
+  };
+
+  app.get(
+    "/api/v1/admin/finance/summary",
+    { preHandler: [requirePermission("payments", "read")] },
+    handleGetFinanceSummary,
+  );
+  app.get(
+    "/admin/finance/summary",
+    { preHandler: [requirePermission("payments", "read")] },
+    handleGetFinanceSummary,
+  );
+
+  const handleGetPayments = async (request: FastifyRequest, reply: FastifyReply) => {
+    const query = request.query as Record<string, string | undefined>;
+    const filters: PaymentFilters = {
+      status: query.status,
+      provider: query.provider,
+      currency: query.currency,
+      dateFrom: query.dateFrom || query.from,
+      dateTo: query.dateTo || query.to,
+      search: query.search || query.q,
+      cursor: query.cursor,
+      limit: query.limit ? parseInt(query.limit, 10) : 50,
+    };
+    const result = await listAdminPayments(filters);
+    return reply.send(result);
+  };
+
   app.get(
     "/api/v1/admin/payments",
     { preHandler: [requirePermission("payments", "read")] },
-    async (_request: FastifyRequest, reply: FastifyReply) => {
-      return reply.send({ status: "ok", module: "payments" });
-    },
+    handleGetPayments,
   );
+  app.get(
+    "/admin/payments",
+    { preHandler: [requirePermission("payments", "read")] },
+    handleGetPayments,
+  );
+
+  const handleGetPaymentDetail = async (request: FastifyRequest, reply: FastifyReply) => {
+    const { id } = request.params as { id: string };
+    const result = await getAdminPaymentDetail(id);
+    if (!result) {
+      return reply.status(404).send({
+        error: "Not Found",
+        message: `Payment with ID ${id} not found.`,
+        statusCode: 404,
+      });
+    }
+    return reply.send(result);
+  };
+
+  app.get(
+    "/api/v1/admin/payments/:id",
+    { preHandler: [requirePermission("payments", "read")] },
+    handleGetPaymentDetail,
+  );
+  app.get(
+    "/admin/payments/:id",
+    { preHandler: [requirePermission("payments", "read")] },
+    handleGetPaymentDetail,
+  );
+
+  const handlePostPaymentRawWebhook = async (request: FastifyRequest, reply: FastifyReply) => {
+    const { id } = request.params as { id: string };
+    const admin = request.adminUser!;
+
+    // PRD M6.2 / AC2: Visible to FINANCE and SUPER_ADMIN only
+    if (admin.role !== "SUPER_ADMIN" && admin.role !== "FINANCE") {
+      await audit({
+        adminId: admin.id,
+        action: "ACCESS_DENIED",
+        targetType: "Payment",
+        targetId: id,
+        reason: "Unauthorized attempt to view raw webhook JSON",
+        ip: request.ip,
+      });
+      return reply.status(403).send({
+        error: "Forbidden",
+        message: "Raw webhook payloads are restricted to SUPER_ADMIN and FINANCE roles.",
+        statusCode: 403,
+      });
+    }
+
+    const { reason } = (request.body as { reason?: string }) || {};
+    if (!reason || !reason.trim()) {
+      return reply.status(400).send({
+        error: "Bad Request",
+        message: "A justification reason is required to inspect raw webhook JSON.",
+        statusCode: 400,
+      });
+    }
+
+    try {
+      const result = await getAdminPaymentRawWebhook(id);
+
+      await audit({
+        adminId: admin.id,
+        action: "WEBHOOK_RAW_VIEWED",
+        targetType: "Payment",
+        targetId: id,
+        reason: reason.trim(),
+        ip: request.ip,
+      });
+
+      return reply.send(result);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Payment not found";
+      return reply.status(404).send({
+        error: "Not Found",
+        message: msg,
+        statusCode: 404,
+      });
+    }
+  };
+
+  app.post(
+    "/api/v1/admin/payments/:id/raw",
+    handlePostPaymentRawWebhook,
+  );
+  app.post(
+    "/admin/payments/:id/raw",
+    handlePostPaymentRawWebhook,
+  );
+
+  const handleGetFinanceMismatches = async (_request: FastifyRequest, reply: FastifyReply) => {
+    const mismatches = await runAllFinanceMismatchDetectors();
+    return reply.send({ mismatches, count: mismatches.length });
+  };
+
+  app.get(
+    "/api/v1/admin/finance/mismatches",
+    { preHandler: [requirePermission("payments", "read")] },
+    handleGetFinanceMismatches,
+  );
+  app.get(
+    "/admin/finance/mismatches",
+    { preHandler: [requirePermission("payments", "read")] },
+    handleGetFinanceMismatches,
+  );
+
+  const handleGetWithdrawals = async (request: FastifyRequest, reply: FastifyReply) => {
+    const query = request.query as Record<string, string | undefined>;
+    const filters: WithdrawalFilters = {
+      status: query.status,
+      currency: query.currency,
+      search: query.search || query.q,
+      cursor: query.cursor,
+      limit: query.limit ? parseInt(query.limit, 10) : 50,
+    };
+    const result = await listAdminWithdrawals(filters);
+    return reply.send(result);
+  };
 
   app.get(
     "/api/v1/admin/withdrawals",
     { preHandler: [requirePermission("withdrawals", "read")] },
-    async (_request: FastifyRequest, reply: FastifyReply) => {
-      return reply.send({ status: "ok", module: "withdrawals" });
-    },
+    handleGetWithdrawals,
+  );
+  app.get(
+    "/admin/withdrawals",
+    { preHandler: [requirePermission("withdrawals", "read")] },
+    handleGetWithdrawals,
+  );
+
+  const handleGetEarnings = async (request: FastifyRequest, reply: FastifyReply) => {
+    const query = request.query as Record<string, string | undefined>;
+    const result = await getAdminEarnings({ currency: query.currency });
+    return reply.send(result);
+  };
+
+  app.get(
+    "/api/v1/admin/finance/earnings",
+    { preHandler: [requirePermission("payments", "read")] },
+    handleGetEarnings,
+  );
+  app.get(
+    "/admin/finance/earnings",
+    { preHandler: [requirePermission("payments", "read")] },
+    handleGetEarnings,
+  );
+  app.get(
+    "/api/v1/admin/earnings",
+    { preHandler: [requirePermission("payments", "read")] },
+    handleGetEarnings,
+  );
+  app.get(
+    "/admin/earnings",
+    { preHandler: [requirePermission("payments", "read")] },
+    handleGetEarnings,
   );
 
   app.post(

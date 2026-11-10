@@ -428,6 +428,65 @@ export class AdminClient {
   async getBooking(id: string): Promise<BookingDetailResponse> {
     return this.request<BookingDetailResponse>(`/api/v1/admin/bookings/${id}`);
   }
+
+  // ── M6 Finance, Payments, Withdrawals & Earnings ──────────────────────────
+  async getFinanceSummary(filters?: { dateFrom?: string; dateTo?: string }): Promise<FinanceSummaryResponse> {
+    const params = new URLSearchParams();
+    if (filters?.dateFrom) params.set("dateFrom", filters.dateFrom);
+    if (filters?.dateTo) params.set("dateTo", filters.dateTo);
+    const qs = params.toString();
+    return this.request<FinanceSummaryResponse>(`/api/v1/admin/finance/summary${qs ? `?${qs}` : ""}`);
+  }
+
+  async getPayments(filters?: PaymentListFilterOptions): Promise<PaymentListResponse> {
+    const params = new URLSearchParams();
+    if (filters?.search) params.set("search", filters.search);
+    if (filters?.status && filters.status !== "ALL") params.set("status", filters.status);
+    if (filters?.provider && filters.provider !== "ALL") params.set("provider", filters.provider);
+    if (filters?.currency && filters.currency !== "ALL") params.set("currency", filters.currency);
+    if (filters?.dateFrom) params.set("dateFrom", filters.dateFrom);
+    if (filters?.dateTo) params.set("dateTo", filters.dateTo);
+    if (filters?.cursor) params.set("cursor", filters.cursor);
+    if (filters?.limit) params.set("limit", filters.limit.toString());
+    const qs = params.toString();
+    return this.request<PaymentListResponse>(`/api/v1/admin/payments${qs ? `?${qs}` : ""}`);
+  }
+
+  async getPayment(id: string): Promise<PaymentDetailResponse> {
+    return this.request<PaymentDetailResponse>(`/api/v1/admin/payments/${id}`);
+  }
+
+  async getPaymentRawWebhook(id: string, reason: string): Promise<{ paymentId: string; events: Array<{ id: string; type: string; eventId: string; raw: any; createdAt: string }> }> {
+    return this.request<{ paymentId: string; events: Array<{ id: string; type: string; eventId: string; raw: any; createdAt: string }> }>(
+      `/api/v1/admin/payments/${id}/raw`,
+      {
+        method: "POST",
+        body: JSON.stringify({ reason }),
+      }
+    );
+  }
+
+  async getFinanceMismatches(): Promise<{ mismatches: any[]; count: number }> {
+    return this.request<{ mismatches: any[]; count: number }>("/api/v1/admin/finance/mismatches");
+  }
+
+  async getWithdrawals(filters?: WithdrawalListFilterOptions): Promise<WithdrawalListResponse> {
+    const params = new URLSearchParams();
+    if (filters?.search) params.set("search", filters.search);
+    if (filters?.status && filters.status !== "ALL") params.set("status", filters.status);
+    if (filters?.currency && filters.currency !== "ALL") params.set("currency", filters.currency);
+    if (filters?.cursor) params.set("cursor", filters.cursor);
+    if (filters?.limit) params.set("limit", filters.limit.toString());
+    const qs = params.toString();
+    return this.request<WithdrawalListResponse>(`/api/v1/admin/withdrawals${qs ? `?${qs}` : ""}`);
+  }
+
+  async getEarnings(currency?: string): Promise<EarningsResponse> {
+    const params = new URLSearchParams();
+    if (currency && currency !== "ALL") params.set("currency", currency);
+    const qs = params.toString();
+    return this.request<EarningsResponse>(`/api/v1/admin/finance/earnings${qs ? `?${qs}` : ""}`);
+  }
 }
 
 export interface UserListItem {
@@ -851,6 +910,202 @@ export interface BookingDetailResponse {
   };
   orderRoom: OrderRoomMetadata;
   timeline: BookingTimelineItem[];
+}
+
+export interface CurrencyFinanceSummary {
+  currency: string;
+  gmv: number;
+  escrowHeld: number;
+  released: number;
+  refunded: number;
+  platformRevenue: number;
+  talentFees: number;
+  clientFees: number;
+  takeRatePct: number;
+  averageBookingValue: number;
+  paymentFailureRatePct: number;
+  totalBookings: number;
+  totalPayments: number;
+  failedPayments: number;
+}
+
+export interface FinanceSummaryResponse {
+  mode: "TEST" | "LIVE";
+  summaries: Record<string, CurrencyFinanceSummary>;
+  currencies: string[];
+  mismatchesCount: number;
+  recentMismatches: Array<{
+    type: string;
+    severity: string;
+    paymentId?: string | null;
+    bookingId?: string | null;
+    amount?: number | null;
+    currency?: string | null;
+    description: string;
+    detectedAt: string;
+  }>;
+}
+
+export interface PaymentListFilterOptions {
+  status?: string;
+  provider?: string;
+  currency?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  search?: string;
+  cursor?: string;
+  limit?: number;
+}
+
+export interface PaymentListItem {
+  id: string;
+  bookingId: string;
+  bookingState: string;
+  payer: {
+    id: string;
+    name: string;
+    orgName: string | null;
+    email: string;
+  };
+  creator: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  provider: string;
+  providerRef: string | null;
+  status: string;
+  amount: number;
+  currency: string;
+  platformFee: number;
+  clientFee: number;
+  talentFee: number;
+  escrowHeld: boolean;
+  createdAt: string;
+}
+
+export interface PaymentListResponse {
+  payments: PaymentListItem[];
+  nextCursor: string | null;
+  hasMore: boolean;
+  totalCount: number;
+}
+
+export interface PaymentDetailResponse {
+  payment: {
+    id: string;
+    bookingId: string;
+    provider: string;
+    providerRef: string | null;
+    status: string;
+    escrowHeld: boolean;
+    amount: number;
+    currency: string;
+    createdAt: string;
+    platformRevenue: number;
+    talentFee: number;
+    clientFee: number;
+    feeBreakdownLabel: string;
+  };
+  booking: {
+    id: string;
+    state: string;
+    origin: string;
+    slotDate: string | null;
+    baseAmount: number;
+    currency: string;
+    client: {
+      name: string;
+      orgName: string | null;
+      email: string;
+      phone: string;
+    };
+    talent: {
+      name: string;
+      email: string;
+      phone: string;
+    };
+  } | null;
+  events: Array<{
+    id: string;
+    type: string;
+    eventId: string;
+    createdAt: string;
+    isDuplicate: boolean;
+    processingResult: string;
+  }>;
+}
+
+export interface WithdrawalListFilterOptions {
+  status?: string;
+  currency?: string;
+  search?: string;
+  cursor?: string;
+  limit?: number;
+}
+
+export interface WithdrawalListItem {
+  id: string;
+  userId: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    avatarUrl: string | null;
+  };
+  amount: number;
+  currency: string;
+  state: string;
+  requestedTime: string;
+  bank: {
+    bankName: string;
+    accountName: string;
+    accountNumber: string;
+  };
+  otpStatus: "requested" | "verified" | "expired" | "locked" | "none";
+  providerReference: string | null;
+  failureReason: string | null;
+  flagged: boolean;
+  flaggedAt: string | null;
+}
+
+export interface WithdrawalListResponse {
+  withdrawals: WithdrawalListItem[];
+  nextCursor: string | null;
+  hasMore: boolean;
+  totalCount: number;
+}
+
+export interface EarningsResponse {
+  label: string;
+  currencies: string[];
+  topEarners: Record<
+    string,
+    Array<{
+      creatorId: string;
+      userId: string;
+      name: string;
+      avatarUrl: string | null;
+      currency: string;
+      earned: number;
+      withdrawn: number;
+      pending: number;
+      available: number;
+    }>
+  >;
+  topSpenders: Record<
+    string,
+    Array<{
+      clientId: string;
+      userId: string;
+      name: string;
+      orgName: string | null;
+      avatarUrl: string | null;
+      currency: string;
+      spend: number;
+      bookingsCount: number;
+    }>
+  >;
 }
 
 export const adminClient = new AdminClient();
