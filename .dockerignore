@@ -1,0 +1,20 @@
+# Keeps the Docker build context small AND, critically, keeps real secrets out
+# of image layers: apps/api/.env holds this developer's actual local Supabase/
+# JWT values (see apps/api/.env.example for the shape) — without this file,
+# `COPY apps/api apps/api` in apps/api/Dockerfile would bake it straight into
+# an image layer, recoverable by anyone who later pulls or inspects the image,
+# even after a subsequent layer "deletes" it.
+.env
+.env.*
+!.env.example
+
+node_modules
+**/node_modules
+**/dist
+**/dist-standalone
+**/dist-designsystem
+.git
+**/*.test.ts
+**/*.test.tsx
+coverage
+.DS_Store

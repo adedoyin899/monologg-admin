@@ -1,0 +1,34 @@
+{
+  "name": "monologg",
+  "private": true,
+  "version": "0.0.1",
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "npx pnpm --filter @monologg/web dev",
+    "admin:dev": "npx pnpm --filter @monologg/admin dev",
+    "api:dev": "npx pnpm --filter @monologg/api dev",
+    "db:seed": "npx pnpm --filter @monologg/api db:seed",
+    "db:migrate": "npx pnpm --filter @monologg/api exec prisma migrate deploy",
+    "db:push": "npx pnpm --filter @monologg/api exec prisma db push --accept-data-loss",
+    "test:e2e": "npx pnpm --filter @monologg/web exec playwright test",
+    "build": "npx pnpm --filter @monologg/web build",
+    "admin:build": "npx pnpm --filter @monologg/admin build",
+    "typecheck": "npx pnpm -r typecheck",
+    "lint": "npx pnpm --filter @monologg/web lint",
+    "format": "npx pnpm --filter @monologg/web format",
+    "format:check": "npx pnpm --filter @monologg/web format:check",
+    "test": "npx pnpm --filter @monologg/web test && npx pnpm --filter @monologg/api test && npx pnpm --filter @monologg/admin test",
+    "audit": "npx pnpm audit --audit-level=high"
+  },
+  "pnpm": {
+    "auditConfig": {
+      "ignoreGhsas": [
+        "GHSA-qwww-vcr4-c8h2",
+        "GHSA-mh99-v99m-4gvg"
+      ]
+    }
+  }
+}

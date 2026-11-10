@@ -1,0 +1,1081 @@
+// Monologg — features.md Phase 2. Source of truth for the relational schema.
+// Money rule: every monetary field is Int (integer minor units) + a currency string. No floats.
+// X3: Creator.styleTags (AI vibe tags) and Creator.verification (identity KYC) are separate
+// columns, never coupled. X1: Payment.provider is free-text validated at the app layer against
+// an allowlist that excludes "fincra" (see src/config/paymentProviders.ts).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// --- Users & identity ---------------------------------------------------
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  // Phase 9: SMS recipient. Nullable — no phase through Phase 9 collects this at
+  // registration/onboarding, so it starts empty for every user. SMS dispatch
+  // (services/notifications.ts) simply skips a user with no phone rather than
+  // failing — a real, flagged gap, not a fabricated data source.
+  phone         String?
+  passwordHash  String
+  userType      UserType
+  emailVerified Boolean        @default(false)
+  googleId      String?        @unique
+  authProvider  AuthProvider   @default(EMAIL)
+  isNewUser     Boolean        @default(true)
+  // features.md Phase 16 (FA-5): AUTO_CHECKOUT accounts materialize from a guest
+  // booking's name+email (services/externalBooking.ts), not a signup form.
+  // passwordSet starts false for them — routes/auth.ts's login refuses a
+  // passwordSet=false account until the emailed set-password link (reusing
+  // reset-password, see routes/auth.ts) flips it true. Every pre-Phase-16 and
+  // normal-signup row defaults to SIGNUP/true, unaffected.
+  accountOrigin AccountOrigin  @default(SIGNUP)
+  passwordSet   Boolean        @default(true)
+  // Phase 12B: Supabase Auth identity bridge. Nullable — all pre-Phase-12B users
+  // remain valid (they keep null here). Set to the Supabase Auth `sub` UUID on
+  // first sign-in via Google/magic-link/OTP. Used by /auth/session/sync to link
+  // or find the app User from a Supabase-issued JWT without creating a duplicate.
+  supabaseUserId String?        @unique
+  lastActiveAt  DateTime?
+  isTestUser    Boolean        @default(false)
+  suspendedAt   DateTime?
+  suspendedReason String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  creator       Creator?
+  client        Client?
+  refreshTokens RefreshToken[]
+  notifications Notification[]
+  calendarConnection    CalendarConnection?
+  notificationPreference NotificationPreference?
+  termsAcceptances TermsAcceptance[]
+  supportTickets   SupportTicket[]
+  activities       UserActivity[]
+  authEvents     AuthEvent[]
+  withdrawalRequests WithdrawalRequest[]
+  withdrawalOtps     WithdrawalOtp[]
+  notes          UserNote[]
+
+  @@index([createdAt])
+  @@index([lastActiveAt])
+}
+
+enum AuthProvider {
+  EMAIL
+  GOOGLE
+  // Phase 12B: Supabase Auth sign-in methods
+  MAGIC_LINK
+  EMAIL_OTP
+}
+
+enum UserType {
+  TALENT
+  CLIENT
+}
+
+model UserActivity {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+}
+
+// Phase 12B: security/UX audit trail for Supabase Auth sign-in events.
+// Written by /auth/session/sync on every Supabase Auth identity flow.
+// Read-only after creation — never updated in place.
+model AuthEvent {
+  id          String       @id @default(cuid())
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // The sign-in method used: matches the AuthProvider enum value
+  provider    AuthProvider
+  // Event type: "signin_success" | "signup_success" | "linked_existing_account" | "signin_failed"
+  event       String
+  // SHA-256 of the raw IP address — personally identifiable but needed for security
+  // audit; hashed so the value is useless without the original IP.
+  ipHash      String?
+  userAgent   String?
+  createdAt   DateTime     @default(now())
+
+  @@index([userId, createdAt])
+  @@index([createdAt])
+}
+
+// features.md Phase 16 (FA-5).
+enum AccountOrigin {
+  SIGNUP
+  AUTO_CHECKOUT
+}
+
+model Creator {
+  id             String              @id @default(cuid())
+  userId         String              @unique
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name           String
+  niche          Niche
+  bio            String?
+  location       String
+  // Phase 12B follow-up: populated from Supabase Auth's Google profile
+  // (user_metadata.avatar_url) on sign-in/link; null for password-only
+  // accounts and never required. Manual photo upload (Settings.tsx) is
+  // still browser-local only — this column is specifically the
+  // Google-provided avatar URL, not an uploaded file.
+  avatarUrl      String?
+  styleTags      String[] // X3: AI-generated vibe tags — NOT identity
+  verification   VerificationState   @default(UNVERIFIED) // X3: identity KYC, separate
+  celebrityBadge Boolean             @default(false) // referral-earned, distinct from KYC
+  referralCode   String              @unique
+  media          MediaAsset[]
+  rateCards      RateCard[]
+  availability   AvailabilityBlock[]
+  calendarEvents CalendarEvent[]
+  bookings       Booking[]           @relation("CreatorBookings")
+  applications   Application[]
+  kycChecks      KycCheck[]
+  // features.md Phase 12A — additive only, nothing above renamed/dropped.
+  mediaKit               MediaKit?
+  verificationRecordings VerificationRecording[]
+  physicalAttributes     PhysicalAttributes?
+}
+
+enum Niche {
+  ACTOR
+  VO_ARTIST
+  COMEDIAN
+  COMPERE
+  SPEAKER_PASTOR
+  MUSICIAN
+  CONTENT_CREATOR
+}
+
+enum VerificationState {
+  UNVERIFIED
+  PROCESSING
+  VERIFIED
+  FAILED
+}
+
+model Client {
+  id        String    @id @default(cuid())
+  userId    String    @unique
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  orgName   String?
+  orgType   OrgType?
+  location  String
+  // See Creator.avatarUrl — same Google-avatar-only scope.
+  avatarUrl String?
+  briefs    Brief[]
+  bookings  Booking[] @relation("ClientBookings")
+}
+
+enum OrgType {
+  STUDIO
+  EVENT
+  BRAND
+  CHURCH
+}
+
+// --- Creator profile detail ----------------------------------------------
+
+model MediaAsset {
+  id            String        @id @default(cuid())
+  creatorId     String
+  creator       Creator       @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  kind          MediaKind
+  url           String
+  sizeBytes     Int
+  durationSec   Int?
+  // Phase 7: drives the onboarding UI's real job state (queued -> tagging -> done),
+  // replacing the old scripted "Thespian AI" timer. Independent of Creator.verification (X3).
+  taggingStatus TaggingStatus @default(QUEUED)
+  createdAt     DateTime      @default(now())
+}
+
+enum MediaKind {
+  VIDEO
+  AUDIO
+}
+
+enum TaggingStatus {
+  QUEUED
+  TAGGING
+  DONE
+  FAILED
+}
+
+model RateCard {
+  id                String  @id @default(cuid())
+  creatorId         String
+  creator           Creator @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  serviceTitle      String
+  basePriceAmount   Int // minor units (kobo/cents)
+  basePriceCurrency String // NGN, USD, GBP…
+  deliveryTimeline  String
+}
+
+// features.md Phase 13 (FA-1): a row is either a specific-date override
+// (isRecurring=false, `date` is the exact day) or a recurring template
+// (isRecurring=true, `recurRule` e.g. "WEEKDAYS" | "WEEKLY:MON" — `date` is
+// unused/irrelevant for templates, kept non-null for schema simplicity).
+// slots: [{start:"09:00", end:"13:00", state:"free"|"unavailable"|"booked", bookingId?}].
+// The default-free rule lives in services/availability.ts, not here: a day
+// with NO matching row at all is fully open — "free" slots are informational
+// only (explicit confirmation), never required for a day to be bookable.
+model AvailabilityBlock {
+  id              String   @id @default(cuid())
+  creatorId       String
+  creator         Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  date            DateTime
+  slots           Json // [{start,end,state,bookingId?}]
+  isRecurring     Boolean  @default(false)
+  recurRule       String? // "WEEKDAYS" | "WEEKLY:MON" — only meaningful when isRecurring
+  calendarEventId String? // Google Calendar linkage
+
+  @@index([creatorId, date])
+}
+
+// features.md Phase 13 (FA-1): talent-added, non-booking calendar entries —
+// purely informational on the day-detail view (clicking a day shows these
+// alongside AvailabilityBlock slots). Deliberately NOT subtracted by
+// getOpenSlots (services/availability.ts) — only explicit unavailable/booked
+// AvailabilityBlock slots and Google busy times gate bookability; the spec's
+// own getOpenSlots formula never mentions events.
+model CalendarEvent {
+  id        String  @id @default(cuid())
+  creatorId String
+  creator   Creator @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  date      DateTime
+  start     String
+  end       String
+  title     String
+  kind      String // "personal" | "hold" | "booking"
+  bookingId String?
+
+  @@index([creatorId, date])
+}
+
+// --- Briefs & bookings ----------------------------------------------------
+
+model Brief {
+  id             String      @id @default(cuid())
+  clientId       String
+  client         Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  projectName    String
+  projectType    String
+  nicheReq       Niche[]
+  budgetAmount   Int
+  budgetCurrency String
+  // Not in the original features.md Phase 2 listing — added in Phase 5 since the
+  // "briefs (client CRUD)" resource needs a real lifecycle field (a client can save a
+  // draft before publishing).
+  status         BriefStatus  @default(DRAFT)
+  createdAt      DateTime     @default(now())
+  // features.md Phase 14 (FA-2/X4): null cap = uncapped. applicationsOpen starts
+  // true and is flipped false server-side, transactionally, the instant the cap
+  // is hit (services/applications.ts) — never client-settable directly.
+  applicantCap     Int?
+  applicationsOpen Boolean      @default(true)
+  applications     Application[]
+
+  @@index([createdAt])
+}
+
+enum BriefStatus {
+  DRAFT
+  ACTIVE
+  IN_REVIEW
+  CLOSED
+}
+
+// features.md Phase 14 (FA-2): a talent's application to a client's Brief.
+// One row per (briefId, creatorId) — the unique constraint is what makes
+// "duplicate application" a database-level guarantee, not just an app-layer
+// check. Cap enforcement (Brief.applicantCap/applicationsOpen) lives in
+// services/applications.ts, not here — this model just stores the result.
+model Application {
+  id        String            @id @default(cuid())
+  briefId   String
+  brief     Brief             @relation(fields: [briefId], references: [id], onDelete: Cascade)
+  creatorId String
+  creator   Creator           @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  pitch     String?
+  status    ApplicationStatus @default(APPLIED)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@unique([briefId, creatorId])
+  @@index([briefId])
+  @@index([creatorId])
+  @@index([briefId, createdAt])
+}
+
+enum ApplicationStatus {
+  APPLIED
+  SHORTLISTED
+  SELECTED
+  REJECTED
+  WITHDRAWN
+}
+
+model Booking {
+  id              String         @id @default(cuid())
+  creatorId       String
+  creator         Creator        @relation("CreatorBookings", fields: [creatorId], references: [id])
+  clientId        String
+  client          Client         @relation("ClientBookings", fields: [clientId], references: [id])
+  rateCardId      String
+  engagementType  EngagementType @default(ONE_OFF)
+  slotDate        DateTime
+  slotStart       String
+  slotEnd         String
+  recurrence      String? // when RETAINER
+  baseAmount      Int
+  currency        String
+  talentFeeAmount Int // computed from PLATFORM_FEES at creation, stored for audit
+  clientFeeAmount Int
+  state           BookingState   @default(PENDING_PAYMENT)
+  meetUrl         String? // Google Meet live call
+  payment         Payment?
+  orderRoom       OrderRoom?
+  createdAt       DateTime       @default(now())
+  // features.md Phase 16 (FA-5): the external, logged-out booking flow.
+  // origin=PUBLIC_LINK bookings are created via services/externalBooking.ts —
+  // clientId still points at a real (possibly just-materialized) Client row;
+  // see that file's TODO(conflict:X7) note on why the row exists slightly
+  // before the account is "surfaced" to the buyer. slotHoldExpiresAt is only
+  // ever set for PUBLIC_LINK bookings (services/availability.ts lazily
+  // releases the hold and flips this booking to CANCELLED once it passes).
+  origin            BookingOrigin @default(INTERNAL)
+  contextNote       String?
+  slotHoldExpiresAt DateTime?
+
+  @@index([state, createdAt])
+  @@index([creatorId, createdAt])
+  @@index([clientId, createdAt])
+}
+
+enum EngagementType {
+  ONE_OFF
+  RETAINER
+}
+
+enum BookingState {
+  PENDING_PAYMENT
+  ESCROW_LOCKED
+  DELIVERABLES_PROVIDED
+  PAYMENT_RELEASED
+  CANCELLED
+  DISPUTED
+}
+
+// features.md Phase 16 (FA-5).
+enum BookingOrigin {
+  INTERNAL
+  PUBLIC_LINK
+}
+
+// --- Payments --------------------------------------------------------------
+
+model Payment {
+  id          String         @id @default(cuid())
+  bookingId   String         @unique
+  booking     Booking        @relation(fields: [bookingId], references: [id])
+  provider    String // "paystack" | "stripe" | "airwallex" — X1, never "fincra"
+  providerRef String? @unique // provider transaction/charge id — dedup key for webhook lookups
+  status      PaymentStatus  @default(INITIATED)
+  escrowHeld  Boolean        @default(false)
+  amount      Int
+  currency    String
+  events      PaymentEvent[] // webhook audit trail
+  createdAt   DateTime       @default(now())
+
+  @@index([status, createdAt])
+}
+
+enum PaymentStatus {
+  INITIATED
+  AUTHORIZED
+  ESCROW_HELD
+  RELEASING // Phase 6: transient claim state — set atomically before calling the
+  // provider's payout API so a concurrent release attempt sees a non-ESCROW_HELD
+  // status and no-ops instead of paying out twice.
+  RELEASED
+  REFUNDING // Phase 6: same transient-claim purpose as RELEASING, for the refund path.
+  REFUNDED
+  FAILED
+}
+
+model PaymentEvent {
+  id        String   @id @default(cuid())
+  paymentId String
+  payment   Payment  @relation(fields: [paymentId], references: [id])
+  type      String // provider event name (e.g. "charge.success")
+  eventId   String // provider-side identifier (Paystack: data.id) — replays of the
+  // same provider event carry the same id, so (paymentId, type, eventId) is the
+  // idempotency key: a duplicate insert violates the unique constraint below and
+  // is treated as "already processed" rather than reprocessed.
+  raw       Json // full webhook payload for audit/idempotency
+  createdAt DateTime @default(now())
+
+  @@unique([paymentId, type, eventId])
+  @@index([paymentId, createdAt])
+}
+
+// --- Order room & messaging -------------------------------------------------
+
+model OrderRoom {
+  id        String    @id @default(cuid())
+  bookingId String    @unique
+  booking   Booking   @relation(fields: [bookingId], references: [id])
+  messages  Message[]
+}
+
+model Message {
+  id          String      @id @default(cuid())
+  orderRoomId String
+  orderRoom   OrderRoom   @relation(fields: [orderRoomId], references: [id], onDelete: Cascade)
+  senderId    String
+  kind        MessageKind
+  content     String
+  createdAt   DateTime    @default(now())
+
+  @@index([orderRoomId, createdAt])
+}
+
+enum MessageKind {
+  TEXT
+  VOICE
+  DOCUMENT
+  CALL
+  SYSTEM
+}
+
+// --- Auth & platform ---------------------------------------------------------
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String // store a hash, never the raw token
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind      String
+  payload   Json
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, createdAt])
+}
+
+// Phase 9: per-user, per-channel opt-out. In-app notifications are never
+// gated by this (a notification centre isn't the legally-sensitive channel;
+// email/SMS unsubscribe is) — only enqueueEmailNotification/enqueueSmsNotification
+// (services/notifications.ts) check it. No row = both channels default enabled.
+model NotificationPreference {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emailEnabled Boolean  @default(true)
+  smsEnabled   Boolean  @default(true)
+  updatedAt    DateTime @updatedAt
+}
+
+model KycCheck {
+  id          String            @id @default(cuid())
+  creatorId   String
+  creator     Creator           @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  provider    String // "smile_identity"
+  providerRef String?
+  status      VerificationState
+  raw         Json?
+  createdAt   DateTime          @default(now())
+}
+
+// Phase 8: Google Calendar OAuth, per user. The refresh token is the only
+// long-lived secret this app stores for a third-party account — it is NEVER
+// persisted in plaintext (see src/lib/encryption.ts, AES-256-GCM) and never
+// logged. One connection per user; a revoke/reconnect flips status + revokedAt
+// rather than deleting the row, so history isn't lost.
+model CalendarConnection {
+  id                     String                   @id @default(cuid())
+  userId                 String                   @unique
+  user                   User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider               String // "google"
+  encryptedRefreshToken  String // AES-256-GCM ciphertext, base64 — never plaintext
+  scopes                 String[]
+  status                 CalendarConnectionStatus @default(CONNECTED)
+  connectedAt            DateTime                 @default(now())
+  revokedAt              DateTime?
+}
+
+enum CalendarConnectionStatus {
+  CONNECTED
+  REVOKED
+}
+
+// Phase 10: one row per user per acceptance event. Never updated in place —
+// re-accepting a new version (or re-registering, hypothetically) creates a new
+// row, so the full consent history stays auditable ("consent auditable" guardrail).
+model TermsAcceptance {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  version    String
+  acceptedAt DateTime @default(now())
+}
+
+model SupportTicket {
+  id        String              @id @default(cuid())
+  userId    String
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject   String
+  message   String
+  status    SupportTicketStatus @default(OPEN)
+  createdAt DateTime            @default(now())
+}
+
+enum SupportTicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+// =============================================================================
+// features.md Phase 12A — THREE additive extensions. Nothing above this line is
+// renamed, dropped, or altered; every model below is new, every FK is a new
+// optional/nullable relation off Creator. Migration backfills a MediaKit row
+// for every pre-existing Creator (see migration.sql) — the app layer also
+// creates one inline at registration (routes/auth.ts) so no creator is ever
+// without one going forward.
+// =============================================================================
+
+// --- 12A.1 Media Kit ---------------------------------------------------------
+
+// One row per creator (@unique), always present (backfilled + created at
+// registration). AUTO renders a PDF server-side from PUBLIC profile data only
+// (src/services/mediaKit.ts); UPLOAD serves a talent-provided PDF at the same
+// public URL instead. Switching modes never changes the public URL — only
+// which bytes it serves.
+model MediaKit {
+  id                 String       @id @default(cuid())
+  creatorId          String       @unique
+  creator            Creator      @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  mode               MediaKitMode @default(AUTO)
+  uploadUrl          String? // set only when mode = UPLOAD; preserved across a revert-to-auto
+  // so re-uploading isn't required if the talent toggles back to UPLOAD later.
+  uploadSizeBytes    Int?
+  // Bumped on every regenerate — the public URL includes it as a cache-busting
+  // query param (?v=<autoVersion>) so a stale CDN/browser cache never serves an
+  // out-of-date auto-rendered PDF after a profile change.
+  autoVersion        Int          @default(1)
+  autoLastRenderedAt DateTime?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+}
+
+enum MediaKitMode {
+  AUTO
+  UPLOAD
+}
+
+// --- 12A.2 Verification video -------------------------------------------------
+
+// Deliberately its own model, with no relation to KycCheck or Creator.verification
+// — the same X3 invariant (features.md Phase 7) applied to a new axis: this is a
+// PERFORMANCE/presentation review, never identity verification. creatorId is NOT
+// unique: a NEEDS_RERECORD decision doesn't delete the old row, it's superseded by
+// a new upload — services/verificationRecording.ts always reads the latest by
+// createdAt as "the current one," the same pattern services/kyc.ts already uses
+// for KycCheck.
+model VerificationRecording {
+  id           String                       @id @default(cuid())
+  creatorId    String
+  creator      Creator                      @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  url          String
+  durationSec  Int
+  guidelineAck Boolean
+  status       VerificationRecordingStatus  @default(IN_REVIEW)
+  reviewerNote String?
+  createdAt    DateTime                     @default(now())
+  updatedAt    DateTime                     @updatedAt
+
+  @@index([status, createdAt])
+}
+
+// UPLOADED is defined per the PRD's own enum but not currently produced by any
+// code path: duration validation is synchronous at upload time (services/
+// verificationRecording.ts), so a row is only ever created already past that
+// check, straight into IN_REVIEW — the same "defined for a state no current
+// flow produces yet" shape as PaymentStatus.AUTHORIZED since Phase 6.
+enum VerificationRecordingStatus {
+  UPLOADED
+  IN_REVIEW
+  APPROVED
+  NEEDS_RERECORD
+}
+
+// --- 12A.3 Physical attributes (GDPR/NDPR-compliant casting search) ---------
+
+// TODO(conflict:X6): the PRD names enums "per PRD 12A.3" without enumerating
+// their values in the phase brief this was built from. The value sets below
+// are a reasonable, casting-industry-shaped interpretation, not lifted from a
+// seen spec — flagged the same way X1–X5 are for human confirmation/edit
+// before this is load-bearing for real users. Changing a value set later is a
+// one-line, additive Prisma enum edit; nothing here is architecturally load-bearing.
+model PhysicalAttributes {
+  id                  String              @id @default(cuid())
+  creatorId           String              @unique
+  creator             Creator             @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  heightRange         HeightRange?
+  weightRange         WeightRange?
+  ageRange            AgeRange?
+  build               BuildType?
+  complexion          Complexion?
+  hairColor           HairColor?
+  eyeColor            EyeColor?
+  genderPresentation  GenderPresentation?
+  shoeSize            String?
+  shoeSizeUnit        ShoeSizeUnit?
+  distinctiveFeatures String? // app-layer max 120 chars (zod) — free text, so never a filter field
+  // { [fieldName]: "PUBLIC" | "SEARCHABLE" | "PRIVATE" }. Validated + defaulted at
+  // the app layer (src/services/attributes.ts) — Postgres just stores the map.
+  // A field absent from this map is SEARCHABLE (Non-Negotiable #3's default).
+  visibility          Json                @default("{}")
+  // Non-Negotiable #4: captured (version + timestamp) on first save and on any
+  // consentVersion change — never silently backdated, never client-suppliable
+  // for the timestamp half.
+  consentVersion      String
+  consentedAt         DateTime
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+}
+
+enum HeightRange {
+  UNDER_150CM
+  CM_150_160
+  CM_160_170
+  CM_170_180
+  CM_180_190
+  OVER_190CM
+}
+
+enum WeightRange {
+  UNDER_50KG
+  KG_50_65
+  KG_65_80
+  KG_80_95
+  OVER_95KG
+}
+
+enum AgeRange {
+  RANGE_18_25
+  RANGE_26_35
+  RANGE_36_45
+  RANGE_46_55
+  RANGE_56_65
+  OVER_65
+}
+
+enum BuildType {
+  SLIM
+  ATHLETIC
+  AVERAGE
+  CURVY
+  PLUS_SIZE
+  MUSCULAR
+}
+
+enum Complexion {
+  FAIR
+  LIGHT
+  MEDIUM
+  TAN
+  DARK
+  DEEP
+}
+
+enum HairColor {
+  BLACK
+  BROWN
+  BLONDE
+  RED
+  GREY
+  WHITE
+  DYED_OTHER
+}
+
+enum EyeColor {
+  BROWN
+  BLACK
+  HAZEL
+  GREEN
+  BLUE
+  GREY
+}
+
+enum GenderPresentation {
+  MASCULINE
+  FEMININE
+  ANDROGYNOUS
+  NON_BINARY
+}
+
+enum ShoeSizeUnit {
+  EU
+  US
+  UK
+}
+
+// =============================================================================
+// features.md Phase 12C — Withdrawal Email OTP Gate
+// =============================================================================
+
+model WithdrawalRequest {
+  id             String                  @id @default(cuid())
+  userId         String
+  user           User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount         Int                     // minor units (kobo/cents)
+  currency       String                  @default("NGN")
+  bankName       String
+  accountNumber  String
+  accountName    String
+  status         WithdrawalRequestStatus @default(PENDING_OTP)
+  idempotencyKey String?                 @unique
+  flagged        Boolean                 @default(false)
+  flagReason     String?
+  flaggedAt      DateTime?
+  flaggedByAdminId String?
+  clearedAt      DateTime?
+  clearedByAdminId String?
+  otps           WithdrawalOtp[]
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+
+  @@index([userId, createdAt])
+}
+
+enum WithdrawalRequestStatus {
+  PENDING_OTP
+  APPROVED
+  REJECTED
+  COMPLETED
+  FAILED
+}
+
+model WithdrawalOtp {
+  id                  String            @id @default(cuid())
+  userId              String
+  user                User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  withdrawalRequestId String
+  withdrawalRequest   WithdrawalRequest @relation(fields: [withdrawalRequestId], references: [id], onDelete: Cascade)
+  codeHash            String            // Argon2id hash of 6-digit code
+  expiresAt           DateTime
+  attempts            Int               @default(0)
+  verifiedAt          DateTime?
+  createdAt           DateTime          @default(now())
+
+  @@index([withdrawalRequestId, createdAt])
+  @@index([userId, createdAt])
+}
+
+// =============================================================================
+// Session 174 — Supabase-First Product Analytics & Event Telemetry
+// =============================================================================
+// Captures page views, UI/CTA click streams, and business funnel milestones
+// across Performer, Client, and Guest flows. Designed for direct Supabase
+// querying and zero-friction forwarding to PostHog or external BI sinks.
+// Money rule preserved: no Float or Decimal columns; any monetary telemetry
+// inside `properties` uses integer minor units or formatted strings.
+
+model AnalyticsEvent {
+  id          String   @id @default(cuid())
+  eventName   String
+  category    String
+  userId      String?
+  anonymousId String
+  sessionId   String
+  userRole    String?
+  path        String
+  properties  Json     @default("{}")
+  createdAt   DateTime @default(now())
+
+  @@index([eventName, createdAt])
+  @@index([category, createdAt])
+  @@index([userId, createdAt])
+  @@index([sessionId, createdAt])
+}
+
+// =============================================================================
+// Session 184 — Investor Relations & Backer Application Ingestion
+// =============================================================================
+// Captures verified investor submissions from the Resources Page ("Become an Investor")
+// directly into Supabase Postgres with role classification, contact metadata,
+// and optional strategic partnership memos.
+
+model InvestorApplication {
+  id           String   @id @default(cuid())
+  firstName    String
+  lastName     String
+  email        String
+  phone        String?
+  investorRole String
+  message      String?
+  status       String   @default("PENDING")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([email, createdAt])
+  @@index([investorRole, createdAt])
+  @@index([status, createdAt])
+}
+
+// =============================================================================
+// Session 194 — Newsletter & Email Subscription Ingestion
+// =============================================================================
+// Captures verified email signups from the website footer ("Join our newsletter")
+// and marketing touchpoints directly into Supabase Postgres for future campaign
+// accumulation, announcements, and investor relations alerts.
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  source    String   @default("website_footer")
+  status    String   @default("ACTIVE")
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([createdAt])
+  @@index([status])
+}
+
+// =============================================================================
+// Admin Stack (PRD Module M1, Phase A1)
+// =============================================================================
+
+model AdminUser {
+  id           String            @id @default(cuid())
+  email        String            @unique
+  authProvider AdminAuthProvider @default(SUPABASE)
+  authSubject  String?           // provider user id, bound on first sign-in
+  role         AdminRole
+  status       AdminStatus       @default(INVITED)
+  invitedById  String?
+  lastLoginAt  DateTime?
+  createdAt    DateTime          @default(now())
+
+  @@unique([authProvider, authSubject])
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  OPS
+  SUPPORT
+  FINANCE
+  COMPLIANCE
+  VIEWER
+}
+
+enum AdminStatus {
+  INVITED
+  ACTIVE
+  DISABLED
+}
+
+enum AdminAuthProvider {
+  SUPABASE
+  CLERK
+}
+
+// MFA state is read from the verified token (Supabase aal2), not stored here.
+model AdminSession {
+  id                String    @id @default(cuid())
+  adminUserId       String
+  providerSessionId String    @unique
+  createdAt         DateTime  @default(now())
+  lastSeenAt        DateTime  @default(now())
+  endedAt           DateTime?
+  ipHash            String?   // hashed, never raw
+
+  @@index([adminUserId, endedAt])
+}
+
+model AdminAuditLog {
+  id         String   @id @default(cuid())
+  adminId    String
+  action     String   // e.g. ADMIN_SIGNIN, ACCESS_DENIED, USER_VIEWED, PII_REVEALED...
+  targetType String?  // USER, BOOKING, DISPUTE, TICKET, PAYMENT, EXPORT, ADMIN
+  targetId   String?
+  reason     String?  // required for sensitive actions
+  metadata   Json     @default("{}")
+  ipHash     String?
+  createdAt  DateTime @default(now())
+
+  @@index([adminId, createdAt])
+  @@index([targetType, targetId])
+  @@index([action, createdAt])
+}
+
+// =============================================================================
+// Phase A2: Data Layer (PRD Sections 5, 6, 7)
+// =============================================================================
+
+model UserNote {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  adminId   String
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model UserTag {
+  userId      String
+  tag         String
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  @@id([userId, tag])
+  @@index([tag])
+}
+
+model UserAcquisition {
+  userId            String   @id
+  firstSeenAt       DateTime?
+  landingPath       String?
+  referrerDomain    String?
+  utmSource         String?
+  utmMedium         String?
+  utmCampaign       String?
+  referralCodeUsed  String?
+  signupCountry     String?  // ISO-2 only
+  signupDeviceClass String?  // mobile, tablet, desktop
+  analyticsConsent  Boolean  @default(false)
+  createdAt         DateTime @default(now())
+}
+
+enum EventActor {
+  USER
+  ANON
+  SYSTEM
+  ADMIN
+}
+
+enum EventSource {
+  WEB
+  API
+  SYSTEM
+  WEBHOOK
+}
+
+model ProductEvent {
+  id             BigInt      @id @default(autoincrement())
+  occurredAt     DateTime    @default(now())
+  name           String
+  actorType      EventActor
+  source         EventSource
+  userId         String?
+  anonymousId    String?
+  sessionId      String?
+  path           String?
+  referrerDomain String?
+  utmSource      String?
+  utmMedium      String?
+  utmCampaign    String?
+  country        String?     // ISO-2 only. No city, no raw IP
+  deviceClass    String?     // mobile, tablet, desktop
+  browser        String?
+  os             String?
+  appVersion     String?
+  props          Json        @default("{}") // allowlisted keys only
+
+  @@index([name, occurredAt])
+  @@index([userId, occurredAt])
+  @@index([occurredAt])
+  @@index([anonymousId, occurredAt])
+}
+
+model KpiDaily {
+  day        DateTime
+  metric     String
+  dimension  String   @default("all")
+  value      BigInt
+
+  @@id([day, metric, dimension])
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+enum AlertStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+model AlertEvent {
+  id             String        @id @default(cuid())
+  ruleKey        String
+  severity       AlertSeverity
+  status         AlertStatus   @default(OPEN)
+  subjectType    String?
+  subjectId      String?
+  detail         Json          @default("{}")
+  firstSeenAt    DateTime      @default(now())
+  lastSeenAt     DateTime      @default(now())
+  ackedByAdminId String?
+  resolvedAt     DateTime?
+
+  @@index([status, severity, lastSeenAt])
+  @@unique([ruleKey, subjectType, subjectId, status])
+}
+
+model AdminJob {
+  id          String    @id @default(cuid())
+  kind        String
+  payload     Json
+  status      String    @default("PENDING") // PENDING | RUNNING | DONE | FAILED
+  attempts    Int       @default(0)
+  runAfter    DateTime  @default(now())
+  lockedUntil DateTime?
+  lastError   String?
+
+  @@index([status, runAfter])
+}
+
+model JobRun {
+  jobKey         String    @id
+  lastStartedAt  DateTime?
+  lastFinishedAt DateTime?
+  lastStatus     String?
+  lastError      String?
+  nextDueAt      DateTime?
+}
+
+
+
+

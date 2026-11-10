@@ -1,0 +1,89 @@
+# Local full-stack deployment target (features.md Phase 12 acceptance:
+# "docker-compose up runs the whole stack locally in all-mock mode with no
+# real keys"). api+web+postgres+redis — every *_PROVIDER var below is left at
+# its "mock" default (config/env.ts), so this never calls Paystack, Smile
+# Identity, Google, SendGrid/Twilio, or OpenAI. CACHE_PROVIDER is the one
+# exception, set to "redis" here specifically so this compose stack also
+# exercises the real Redis-backed refresh-token denylist end-to-end, not just
+# its in-memory mock — the other providers don't have a comparable "real
+# infra, mock upstream" story available locally.
+#
+# NODE_ENV=development, not production: config/env.ts's production-only
+# pooled/direct DATABASE_URL check (apps/api/README.md "Supabase operational
+# notes") is Supabase-specific and doesn't apply to this stack's plain
+# Postgres container. A real production deploy runs this same image with
+# NODE_ENV=production against real Supabase pooled/direct URLs instead of the
+# single local Postgres instance below — see the root README's "Deployment"
+# section.
+#
+# Run: docker compose up --build
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: monologg
+      POSTGRES_PASSWORD: monologg_dev_only
+      POSTGRES_DB: monologg
+    ports:
+      - "5432:5432"
+    volumes:
+      - monologg_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U monologg"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      PORT: "3001"
+      HOST: "0.0.0.0"
+      LOG_LEVEL: info
+      DATABASE_URL: postgresql://monologg:monologg_dev_only@postgres:5432/monologg
+      DIRECT_URL: postgresql://monologg:monologg_dev_only@postgres:5432/monologg
+      # Dev-only, not secret — never used against real infra. Generate real
+      # values with `openssl rand -hex 32` for any shared/deployed environment.
+      JWT_ACCESS_SECRET: dev_only_access_secret_do_not_use_in_prod_00
+      JWT_REFRESH_SECRET: dev_only_refresh_secret_do_not_use_in_prod_0
+      CALENDAR_TOKEN_ENCRYPTION_KEY: "0b3b10697963de27778cbb20af9447ddeb57ee0b04c781f91989dc1a1f312045"
+      CORS_ORIGIN: http://localhost:8080
+      CACHE_PROVIDER: redis
+      REDIS_URL: redis://redis:6379
+      # Every other provider defaults to "mock" (config/env.ts) — deliberately
+      # not overridden here so this stack never needs a real API key.
+    ports:
+      - "3001:3001"
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_API_MODE: live
+    depends_on:
+      - api
+    ports:
+      - "8080:80"
+
+volumes:
+  monologg_postgres_data:

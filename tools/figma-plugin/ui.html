@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Monologg Screen Generator</title>
+  <style>
+    :root {
+      --bg: #0e0e0e;
+      --card-bg: #16161a;
+      --border: #262626;
+      --border-subtle: #1a1a1a;
+      --text-main: #f5f5f5;
+      --text-muted: #a3a3a3;
+      --brand-red: #f13030;
+      --brand-red-hover: #d31f20;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+      padding: 16px;
+      font-size: 13px;
+      line-height: 1.4;
+      user-select: none;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .badge {
+      background: var(--brand-red);
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 10px;
+    }
+    h2 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+    p.desc {
+      color: var(--text-muted);
+      font-size: 12px;
+      margin-bottom: 14px;
+    }
+    .card-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .item:hover {
+      border-color: #404040;
+    }
+    .item input[type="checkbox"] {
+      margin-top: 2px;
+      accent-color: var(--brand-red);
+      cursor: pointer;
+    }
+    .item-info {
+      flex: 1;
+    }
+    .item-title {
+      font-weight: 500;
+      color: var(--text-main);
+      margin-bottom: 2px;
+    }
+    .item-sub {
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.02);
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 12px;
+    }
+    .settings-row label {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-primary {
+      width: 100%;
+      background: var(--brand-red);
+      color: #fff;
+      border: none;
+      padding: 11px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.05s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-primary:hover {
+      background: var(--brand-red-hover);
+    }
+    .btn-primary:active {
+      transform: scale(0.98);
+    }
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .status {
+      margin-top: 12px;
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: center;
+      min-height: 18px;
+    }
+    .status.success {
+      color: #34d399;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <span class="badge">Monologg</span>
+    <h2>Screen &amp; Token Generator</h2>
+  </div>
+
+  <p class="desc">Generate pixel-perfect dark mode screens matching live production code &amp; Figma Frame 11 specifications.</p>
+
+  <div class="card-list">
+    <label class="item">
+      <input type="checkbox" id="screenProduct" checked />
+      <div class="item-info">
+        <div class="item-title">Product Page — 7-Step Showcase</div>
+        <div class="item-sub">Frame 11 active card (no red border, #0E0E0E fill), 5-card constant height window &amp; preview stage.</div>
+      </div>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" id="screenStorefront" checked />
+      <div class="item-info">
+        <div class="item-title">Performer Bio Storefront (Mobile)</div>
+        <div class="item-sub">Verified badge, video reel player, audio metrics, reach stats &amp; bookable rate cards (390px).</div>
+      </div>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" id="screenOrderRoom" checked />
+      <div class="item-info">
+        <div class="item-title">Order Room &amp; Escrow Workspace</div>
+        <div class="item-sub">Milestone progression bar, deliverable review, fee split calculator (7% / 12%) &amp; Paystack release.</div>
+      </div>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" id="screenTokens" checked />
+      <div class="item-info">
+        <div class="item-title">Design Tokens &amp; Color Palette</div>
+        <div class="item-sub">Figma leye/Grey alpha spectrum (#0E0E0E, #1A1A1A, #333333, #F13030) and typographic scales.</div>
+      </div>
+    </label>
+  </div>
+
+  <div class="settings-row">
+    <label>
+      <input type="checkbox" id="optNewPage" checked />
+      <span>Create on new page (<strong>Web App — Live Screens</strong>)</span>
+    </label>
+  </div>
+
+  <button id="btnGenerate" class="btn-primary">
+    <span>Generate Selected Screens</span>
+  </button>
+
+  <div id="status" class="status">Ready</div>
+
+  <script>
+    const btn = document.getElementById("btnGenerate");
+    const status = document.getElementById("status");
+
+    btn.onclick = () => {
+      btn.disabled = true;
+      status.className = "status";
+      status.textContent = "Loading typography and building frames...";
+
+      const payload = {
+        type: "generate-screens",
+        options: {
+          product: document.getElementById("screenProduct").checked,
+          storefront: document.getElementById("screenStorefront").checked,
+          orderRoom: document.getElementById("screenOrderRoom").checked,
+          tokens: document.getElementById("screenTokens").checked,
+          newPage: document.getElementById("optNewPage").checked,
+        }
+      };
+
+      parent.postMessage({ pluginMessage: payload }, "*");
+    };
+
+    window.onmessage = (event) => {
+      const msg = event.data.pluginMessage;
+      if (!msg) return;
+
+      if (msg.type === "progress") {
+        status.textContent = msg.message;
+      } else if (msg.type === "done") {
+        status.className = "status success";
+        status.textContent = "✓ Successfully generated " + msg.count + " screens!";
+        btn.disabled = false;
+      } else if (msg.type === "error") {
+        status.className = "status";
+        status.textContent = "Error: " + msg.message;
+        btn.disabled = false;
+      }
+    };
+  </script>
+</body>
+</html>
+

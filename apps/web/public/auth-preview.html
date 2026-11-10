@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monologg — Full-Bleed Auth (16-inch Scaled &amp; Cropped Device)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font-brand: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --color-client: #7B00FE;
+      --color-client-hover: #6400D1;
+      --color-client-glow: rgba(123, 0, 254, 0.14);
+      --color-performer: #F13030;
+      --color-performer-hover: #D31F20;
+      --color-performer-glow: rgba(241, 48, 48, 0.14);
+      --color-border: #E4E4E7;
+      --color-bg-input: #F8F9FA;
+      --color-text-primary: #18181B;
+      --color-text-secondary: #71717A;
+      --color-text-muted: #A1A1AA;
+      --radius-control: 9999px; /* Unified pill geometry */
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-brand);
+      background: #FFFFFF;
+      color: var(--color-text-primary);
+      overflow-x: hidden;
+    }
+
+    /* ── Sticky Minimal Top Controller (Collapsible / Unobtrusive) ── */
+    .top-controller {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(15, 16, 22, 0.94);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 8px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      color: #F4F4F5;
+      font-size: 13px;
+    }
+    .controller-title {
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .controller-badge {
+      font-size: 10px;
+      padding: 2px 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      color: #A1A1AA;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .controls-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .pill-group {
+      display: flex;
+      background: rgba(255, 255, 255, 0.06);
+      padding: 3px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .pill-btn {
+      background: transparent;
+      border: none;
+      color: #A1A1AA;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 13px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      font-family: inherit;
+    }
+    .pill-btn:hover {
+      color: #FFFFFF;
+    }
+    .pill-btn.active {
+      background: #FFFFFF;
+      color: #09090B;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .pill-btn.active-client {
+      background: var(--color-client);
+      color: #FFFFFF;
+      box-shadow: 0 2px 10px rgba(123, 0, 254, 0.4);
+    }
+    .pill-btn.active-performer {
+      background: var(--color-performer);
+      color: #FFFFFF;
+      box-shadow: 0 2px 10px rgba(241, 48, 48, 0.4);
+    }
+
+    /* ── Full-Bleed 100vw / 100vh Layout (Covers 16-Inch Screens Gracefully) ── */
+    .fullbleed-viewport {
+      width: 100vw;
+      height: calc(100vh - 45px); /* fixed static height */
+      max-height: calc(100vh - 45px);
+      display: grid;
+      grid-template-columns: 1fr 1.25fr;
+      position: relative;
+      background: #FFFFFF;
+      overflow: hidden;
+    }
+
+    /* ── Left Pane: Clean Auth Form (Centered with generous breathing room) ── */
+    .auth-left-pane {
+      background: #FFFFFF;
+      padding: 32px clamp(32px, 5vw, 96px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      z-index: 10;
+      height: 100%;
+      max-height: 100%;
+      overflow-y: auto;
+    }
+
+    .form-wrapper {
+      width: 100%;
+      max-width: 400px;
+      margin: auto 0;
+    }
+
+    /* Segmented Role Switcher */
+    .role-toggle-bar {
+      display: inline-flex;
+      background: #F4F4F5;
+      padding: 4px;
+      border-radius: var(--radius-control);
+      margin-bottom: 32px;
+      border: 1px solid #E4E4E7;
+      width: 100%;
+    }
+    .role-toggle-item {
+      flex: 1;
+      padding: 9px 16px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: #71717A;
+      border-radius: var(--radius-control);
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      font-family: inherit;
+    }
+    .role-toggle-item.active-client {
+      background: var(--color-client);
+      color: #FFFFFF;
+      box-shadow: 0 2px 8px rgba(123, 0, 254, 0.25);
+    }
+    .role-toggle-item.active-performer {
+      background: var(--color-performer);
+      color: #FFFFFF;
+      box-shadow: 0 2px 8px rgba(241, 48, 48, 0.25);
+    }
+
+    .auth-heading {
+      font-size: clamp(26px, 2.2vw, 32px);
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      color: var(--color-text-primary);
+      margin-bottom: 6px;
+      line-height: 1.25;
+    }
+    .auth-subheading {
+      font-size: 14px;
+      color: var(--color-text-secondary);
+      margin-bottom: 28px;
+      line-height: 1.5;
+    }
+
+    /* Google Button (Clean Native Surface) */
+    .btn-google {
+      width: 100%;
+      height: 50px;
+      border-radius: var(--radius-control);
+      border: 1px solid var(--color-border);
+      background: #FFFFFF;
+      color: var(--color-text-primary);
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      font-family: inherit;
+    }
+    .btn-google:hover {
+      background: #F8FAFC;
+      border-color: #CBD5E1;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Divider */
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 22px 0;
+      color: var(--color-text-muted);
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .auth-divider::before,
+    .auth-divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--color-border);
+    }
+
+    /* Harmonized Inputs */
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      margin-bottom: 6px;
+      padding-left: 4px;
+    }
+    .form-input {
+      width: 100%;
+      height: 50px;
+      border-radius: var(--radius-control);
+      border: 1px solid var(--color-border);
+      background: var(--color-bg-input);
+      padding: 0 20px;
+      font-size: 14px;
+      color: var(--color-text-primary);
+      outline: none;
+      transition: all 0.16s ease;
+      font-family: inherit;
+    }
+    .form-input::placeholder {
+      color: var(--color-text-muted);
+    }
+
+    /* Role Focus Rings */
+    .role-client .form-input:focus {
+      border-color: var(--color-client);
+      background: #FFFFFF;
+      box-shadow: 0 0 0 4px var(--color-client-glow);
+    }
+    .role-performer .form-input:focus {
+      border-color: var(--color-performer);
+      background: #FFFFFF;
+      box-shadow: 0 0 0 4px var(--color-performer-glow);
+    }
+
+    /* Primary Submit Button */
+    .btn-primary-action {
+      width: 100%;
+      height: 50px;
+      border-radius: var(--radius-control);
+      border: none;
+      font-size: 15px;
+      font-weight: 600;
+      color: #FFFFFF;
+      cursor: pointer;
+      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+      margin-top: 8px;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-primary-action:active {
+      transform: scale(0.98);
+    }
+
+    .role-client .btn-primary-action {
+      background: var(--color-client);
+      box-shadow: 0 4px 16px rgba(123, 0, 254, 0.28);
+    }
+    .role-client .btn-primary-action:hover {
+      background: var(--color-client-hover);
+      box-shadow: 0 6px 20px rgba(123, 0, 254, 0.35);
+    }
+
+    .role-performer .btn-primary-action {
+      background: var(--color-performer);
+      box-shadow: 0 4px 16px rgba(241, 48, 48, 0.28);
+    }
+    .role-performer .btn-primary-action:hover {
+      background: var(--color-performer-hover);
+      box-shadow: 0 6px 20px rgba(241, 48, 48, 0.35);
+    }
+
+    /* Switch text */
+    .auth-switch-text {
+      text-align: center;
+      margin-top: 22px;
+      font-size: 13px;
+      color: var(--color-text-secondary);
+    }
+    .auth-switch-link {
+      font-weight: 600;
+      cursor: pointer;
+      margin-left: 4px;
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .role-client .auth-switch-link {
+      color: var(--color-client);
+    }
+    .role-performer .auth-switch-link {
+      color: var(--color-performer);
+    }
+    .auth-switch-link:hover {
+      text-decoration: underline;
+    }
+
+    .auth-footer {
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 24px;
+      border-top: 1px solid #F4F4F5;
+      font-size: 12px;
+      color: var(--color-text-muted);
+    }
+    .auth-footer-links {
+      display: flex;
+      gap: 16px;
+    }
+    .auth-footer-links a {
+      color: var(--color-text-secondary);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .auth-footer-links a:hover {
+      color: var(--color-text-primary);
+    }
+
+    /* ── Right Pane: Full-Bleed Atmospheric Stage (Scales across 16-Inch) ── */
+    .auth-right-pane {
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: clamp(40px, 5vh, 72px) clamp(24px, 4vw, 64px) 0;
+      background: radial-gradient(130% 95% at 50% 8%, #EBF4FF 0%, #E3EDF9 50%, #D8E5F5 100%);
+      min-height: 100%;
+    }
+
+    .ambient-sky-glow {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('/auth-backdrop.png') no-repeat center top / cover;
+      opacity: 0.85;
+      pointer-events: none;
+    }
+
+    /* Casual Flow Editorial Copy */
+    .showcase-editorial {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      max-width: 520px;
+      margin-bottom: 24px;
+    }
+    .showcase-subhead {
+      font-size: clamp(16px, 1.4vw, 19px);
+      font-weight: 500;
+      color: #475569;
+      margin-bottom: 6px;
+      letter-spacing: -0.01em;
+    }
+    .showcase-title {
+      font-size: clamp(26px, 2.4vw, 36px);
+      font-weight: 700;
+      color: #0F172A;
+      letter-spacing: -0.025em;
+      line-height: 1.22;
+    }
+
+    /* ── Device Stage Wrapper (Cropped ~200px Down As Requested) ── */
+    .device-stage-wrapper {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end; /* Grounded to bottom */
+      overflow: hidden;
+    }
+
+    /* Real Device Image: 200px Down for the Cropped Vibe, Native Proportions */
+    .real-device-img {
+      width: clamp(320px, 28vw, 420px);
+      max-width: 440px;
+      height: auto;
+      aspect-ratio: 489 / 1024;
+      object-fit: contain;
+      display: block;
+      /* Exactly 200px translation down to create the rich cropped editorial aesthetic */
+      transform: translateY(var(--device-crop-y, 200px));
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+      user-select: none;
+      -webkit-user-drag: none;
+      filter: none; /* No artificial fuzzy shadows */
+    }
+
+    /* Subtle hover responsiveness */
+    .real-device-img:hover {
+      transform: translateY(calc(var(--device-crop-y, 200px) - 10px));
+    }
+
+    /* ── Responsive Breakdown (Degrade & Hide for Mobile) ── */
+    @media (max-width: 1023px) {
+      .fullbleed-viewport {
+        grid-template-columns: 1fr;
+        min-height: 100vh;
+      }
+      /* Cleanly degrade and hide showcase on mobile */
+      .auth-right-pane {
+        display: none !important;
+      }
+      .auth-left-pane {
+        padding: 40px 24px;
+        min-height: 100vh;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body class="role-client">
+
+  <!-- ── Top Controller Bar (Interactive Inspector) ── -->
+  <header class="top-controller">
+    <div class="controller-title">
+      <span>Monologg Auth Review</span>
+      <span class="controller-badge">Full-Bleed 16-Inch</span>
+    </div>
+
+    <div class="controls-row">
+      <!-- Role Toggle -->
+      <div class="pill-group">
+        <button id="ctrl-client" class="pill-btn active-client" onclick="setRole('client')">Client App POV</button>
+        <button id="ctrl-performer" class="pill-btn" onclick="setRole('performer')">Performer App POV</button>
+      </div>
+
+      <!-- Crop Depth Fine-Tuner -->
+      <div class="pill-group">
+        <button class="pill-btn" id="btn-crop-150" onclick="setCrop(150)">Crop 150px</button>
+        <button class="pill-btn active" id="btn-crop-200" onclick="setCrop(200)">Crop 200px (Current)</button>
+        <button class="pill-btn" id="btn-crop-250" onclick="setCrop(250)">Crop 250px</button>
+      </div>
+
+      <!-- Sign In / Sign Up -->
+      <div class="pill-group">
+        <button id="ctrl-signin" class="pill-btn active" onclick="setMode('signin')">Sign In</button>
+        <button id="ctrl-signup" class="pill-btn" onclick="setMode('signup')">Sign Up</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Full-Bleed Edge-to-Edge Canvas (Fills entire screen on 16-inch laptops) ── -->
+  <main class="fullbleed-viewport">
+    
+    <!-- ── Left Pane: Clean White Auth Form ── -->
+    <section class="auth-left-pane">
+      <div class="form-wrapper">
+        <!-- Role Switcher -->
+        <div class="role-toggle-bar">
+          <button id="form-btn-client" class="role-toggle-item active-client" onclick="setRole('client')">Client</button>
+          <button id="form-btn-performer" class="role-toggle-item" onclick="setRole('performer')">Performer</button>
+        </div>
+
+        <!-- Dynamic Heading & Subtitle -->
+        <h1 id="auth-title" class="auth-heading">Sign in to your account</h1>
+        <p id="auth-subtitle" class="auth-subheading">Welcome back! Please enter your details.</p>
+
+        <!-- Google Button -->
+        <button class="btn-google" type="button">
+          <svg width="18" height="18" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          <span id="google-cta-text">Continue with Google</span>
+        </button>
+
+        <div class="auth-divider">or sign in with email</div>
+
+        <!-- Inputs with Unified Pill Geometry -->
+        <form onsubmit="event.preventDefault();">
+          <div class="form-group" id="name-group" style="display: none;">
+            <label class="form-label">Full name</label>
+            <input type="text" class="form-input" placeholder="e.g. Adaeze Obi" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Email address</label>
+            <input type="email" class="form-input" placeholder="Enter your email" required />
+          </div>
+
+          <div class="form-group" id="pwd-group">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <label class="form-label" style="margin-bottom:0;">Password</label>
+              <a href="#forgot" style="font-size:12px; color:var(--color-text-secondary); text-decoration:none;" id="forgot-link">Forgot?</a>
+            </div>
+            <input type="password" class="form-input" placeholder="••••••••" />
+          </div>
+
+          <!-- Role-Adapted Primary Action Button -->
+          <button type="submit" class="btn-primary-action" id="submit-cta-btn">
+            <span id="btn-label-text">Continue</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </form>
+
+        <div class="auth-switch-text">
+          <span id="switch-prompt">Don't have an account?</span>
+          <span id="switch-action" class="auth-switch-link" onclick="toggleMode()">Sign up</span>
+        </div>
+
+        <!-- Quick Demo Shortcuts -->
+        <div style="margin-top:16px; padding-top:12px; border-top:1px solid #F4F4F5; display:flex; align-items:center; justify-content:space-between; font-size:11px;">
+          <span style="color:var(--color-text-secondary); display:flex; align-items:center; gap:4px;">
+            <span>⚡</span> Quick Demo:
+          </span>
+          <div style="display:flex; gap:8px;">
+            <a href="/dashboard" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; font-weight:600; font-size:11px; background:rgba(241,48,48,0.08); color:#F13030; border:1px solid rgba(241,48,48,0.2);">
+              <span style="width:6px; height:6px; border-radius:50%; background:#F13030;"></span>
+              Performer
+            </a>
+            <a href="/client" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; font-weight:600; font-size:11px; background:rgba(123,0,254,0.08); color:#7B00FE; border:1px solid rgba(123,0,254,0.2);">
+              <span style="width:6px; height:6px; border-radius:50%; background:#7B00FE;"></span>
+              Client
+            </a>
+          </div>
+        </div>
+
+        <div style="margin-top:20px; text-align:center; font-size:11px; color:var(--color-text-muted); display:flex; align-items:center; justify-content:center; gap:6px;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>Escrow Protected &bull; Paystack Verified</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Right Pane: Full-Bleed Atmospheric Stage (Cropped ~200px Down) ── -->
+    <section class="auth-right-pane">
+      <div class="ambient-sky-glow"></div>
+
+      <!-- Casual Flow Editorial Copy -->
+      <div class="showcase-editorial">
+        <div id="showcase-subhead" class="showcase-subhead">Lets help you</div>
+        <div id="showcase-title" class="showcase-title">
+          Find performers, Finish your project
+        </div>
+      </div>
+
+      <!-- Cropped Device Stage (~200px Down for the Cropped Vibe) -->
+      <div class="device-stage-wrapper">
+        <img 
+          id="device-screenshot"
+          class="real-device-img" 
+          src="/auth-client-device.png" 
+          alt="Monologg Client App" 
+        />
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    let currentRole = 'client';
+    let currentMode = 'signin';
+    let currentCrop = 200;
+
+    const copyData = {
+      client: {
+        subhead: "Lets help you",
+        title: "Find performers, Finish your project"
+      },
+      performer: {
+        subhead: "lets help you",
+        title: "Find gigs, finish your project"
+      }
+    };
+
+    function updateCopy() {
+      const subheadEl = document.getElementById('showcase-subhead');
+      const titleEl = document.getElementById('showcase-title');
+      const selected = copyData[currentRole];
+      subheadEl.innerText = selected.subhead;
+      titleEl.innerText = selected.title;
+    }
+
+    function setRole(role) {
+      currentRole = role;
+
+      document.body.classList.toggle('role-client', role === 'client');
+      document.body.classList.toggle('role-performer', role === 'performer');
+
+      document.getElementById('ctrl-client').className = role === 'client' ? 'pill-btn active-client' : 'pill-btn';
+      document.getElementById('ctrl-performer').className = role === 'performer' ? 'pill-btn active-performer' : 'pill-btn';
+
+      document.getElementById('form-btn-client').className = role === 'client' ? 'role-toggle-item active-client' : 'role-toggle-item';
+      document.getElementById('form-btn-performer').className = role === 'performer' ? 'role-toggle-item active-performer' : 'role-toggle-item';
+
+      const deviceImg = document.getElementById('device-screenshot');
+      deviceImg.style.opacity = '0.3';
+      setTimeout(() => {
+        if (role === 'client') {
+          deviceImg.src = '/auth-client-device.png';
+          deviceImg.alt = 'Monologg Client Dashboard';
+        } else {
+          deviceImg.src = '/auth-performer-device.png';
+          deviceImg.alt = 'Monologg Performer Dashboard';
+        }
+        deviceImg.style.opacity = '1';
+      }, 140);
+
+      updateCopy();
+    }
+
+    function setCrop(pixels) {
+      currentCrop = pixels;
+      document.documentElement.style.setProperty('--device-crop-y', pixels + 'px');
+
+      document.getElementById('btn-crop-150').classList.toggle('active', pixels === 150);
+      document.getElementById('btn-crop-200').classList.toggle('active', pixels === 200);
+      document.getElementById('btn-crop-250').classList.toggle('active', pixels === 250);
+    }
+
+    function setMode(mode) {
+      currentMode = mode;
+      document.getElementById('ctrl-signin').classList.toggle('active', mode === 'signin');
+      document.getElementById('ctrl-signup').classList.toggle('active', mode === 'signup');
+
+      const title = document.getElementById('auth-title');
+      const subtitle = document.getElementById('auth-subtitle');
+      const nameGroup = document.getElementById('name-group');
+      const btnLabel = document.getElementById('btn-label-text');
+      const switchPrompt = document.getElementById('switch-prompt');
+      const switchAction = document.getElementById('switch-action');
+      const forgotLink = document.getElementById('forgot-link');
+
+      if (mode === 'signin') {
+        title.innerText = 'Sign in to your account';
+        subtitle.innerText = 'Welcome back! Please enter your details.';
+        nameGroup.style.display = 'none';
+        btnLabel.innerText = 'Continue';
+        switchPrompt.innerText = "Don't have an account?";
+        switchAction.innerText = 'Sign up';
+        forgotLink.style.display = 'block';
+      } else {
+        title.innerText = 'Create your account';
+        subtitle.innerText = currentRole === 'client' 
+          ? 'Post projects and hire verified performers across Africa.'
+          : 'Showcase your talent and get booked with instant escrow.';
+        nameGroup.style.display = 'block';
+        btnLabel.innerText = 'Create Account';
+        switchPrompt.innerText = 'Already have an account?';
+        switchAction.innerText = 'Sign in';
+        forgotLink.style.display = 'none';
+      }
+    }
+
+    function toggleMode() {
+      setMode(currentMode === 'signin' ? 'signup' : 'signin');
+    }
+  </script>
+</body>
+</html>

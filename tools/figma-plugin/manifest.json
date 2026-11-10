@@ -1,0 +1,16 @@
+{
+  "name": "Monologg — Screen & Component Generator",
+  "id": "monologg-screen-generator",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "editorType": [
+    "figma"
+  ],
+  "networkAccess": {
+    "allowedDomains": [
+      "none"
+    ]
+  }
+}
+

@@ -1,0 +1,51 @@
+# QA Sweep Progress Log - 2026-08-03
+
+## Initial Setup
+- [x] Prepend `npx ` before `pnpm` in `package.json` to handle missing global command.
+- [x] Run Vitest unit tests to confirm initial baseline (100% passing: 577 API, 78 Web).
+- [/] Seeding database using `npm run db:seed`.
+- [x] Booting application in all-mock mode on `http://localhost:5173/`.
+
+## Walkthrough Checklist
+
+### A. Navigation & Routing
+- [ ] Walk all routes in `routes.tsx` to verify they open without errors.
+- [ ] Check internal links, dead links.
+- [ ] Check dynamic routes handle nonexistent IDs gracefully (404 page).
+- [ ] Check public routes work for logged-out visitors.
+
+### B. Auth Flows
+- [ ] Password login: signup → verify → login → protected route → refresh → logout.
+- [ ] Google Sign-In mock/real callback.
+- [ ] Magic link request -> mock check -> establish session.
+- [ ] Email OTP request -> 6-digit verify -> session.
+- [ ] Withdrawal OTP flow.
+- [ ] Check sign-in-notice notifications in notifications table.
+
+### C. Talent Flows
+- [ ] Onboarding end-to-end (media kit, attributes, video).
+- [ ] Storefront renders for talent and public.
+- [ ] Media kit PDF download, upload override, revert.
+- [ ] Availability calendar: save morning-free/evening-unavailable, events on day, recurring.
+- [ ] Applications: browse open projects, apply, status transitions.
+- [ ] Bookings inbox, chat gated on escrow locked.
+
+### D. Client Flows
+- [ ] Onboarding, brief posting with applicantCap.
+- [ ] Talent discovery filters.
+- [ ] Applicant management (view all, profile, shortlist/reject/select).
+- [ ] Booking slot check, checkout, escrow funding, chat live.
+- [ ] Transaction history.
+
+### E. External / Deferred Account Flow
+- [ ] Logged-out service selection -> select slot -> checkout -> client auto-creation.
+- [ ] Existing email path.
+- [ ] Slot-hold expiry lazy test.
+- [ ] Post-payment password set.
+
+### F-J. UX details
+- [ ] Interaction states (hovers, disabled, loading).
+- [ ] Form validations.
+- [ ] Images/media (ALT text, video duration check, Loom embed).
+- [ ] Empty/edge states.
+- [ ] Responsiveness (360px to 1440px).

@@ -1,0 +1,12 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="651.939" height="706.775" viewBox="0 0 651.939 706.775" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Gradient background" opacity="0.12" filter="url(#filter0_f_178401_153061)">
+<path id="Vector" d="M392.685 377.487C412.737 321.974 399.124 266.182 362.279 252.872C325.433 239.563 279.308 273.775 259.255 329.288C239.202 384.801 252.815 440.593 289.661 453.903C326.506 467.213 372.632 433 392.685 377.487Z" fill="#EF4444"/>
+</g>
+<defs>
+<filter id="filter0_f_178401_153061" x="3.8147e-06" y="-5.72205e-06" width="651.939" height="706.775" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="125" result="effect1_foregroundBlur_178401_153061"/>
+</filter>
+</defs>
+</svg>

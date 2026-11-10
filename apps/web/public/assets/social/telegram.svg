@@ -1,0 +1,12 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Telegram">
+<circle id="Vector" cx="9" cy="9" r="7.875" fill="url(#paint0_linear_178387_22711)"/>
+<path id="Vector_2" d="M12.9299 5.74244C13.0001 5.28937 12.5693 4.93175 12.1664 5.10862L4.14271 8.63147C3.85382 8.75831 3.87495 9.1959 4.17458 9.29131L5.82927 9.81825C6.14508 9.91882 6.48705 9.86682 6.76282 9.6763L10.4934 7.0989C10.6059 7.02118 10.7285 7.18113 10.6324 7.28023L7.94706 10.0489C7.68657 10.3174 7.73827 10.7725 8.05161 10.969L11.0582 12.8544C11.3954 13.0659 11.8292 12.8534 11.8923 12.446L12.9299 5.74244Z" fill="white"/>
+</g>
+<defs>
+<linearGradient id="paint0_linear_178387_22711" x1="9" y1="1.125" x2="9" y2="16.875" gradientUnits="userSpaceOnUse">
+<stop stop-color="#37BBFE"/>
+<stop offset="1" stop-color="#007DBB"/>
+</linearGradient>
+</defs>
+</svg>
