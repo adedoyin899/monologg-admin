@@ -90,3 +90,4 @@
 | Monorepo `apps/web` full test suite | 200 tests across 36 files | **PASS** |
 | Monorepo `apps/admin` typecheck & build | Next.js build + 27 static routes | **PASS** |
 | **Monorepo Total** | **885 tests passing (100% green)** | **PASS** |
+
