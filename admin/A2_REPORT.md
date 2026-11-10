@@ -216,3 +216,4 @@ Pure query builders implementing PRD Section 4 definitions:
 ## 9. Carry-Forward Statement
 
 > **A2 done. Analytics and admin tables exist. ProductEvent and the EventSink seam work. Read-only role and views exist. KPI service implements section 4. Synthetic data generator is available.**
+
