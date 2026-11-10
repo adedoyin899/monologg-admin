@@ -1104,17 +1104,48 @@ export const apiClient = {
     return requestList(`/transactions${suffix}`);
   },
 
-  // ── Help & Support (features.md Phase 10) ───────────────────────────────────
+  // ── Help & Support (features.md Phase 10 / PRD M7 Phase A8) ───────────────
   async listSupportTickets(): Promise<SupportTicket[]> {
     if (API_MODE !== "live") return appStateSync.getSupportTickets();
-    return requestList("/support/tickets");
+    const res = await requestList<SupportTicket>("/support/tickets");
+    return res;
   },
-  async submitSupportTicket(input: { subject: string; message: string }): Promise<SupportTicket | null> {
-    if (API_MODE !== "live") return appStateSync.submitSupportTicket(input.subject, input.message);
+  async getSupportTicket(ticketId: string): Promise<SupportTicket | null> {
+    if (API_MODE !== "live") {
+      const tickets = appStateSync.getSupportTickets();
+      return tickets.find((t) => t.id === ticketId) || null;
+    }
+    const res = await request<{ ticket: SupportTicket }>(`/support/tickets/${ticketId}`);
+    return res.ticket || null;
+  },
+  async submitSupportTicket(input: {
+    subject: string;
+    message: string;
+    category?: any;
+    priority?: any;
+    source?: any;
+    bookingId?: string;
+  }): Promise<SupportTicket | null> {
+    if (API_MODE !== "live") {
+      return appStateSync.submitSupportTicket(
+        input.subject,
+        input.message,
+        input.category,
+        input.bookingId,
+      );
+    }
     return request("/support/tickets", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(input),
+    });
+  },
+  async replySupportTicket(ticketId: string, body: string): Promise<any> {
+    if (API_MODE !== "live") return null;
+    return request(`/support/tickets/${ticketId}/messages`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ body }),
     });
   },
 

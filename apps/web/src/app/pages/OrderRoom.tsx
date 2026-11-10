@@ -5,6 +5,7 @@ import { Button } from "../components/ui/Button";
 import { Modal } from "../components/ui/Modal";
 import { Avatar } from "../components/ui/Avatar";
 import { Badge } from "../components/ui/Badge";
+import { ReportProblemModal } from "../components/ReportProblemModal";
 import { EASE_OUT, DURATION_MED } from "../../lib/motionTokens";
 import { apiClient } from "../../lib/api-client";
 import { appStateSync, type AvailabilityCheckin } from "../../lib/state-sync";
@@ -80,6 +81,7 @@ export function OrderRoom() {
   // Modal visibility
   const [showReleaseModal, setShowReleaseModal] = useState(false);
   const [showDisputeModal, setShowDisputeModal] = useState(false);
+  const [showProblemModal, setShowProblemModal] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showRevisionModal, setShowRevisionModal] = useState(false);
   const [showOrderInfoModal, setShowOrderInfoModal] = useState(false);
@@ -1477,8 +1479,18 @@ export function OrderRoom() {
                       </div>
                     </div>
 
-                    {/* Right Toolbar: Dispute Escape Hatch + Role-Colored Send Button */}
+                    {/* Right Toolbar: Dispute Escape Hatch + Report Problem + Role-Colored Send Button */}
                     <div className="flex items-center gap-2.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setShowProblemModal(true)}
+                        className="text-[11px] font-medium flex items-center gap-1 text-zinc-500 dark:text-zinc-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors cursor-pointer"
+                        title="Report a problem with this booking"
+                      >
+                        <AlertCircle className="w-3 h-3 text-zinc-400" />
+                        <span>Report problem</span>
+                      </button>
+
                       <button
                         type="button"
                         onClick={() => setShowDisputeModal(true)}
@@ -2307,6 +2319,14 @@ export function OrderRoom() {
           </Modal>
         )}
       </AnimatePresence>
+
+      {/* Report Problem Modal */}
+      <ReportProblemModal
+        isOpen={showProblemModal}
+        onClose={() => setShowProblemModal(false)}
+        bookingId={orderId}
+        defaultCategory="BOOKING"
+      />
 
       {/* Dispute Modal */}
       <AnimatePresence>

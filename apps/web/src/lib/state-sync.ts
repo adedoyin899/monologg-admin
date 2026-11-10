@@ -763,11 +763,18 @@ class StateSyncBus {
     return [...this.supportTickets];
   }
 
-  submitSupportTicket(subject: string, message: string): SupportTicket {
+  submitSupportTicket(
+    subject: string,
+    message: string,
+    category: any = "OTHER",
+    bookingId?: string,
+  ): SupportTicket {
     const ticket: SupportTicket = {
       id: `st-${Date.now()}`,
       subject,
       message,
+      category,
+      bookingId,
       status: "OPEN",
       createdAt: new Date().toISOString(),
     };

@@ -33,6 +33,18 @@ import {
   type WithdrawalFilters,
 } from "../../services/adminFinance.js";
 import { runAllFinanceMismatchDetectors } from "../../services/financeMismatches.js";
+import {
+  listAdminTickets,
+  getAdminTicketDetail,
+  replyToTicketAsAdmin,
+  addInternalNote,
+  assignTicket,
+  updateTicketPriority,
+  updateTicketStatus,
+  createTicketOnBehalf,
+  getCannedReplies,
+  type AdminTicketFilters,
+} from "../../services/adminSupport.js";
 
 export async function adminRoutes(app: FastifyInstance): Promise<void> {
   // All routes in this plugin are prefixed with /api/v1/admin and require requireAdmin
@@ -2355,12 +2367,39 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     },
   );
 
-  // ── M8 Support Tickets ───────────────────────────────────────────────────
+  // ── M7 Support Tickets (PRD M7 / Phase A8) ─────────────────────────────
   app.get(
     "/api/v1/admin/tickets",
     { preHandler: [requirePermission("tickets", "read")] },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const filters = (request.query || {}) as AdminTicketFilters;
+      const result = await listAdminTickets(request.adminUser!.id, request.adminUser!.role, filters);
+      return reply.send(result);
+    },
+  );
+
+  app.get(
+    "/api/v1/admin/tickets/canned-replies",
+    { preHandler: [requirePermission("tickets", "read")] },
     async (_request: FastifyRequest, reply: FastifyReply) => {
-      return reply.send({ status: "ok", module: "tickets" });
+      return reply.send({ cannedReplies: getCannedReplies() });
+    },
+  );
+
+  app.get(
+    "/api/v1/admin/tickets/:id",
+    { preHandler: [requirePermission("tickets", "read")] },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const { id } = request.params as { id: string };
+      const ticket = await getAdminTicketDetail(id, request.adminUser!.role);
+      if (!ticket) {
+        return reply.status(404).send({
+          error: "Not Found",
+          message: "Support ticket not found",
+          statusCode: 404,
+        });
+      }
+      return reply.send({ ticket });
     },
   );
 
@@ -2369,30 +2408,178 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     { preHandler: [requirePermission("tickets", "write")] },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const { id } = request.params as { id: string };
-      await audit({
-        adminId: request.adminUser!.id,
-        action: "TICKET_REPLY",
-        targetType: "SupportTicket",
-        targetId: id,
-        ip: request.ip,
-      });
-      return reply.send({ status: "ok", module: "tickets_reply" });
+      const { body } = (request.body as { body?: string }) || {};
+
+      if (!body || !body.trim()) {
+        return reply.status(400).send({
+          error: "Bad Request",
+          message: "Reply body is required.",
+          statusCode: 400,
+        });
+      }
+
+      try {
+        const message = await replyToTicketAsAdmin(request.adminUser!.id, id, body, request.ip);
+        return reply.status(201).send({ message });
+      } catch (err: any) {
+        return reply.status(404).send({
+          error: "Not Found",
+          message: err.message || "Failed to reply to ticket",
+          statusCode: 404,
+        });
+      }
+    },
+  );
+
+  app.post(
+    "/api/v1/admin/tickets/:id/notes",
+    { preHandler: [requirePermission("tickets", "write")] },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const { id } = request.params as { id: string };
+      const { body } = (request.body as { body?: string }) || {};
+
+      if (!body || !body.trim()) {
+        return reply.status(400).send({
+          error: "Bad Request",
+          message: "Note body is required.",
+          statusCode: 400,
+        });
+      }
+
+      try {
+        const message = await addInternalNote(request.adminUser!.id, id, body, request.ip);
+        return reply.status(201).send({ message });
+      } catch (err: any) {
+        return reply.status(404).send({
+          error: "Not Found",
+          message: err.message || "Failed to add internal note",
+          statusCode: 404,
+        });
+      }
     },
   );
 
   app.post(
     "/api/v1/admin/tickets/:id/assign",
     { preHandler: [requirePermission("tickets", "write")] },
-    async (_request: FastifyRequest, reply: FastifyReply) => {
-      return reply.send({ status: "ok", module: "tickets_assign" });
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const { id } = request.params as { id: string };
+      const { adminId } = (request.body as { adminId?: string | null }) || {};
+
+      try {
+        await assignTicket(request.adminUser!.id, id, adminId ?? null, request.ip);
+        return reply.send({ status: "ok", assignedAdminId: adminId ?? null });
+      } catch (err: any) {
+        return reply.status(404).send({
+          error: "Not Found",
+          message: err.message || "Failed to assign ticket",
+          statusCode: 404,
+        });
+      }
+    },
+  );
+
+  app.post(
+    "/api/v1/admin/tickets/:id/priority",
+    { preHandler: [requirePermission("tickets", "write")] },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const { id } = request.params as { id: string };
+      const { priority } = (request.body as { priority?: string }) || {};
+
+      if (!priority || !["LOW", "NORMAL", "HIGH", "URGENT"].includes(priority)) {
+        return reply.status(400).send({
+          error: "Bad Request",
+          message: "Valid priority (LOW, NORMAL, HIGH, URGENT) is required.",
+          statusCode: 400,
+        });
+      }
+
+      try {
+        await updateTicketPriority(request.adminUser!.id, id, priority, request.ip);
+        return reply.send({ status: "ok", priority });
+      } catch (err: any) {
+        return reply.status(404).send({
+          error: "Not Found",
+          message: err.message || "Failed to update priority",
+          statusCode: 404,
+        });
+      }
     },
   );
 
   app.post(
     "/api/v1/admin/tickets/:id/status",
     { preHandler: [requirePermission("tickets", "write")] },
-    async (_request: FastifyRequest, reply: FastifyReply) => {
-      return reply.send({ status: "ok", module: "tickets_status" });
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const { id } = request.params as { id: string };
+      const { status, resolutionNote } = (request.body as { status?: string; resolutionNote?: string }) || {};
+
+      if (!status || !["OPEN", "IN_PROGRESS", "WAITING_ON_USER", "RESOLVED", "CLOSED"].includes(status)) {
+        return reply.status(400).send({
+          error: "Bad Request",
+          message: "Valid status (OPEN, IN_PROGRESS, WAITING_ON_USER, RESOLVED, CLOSED) is required.",
+          statusCode: 400,
+        });
+      }
+
+      try {
+        await updateTicketStatus(request.adminUser!.id, id, status, resolutionNote, request.ip);
+        return reply.send({ status: "ok", statusUpdate: status });
+      } catch (err: any) {
+        return reply.status(404).send({
+          error: "Not Found",
+          message: err.message || "Failed to update status",
+          statusCode: 404,
+        });
+      }
+    },
+  );
+
+  app.post(
+    "/api/v1/admin/tickets/on-behalf",
+    { preHandler: [requirePermission("tickets", "write")] },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const { userId, subject, message, category, priority, source, bookingId } =
+        (request.body as {
+          userId?: string;
+          subject?: string;
+          message?: string;
+          category?: string;
+          priority?: string;
+          source?: string;
+          bookingId?: string;
+        }) || {};
+
+      if (!userId || !subject || !subject.trim() || !message || !message.trim()) {
+        return reply.status(400).send({
+          error: "Bad Request",
+          message: "userId, subject, and message are required.",
+          statusCode: 400,
+        });
+      }
+
+      try {
+        const ticket = await createTicketOnBehalf(
+          request.adminUser!.id,
+          {
+            userId,
+            subject,
+            message,
+            category,
+            priority,
+            source,
+            bookingId,
+          },
+          request.ip,
+        );
+        return reply.status(201).send({ ticket });
+      } catch (err: any) {
+        return reply.status(400).send({
+          error: "Bad Request",
+          message: err.message || "Failed to create ticket on behalf of user",
+          statusCode: 400,
+        });
+      }
     },
   );
 

@@ -31,7 +31,11 @@ const CANDIDATE_SLOT_HOURS = Array.from({ length: 12 }, (_, i) => i + 8); // 08:
 const SLOT_DURATION_MIN = 60;
 
 function todayISO(): string {
-  return new Date().toISOString().split("T")[0]!;
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function addMinutes(timeHHMM: string, mins: number): string {

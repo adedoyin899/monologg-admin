@@ -542,20 +542,94 @@ model TermsAcceptance {
 }
 
 model SupportTicket {
-  id        String              @id @default(cuid())
-  userId    String
-  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  subject   String
-  message   String
-  status    SupportTicketStatus @default(OPEN)
-  createdAt DateTime            @default(now())
+  id              String              @id @default(cuid())
+  number          Int                 @default(autoincrement()) @unique
+  userId          String
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reporterEmail   String?
+  category        TicketCategory      @default(OTHER)
+  priority        TicketPriority      @default(NORMAL)
+  status          SupportTicketStatus @default(OPEN)
+  source          TicketSource        @default(IN_APP)
+  subject         String
+  message         String
+  body            String?
+  bookingId       String?
+  disputeId       String?
+  assignedAdminId String?
+  firstResponseAt DateTime?
+  resolvedAt      DateTime?
+  slaDueAt        DateTime?
+  resolutionNote  String?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @default(now()) @updatedAt
+
+  messages        TicketMessage[]
+
+  @@index([status, priority, createdAt])
+  @@index([userId])
+  @@index([assignedAdminId])
+  @@index([bookingId])
 }
 
 enum SupportTicketStatus {
   OPEN
   IN_PROGRESS
+  WAITING_ON_USER
   RESOLVED
   CLOSED
+}
+
+enum TicketCategory {
+  COMPLAINT
+  BUG
+  PAYMENT
+  BOOKING
+  DISPUTE
+  ACCOUNT
+  VERIFICATION
+  FEEDBACK
+  OTHER
+}
+
+enum TicketPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum TicketSource {
+  IN_APP
+  EMAIL
+  ADMIN_CREATED
+  BOOKING
+  ORDER_ROOM
+  HELP_MENU
+  WEB
+}
+
+enum TicketAuthor {
+  USER
+  ADMIN
+  SYSTEM
+}
+
+model TicketMessage {
+  id          String        @id @default(cuid())
+  ticketId    String
+  ticket      SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorType  TicketAuthor  @default(USER)
+  authorId    String?
+  senderId    String?
+  senderRole  String?
+  body        String
+  isInternal  Boolean       @default(false)
+  internal    Boolean       @default(false)
+  attachments Json          @default("[]")
+  createdAt   DateTime      @default(now())
+
+  @@index([ticketId, createdAt])
 }
 
 // =============================================================================

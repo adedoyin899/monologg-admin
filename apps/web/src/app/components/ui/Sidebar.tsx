@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Settings, Sun, Moon, LogOut } from "lucide-react";
+import { Settings, Sun, Moon, LogOut, LifeBuoy } from "lucide-react";
 import { useTheme } from "../../Root";
 import { Avatar } from "./Avatar";
 import { Logo } from "./Logo";
@@ -72,6 +72,13 @@ export function Sidebar<T extends string>({ portalLabel, navItems, activeTab, on
       </nav>
 
       <div className="px-3 py-4 space-y-0.5" style={{ borderTop: "1px solid var(--color-border-default)" }}>
+        <button
+          onClick={() => onNavigate("/support")}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-body transition-all text-left"
+          style={{ color: "var(--color-text-secondary)" }}
+        >
+          <LifeBuoy className="w-4 h-4" style={{ color: "var(--color-text-tertiary)" }} /> Get Help
+        </button>
         <button
           onClick={() => onNavigate(portalLabel.toLowerCase().includes("client") ? "/settings?role=client" : "/settings?role=talent")}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-body transition-all text-left"

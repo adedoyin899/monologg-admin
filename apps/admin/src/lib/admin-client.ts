@@ -487,6 +487,78 @@ export class AdminClient {
     const qs = params.toString();
     return this.request<EarningsResponse>(`/api/v1/admin/finance/earnings${qs ? `?${qs}` : ""}`);
   }
+
+  // ── Support & Complaints (PRD M7 / Phase A8) ─────────────────────────────
+  async getTickets(filters?: TicketListFilterOptions): Promise<TicketListResponse> {
+    const params = new URLSearchParams();
+    if (filters?.view) params.set("view", filters.view);
+    if (filters?.category && filters.category !== "ALL") params.set("category", filters.category);
+    if (filters?.priority && filters.priority !== "ALL") params.set("priority", filters.priority);
+    if (filters?.status && filters.status !== "ALL") params.set("status", filters.status);
+    if (filters?.source && filters.source !== "ALL") params.set("source", filters.source);
+    if (filters?.search) params.set("search", filters.search);
+    if (filters?.dateFrom) params.set("dateFrom", filters.dateFrom);
+    if (filters?.dateTo) params.set("dateTo", filters.dateTo);
+    if (filters?.cursor) params.set("cursor", filters.cursor);
+    if (filters?.limit) params.set("limit", String(filters.limit));
+
+    const qs = params.toString();
+    return this.request<TicketListResponse>(`/api/v1/admin/tickets${qs ? `?${qs}` : ""}`);
+  }
+
+  async getTicket(id: string): Promise<TicketDetailResponse> {
+    return this.request<TicketDetailResponse>(`/api/v1/admin/tickets/${id}`);
+  }
+
+  async getCannedReplies(): Promise<{ cannedReplies: CannedReplyItem[] }> {
+    return this.request<{ cannedReplies: CannedReplyItem[] }>("/api/v1/admin/tickets/canned-replies");
+  }
+
+  async replyTicket(id: string, body: string): Promise<{ message: TicketMessageItem }> {
+    return this.request<{ message: TicketMessageItem }>(`/api/v1/admin/tickets/${id}/reply`, {
+      method: "POST",
+      body: JSON.stringify({ body }),
+    });
+  }
+
+  async addTicketNote(id: string, body: string): Promise<{ message: TicketMessageItem }> {
+    return this.request<{ message: TicketMessageItem }>(`/api/v1/admin/tickets/${id}/notes`, {
+      method: "POST",
+      body: JSON.stringify({ body }),
+    });
+  }
+
+  async assignTicket(id: string, adminId: string | null): Promise<{ status: string; assignedAdminId: string | null }> {
+    return this.request<{ status: string; assignedAdminId: string | null }>(`/api/v1/admin/tickets/${id}/assign`, {
+      method: "POST",
+      body: JSON.stringify({ adminId }),
+    });
+  }
+
+  async updateTicketPriority(id: string, priority: string): Promise<{ status: string; priority: string }> {
+    return this.request<{ status: string; priority: string }>(`/api/v1/admin/tickets/${id}/priority`, {
+      method: "POST",
+      body: JSON.stringify({ priority }),
+    });
+  }
+
+  async updateTicketStatus(
+    id: string,
+    status: string,
+    resolutionNote?: string,
+  ): Promise<{ status: string; statusUpdate: string }> {
+    return this.request<{ status: string; statusUpdate: string }>(`/api/v1/admin/tickets/${id}/status`, {
+      method: "POST",
+      body: JSON.stringify({ status, resolutionNote }),
+    });
+  }
+
+  async createTicketOnBehalf(payload: CreateTicketOnBehalfPayload): Promise<{ ticket: any }> {
+    return this.request<{ ticket: any }>("/api/v1/admin/tickets/on-behalf", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
 }
 
 export interface UserListItem {
@@ -1106,6 +1178,154 @@ export interface EarningsResponse {
       bookingsCount: number;
     }>
   >;
+}
+
+export interface TicketListItem {
+  id: string;
+  number: string;
+  rawNumber?: number | null;
+  subject: string;
+  message: string;
+  category: string;
+  priority: string;
+  status: string;
+  source: string;
+  userId: string;
+  user: {
+    id: string;
+    email: string;
+    name?: string | null;
+    userType: string;
+  } | null;
+  reporterEmail?: string | null;
+  assignedAdminId?: string | null;
+  assignedAdmin?: {
+    id: string;
+    email: string;
+  } | null;
+  bookingId?: string | null;
+  disputeId?: string | null;
+  firstResponseAt?: string | null;
+  resolvedAt?: string | null;
+  slaDueAt: string;
+  isBreached: boolean;
+  timeToFirstResponseMs?: number | null;
+  slaRemainingMs: number;
+  messageCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TicketListResponse {
+  tickets: TicketListItem[];
+  counts: {
+    mine: number;
+    unassigned: number;
+    urgent: number;
+    waiting_user: number;
+    all: number;
+  };
+  pagination: {
+    total: number;
+    hasMore: boolean;
+    nextCursor?: string | null;
+  };
+}
+
+export interface TicketListFilterOptions {
+  view?: "mine" | "unassigned" | "urgent" | "waiting_user" | "all";
+  category?: string;
+  priority?: string;
+  status?: string;
+  source?: string;
+  search?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  cursor?: string;
+  limit?: number;
+}
+
+export interface TicketMessageItem {
+  id: string;
+  ticketId: string;
+  authorType?: string;
+  authorId?: string | null;
+  senderId?: string | null;
+  senderRole?: string;
+  body: string;
+  isInternal: boolean;
+  attachments?: any;
+  createdAt: string;
+}
+
+export interface TicketDetailResponse {
+  ticket: {
+    id: string;
+    number: string;
+    rawNumber?: number | null;
+    subject: string;
+    message: string;
+    category: string;
+    priority: string;
+    status: string;
+    source: string;
+    userId: string;
+    user: {
+      id: string;
+      email: string;
+      phone?: string | null;
+      name?: string | null;
+      userType: string;
+      verification?: string;
+      createdAt: string;
+    } | null;
+    reporterEmail?: string | null;
+    assignedAdminId?: string | null;
+    assignedAdmin?: {
+      id: string;
+      email: string;
+    } | null;
+    bookingId?: string | null;
+    linkedBooking?: {
+      id: string;
+      state: string;
+      origin: string;
+      currency: string;
+      baseAmount: number;
+      talentFeeAmount: number;
+      clientFeeAmount: number;
+      talentName: string;
+      clientName: string;
+      createdAt: string;
+    } | null;
+    disputeId?: string | null;
+    firstResponseAt?: string | null;
+    resolvedAt?: string | null;
+    resolutionNote?: string | null;
+    slaDueAt: string;
+    isBreached: boolean;
+    timeToFirstResponseMs?: number | null;
+    slaRemainingMs: number;
+    createdAt: string;
+    updatedAt: string;
+    messages: TicketMessageItem[];
+  };
+}
+
+export interface CannedReplyItem {
+  id: string;
+  title: string;
+  body: string;
+}
+
+export interface CreateTicketOnBehalfPayload {
+  userId: string;
+  subject: string;
+  message: string;
+  category?: string;
+  priority?: string;
+  source?: string;
+  bookingId?: string;
 }
 
 export const adminClient = new AdminClient();

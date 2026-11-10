@@ -27,7 +27,9 @@ export const ALLOWED_WEB_EVENTS: Record<string, readonly string[]> = {
   media_kit_link_copied: ["surface"],
   talent_search_performed: ["niche", "filterKeys", "resultCount"],
   calendar_day_opened: ["slotCount"],
-  help_opened: ["category"],
+  help_opened: ["category", "bookingId"],
+  ticket_created: ["ticketId", "category", "priority", "bookingId"],
+  feedback_submitted: ["rating", "hasComment"],
   project_viewed: ["briefId", "cap"],
 };
 

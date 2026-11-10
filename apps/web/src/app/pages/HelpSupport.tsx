@@ -8,6 +8,7 @@ import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Modal } from "../components/ui/Modal";
+import { AlphaFeedbackPrompt } from "../components/AlphaFeedbackPrompt";
 import type { SupportTicket } from "@monologg/types";
 import { track } from "../../lib/tracker";
 
@@ -33,6 +34,7 @@ const FAQS: Array<{ q: string; a: string }> = [
 const TICKET_STATUS_TONE: Record<SupportTicket["status"], "success" | "accent" | "neutral"> = {
   OPEN: "accent",
   IN_PROGRESS: "accent",
+  WAITING_ON_USER: "accent",
   RESOLVED: "success",
   CLOSED: "neutral",
 };
@@ -43,40 +45,71 @@ export function HelpSupport() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
+  const [category, setCategory] = useState("COMPLAINT");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [chatMessages, setChatMessages] = useState<Array<{ id: string; sender: "user" | "agent"; text: string; time: string }>>([]);
   const [chatInput, setChatInput] = useState("");
 
-  useEffect(() => {
-    track("help_opened", { category: "general" });
-    apiClient.listSupportTickets().then(setTickets);
-  }, []);
-
-  const openTicketChat = (ticket: SupportTicket) => {
-    track("help_opened", { category: ticket.category || "ticket" });
-    setSelectedTicket(ticket);
-    setChatMessages([
-      { id: "1", sender: "user", text: ticket.message || "I need assistance with my account/booking.", time: "Earlier" },
-      { id: "2", sender: "agent", text: "Hello! Thank you for reaching out to Monologg Customer Care. Agent Sarah here — I am reviewing your request and will assist you right away.", time: "Just now" },
-    ]);
+  const refreshTickets = () => {
+    apiClient.listSupportTickets().then((data) => {
+      setTickets(Array.isArray(data) ? data : []);
+    });
   };
 
-  const handleSendChatMessage = () => {
-    if (!chatInput.trim()) return;
+  useEffect(() => {
+    track("help_opened", { category: "general" });
+    refreshTickets();
+  }, []);
+
+  const openTicketChat = async (ticket: SupportTicket) => {
+    track("help_opened", { category: ticket.category || "ticket" });
+    setSelectedTicket(ticket);
+
+    // Initial fallback messages
+    const initialList: Array<{ id: string; sender: "user" | "agent"; text: string; time: string }> = [
+      {
+        id: "initial-user",
+        sender: "user",
+        text: ticket.message || "I need assistance with my account/booking.",
+        time: formatRelativeTime(typeof ticket.createdAt === "string" ? ticket.createdAt : ticket.createdAt.toISOString()),
+      },
+    ];
+
+    try {
+      const detailed = await apiClient.getSupportTicket(ticket.id);
+      if (detailed && Array.isArray((detailed as any).messages) && (detailed as any).messages.length > 0) {
+        const msgs = (detailed as any).messages.map((m: any) => ({
+          id: m.id,
+          sender: m.authorType === "ADMIN" || m.senderRole === "ADMIN" ? ("agent" as const) : ("user" as const),
+          text: m.body,
+          time: formatRelativeTime(typeof m.createdAt === "string" ? m.createdAt : m.createdAt.toISOString()),
+        }));
+        setChatMessages(msgs);
+        return;
+      }
+    } catch {
+      // Fallback below
+    }
+
+    setChatMessages(initialList);
+  };
+
+  const handleSendChatMessage = async () => {
+    if (!chatInput.trim() || !selectedTicket) return;
     const text = chatInput.trim();
     setChatInput("");
-    setChatMessages(prev => [
+    setChatMessages((prev) => [
       ...prev,
-      { id: `c-${Date.now()}`, sender: "user", text, time: "Just now" }
+      { id: `c-${Date.now()}`, sender: "user", text, time: "Just now" },
     ]);
-    setTimeout(() => {
-      setChatMessages(prev => [
-        ...prev,
-        { id: `c-${Date.now() + 1}`, sender: "agent", text: "Got it! I am looking into this and updating your ticket notes.", time: "Just now" }
-      ]);
-    }, 1200);
+
+    try {
+      await apiClient.replySupportTicket(selectedTicket.id, text);
+    } catch (err) {
+      console.error("[HelpSupport] reply failed:", err);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -84,12 +117,24 @@ export function HelpSupport() {
     if (!subject.trim() || !message.trim()) return;
     setSubmitting(true);
     try {
-      const created = await apiClient.submitSupportTicket({ subject, message });
+      const created = await apiClient.submitSupportTicket({
+        subject: subject.trim(),
+        message: message.trim(),
+        category,
+        source: "HELP_MENU",
+      });
+
+      track("ticket_created", {
+        ticketId: created?.id ?? "local",
+        category,
+      });
+
       setTickets((prev) => [
         created ?? {
           id: `local-${Date.now()}`,
           subject,
           message,
+          category: category as any,
           status: "OPEN" as const,
           createdAt: new Date().toISOString(),
         },
@@ -98,7 +143,7 @@ export function HelpSupport() {
       setSubject("");
       setMessage("");
       setSubmitted(true);
-      setTimeout(() => setSubmitted(false), 2500);
+      setTimeout(() => setSubmitted(false), 3000);
     } finally {
       setSubmitting(false);
     }
@@ -150,6 +195,22 @@ export function HelpSupport() {
 
         <div className="text-xs font-medium tracking-normal mb-2 px-1 font-body" style={s.tertiary}>Contact support</div>
         <form onSubmit={handleSubmit} className="rounded-[var(--radius-xl)] p-4 mb-8 space-y-3" style={{ ...s.surface, boxShadow: "var(--shadow-card)" }}>
+          <div>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full h-10 px-3 rounded-[var(--radius-lg)] border border-[var(--color-border-default)] bg-[var(--color-bg-canvas)] text-xs font-body mb-1"
+              style={{ color: "var(--color-text-primary)" }}
+            >
+              <option value="COMPLAINT">Complaint</option>
+              <option value="BOOKING">Booking &amp; Scheduling</option>
+              <option value="PAYMENT">Payments &amp; Escrow</option>
+              <option value="DISPUTE">Dispute Issue</option>
+              <option value="BUG">Technical Bug</option>
+              <option value="ACCOUNT">Account &amp; Verification</option>
+              <option value="OTHER">Other</option>
+            </select>
+          </div>
           <Input placeholder="Subject" value={subject} onChange={(e) => setSubject(e.target.value)} required />
           <textarea
             placeholder="Describe your issue…"
@@ -160,6 +221,11 @@ export function HelpSupport() {
             className="w-full rounded-[var(--radius-lg)] border px-3 py-2.5 font-body text-sm resize-none"
             style={{ ...s.surface, color: "var(--color-text-primary)" }}
           />
+          {submitted && (
+            <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+              We have your message. We usually reply within 24 hours.
+            </p>
+          )}
           <Button type="submit" className="w-full" disabled={submitting || !subject.trim() || !message.trim()}>
             {submitting ? "Sending…" : submitted ? "Sent!" : "Submit Request"}
           </Button>
@@ -185,13 +251,20 @@ export function HelpSupport() {
                   <Badge tone={TICKET_STATUS_TONE[ticket.status]}>{ticket.status.replace("_", " ")}</Badge>
                 </div>
                 <div className="text-xs font-body flex items-center justify-between" style={s.tertiary}>
-                  <span>{formatRelativeTime(ticket.createdAt)}</span>
+                  <span>{formatRelativeTime(typeof ticket.createdAt === "string" ? ticket.createdAt : ticket.createdAt.toISOString())}</span>
                   <span className="text-xs font-semibold hover:underline" style={{ color: "var(--color-accent)" }}>Chat with Agent →</span>
                 </div>
               </div>
             ))}
           </div>
         )}
+
+        <div className="mt-8 mb-6">
+          <div className="text-xs font-medium tracking-normal mb-2 px-1 font-body" style={s.tertiary}>
+            Alpha tester feedback
+          </div>
+          <AlphaFeedbackPrompt />
+        </div>
       </div>
 
       {/* Support Agent Live Chat Modal */}
