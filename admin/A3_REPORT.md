@@ -2,7 +2,7 @@
 
 **Date:** November 10, 2026  
 **Status:** Completed  
-**Monorepo:** `/Users/oyeniyiadedoyin/Downloads/figj monol/monologg`  
+**Monorepo:** `/Users/oyeniyiadedoyin/Desktop/Anti gravity Projects/Monologg Admin`  
 **PRD References:** Monologg Admin PRD Section 7 (Analytics, Event Allowlist & EventSink Seam), Section 11 (Main App Instrumentation), Monologg Complete PRD Phase 10 & 16.
 
 ---

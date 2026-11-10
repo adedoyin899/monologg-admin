@@ -657,8 +657,8 @@ export async function seed() {
 //
 // NOT a naive `file://${process.argv[1]}` string comparison (the previous form of this
 // check) — that silently never matches when the repo path contains characters `file://`
-// URLs percent-encode (this project's own path has a space: ".../figj monol/monologg/...",
-// which import.meta.url renders as "...figj%20monol...") or when argv[1] is a relative path
+// URLs percent-encode (paths with spaces or special characters,
+// which import.meta.url renders as "%20") or when argv[1] is a relative path
 // (`tsx prisma/seed.ts`, exactly how `package.json`'s `prisma.seed` invokes it, never resolves
 // argv[1] to absolute). Both defeated the old check, meaning `prisma db seed` reported success
 // while silently never calling `seed()` at all, in this environment. `pathToFileURL` resolves
