@@ -31,3 +31,4 @@ Follow prompts in `PromptPack_Admin.md` (A0 to A13). If a prompt conflicts with 
 - Verify every item in each prompt's verify list before proceeding.
 - Work on a branch per prompt (`admin-a3-instrumentation`), test, review, and merge.
 - Use gstack skills (`/review`, `/qa`, `/ship`) for reviews and verification.
+
