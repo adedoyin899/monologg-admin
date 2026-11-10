@@ -106,3 +106,4 @@ Phase A7 implements read-only financial operations, auditing, and reconciliation
 
 **Carry forward:**
 "A7 done. Finance views, payment detail, webhook log, mismatch detectors, withdrawals and derived earnings are in, per currency, read-only."
+
