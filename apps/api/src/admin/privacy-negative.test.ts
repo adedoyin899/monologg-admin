@@ -172,7 +172,7 @@ describe("Phase A3: Privacy Negative & Security Hardening Tests", () => {
         name: "page_view",
         props: { path: "/about" },
         context: {
-          actor: "ANONYMOUS",
+          actor: "ANON",
           anonymousId: "anon_abc123",
           consent: false,
         },
@@ -185,7 +185,7 @@ describe("Phase A3: Privacy Negative & Security Hardening Tests", () => {
         name: "talent_search_performed",
         props: { niche: "ACTOR", filterKeys: ["location"], resultCount: 12 },
         context: {
-          actor: "ANONYMOUS",
+          actor: "ANON",
           anonymousId: "anon_abc123",
           // no consent property
         },
@@ -200,15 +200,15 @@ describe("Phase A3: Privacy Negative & Security Hardening Tests", () => {
         name: "page_view",
         props: { path: "/marketplace", referrerDomain: "twitter.com" },
         context: {
-          actor: "ANONYMOUS",
+          actor: "ANON",
           anonymousId: "anon_abc123",
           consent: true,
         },
       });
 
       expect(resultWithConsent.sanitized).not.toBeNull();
-      expect(resultWithConsent.sanitized?.props.path).toBe("/marketplace");
-      expect(resultWithConsent.sanitized?.context.consent).toBe(true);
+      expect(resultWithConsent.sanitized?.props?.path).toBe("/marketplace");
+      expect(resultWithConsent.sanitized?.context?.consent).toBe(true);
     });
 
     it("allows authenticated user events even if consent flag is omitted", () => {
@@ -222,7 +222,7 @@ describe("Phase A3: Privacy Negative & Security Hardening Tests", () => {
       });
 
       expect(result.sanitized).not.toBeNull();
-      expect(result.sanitized?.props.kind).toBe("STANDALONE");
+      expect(result.sanitized?.props?.kind).toBe("STANDALONE");
     });
   });
 

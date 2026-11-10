@@ -72,11 +72,14 @@ export async function withdrawalRoutes(app: FastifyInstance): Promise<void> {
 
       try {
         const result = await initiateWithdrawal(request.user!.userId, parsed.data);
-        void track(
-          "withdrawal_requested",
-          { currency: result.currency, amountMinor: result.amount },
-          { actor: "USER", actorId: request.user!.userId, source: "API" },
-        ).catch(() => {});
+        const wr = "withdrawalRequest" in result ? result.withdrawalRequest : null;
+        if (wr) {
+          void track(
+            "withdrawal_requested",
+            { currency: wr.currency, amountMinor: wr.amount },
+            { actor: "USER", actorId: request.user!.userId, source: "API" },
+          ).catch(() => {});
+        }
         return reply.status(201).send(result);
       } catch (err) {
         return handleError(err, reply);
@@ -129,11 +132,14 @@ export async function withdrawalRoutes(app: FastifyInstance): Promise<void> {
           parsedParams.data.id,
           parsedBody.data.code,
         );
-        void track(
-          "withdrawal_otp_verified",
-          { currency: result.currency, amountMinor: result.amount },
-          { actor: "USER", actorId: request.user!.userId, source: "API" },
-        ).catch(() => {});
+        const wr = "withdrawalRequest" in result ? result.withdrawalRequest : null;
+        if (wr) {
+          void track(
+            "withdrawal_otp_verified",
+            { currency: wr.currency, amountMinor: wr.amount },
+            { actor: "USER", actorId: request.user!.userId, source: "API" },
+          ).catch(() => {});
+        }
         return reply.status(200).send(result);
       } catch (err) {
         return handleError(err, reply);
@@ -157,9 +163,10 @@ export async function withdrawalRoutes(app: FastifyInstance): Promise<void> {
 
       try {
         const result = await releaseWithdrawal(request.user!.userId, parsedParams.data.id);
+        const wr = result.withdrawalRequest;
         void track(
           "withdrawal_completed",
-          { currency: result.currency, amountMinor: result.amount },
+          { currency: wr.currency, amountMinor: wr.amount },
           { actor: "USER", actorId: request.user!.userId, source: "API" },
         ).catch(() => {});
         return reply.status(200).send(result);

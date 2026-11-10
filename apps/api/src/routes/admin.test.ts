@@ -43,6 +43,30 @@ vi.mock("../db/client.js", () => {
   };
 });
 
+vi.mock("../db/adminRoClient.js", () => {
+  return {
+    adminRoPrisma: {
+      user: { findMany: vi.fn().mockResolvedValue([]), count: vi.fn().mockResolvedValue(0) },
+      userTag: { findMany: vi.fn().mockResolvedValue([]) },
+      creator: { count: vi.fn().mockResolvedValue(0) },
+      client: { count: vi.fn().mockResolvedValue(0) },
+      verificationRecording: { count: vi.fn().mockResolvedValue(0) },
+      booking: {
+        findMany: vi.fn().mockResolvedValue([]),
+        count: vi.fn().mockResolvedValue(0),
+        groupBy: vi.fn().mockResolvedValue([]),
+      },
+      payment: { findMany: vi.fn().mockResolvedValue([]), count: vi.fn().mockResolvedValue(0) },
+      withdrawalRequest: { findMany: vi.fn().mockResolvedValue([]) },
+      productEvent: { findMany: vi.fn().mockResolvedValue([]), count: vi.fn().mockResolvedValue(0) },
+      supportTicket: { count: vi.fn().mockResolvedValue(0) },
+      alertEvent: { count: vi.fn().mockResolvedValue(0), findMany: vi.fn().mockResolvedValue([]) },
+      $queryRaw: vi.fn(),
+    },
+    getMaterializedViewLastRefreshed: vi.fn().mockResolvedValue(new Date()),
+  };
+});
+
 import { prisma } from "../db/client.js";
 
 describe("Phase A1: Admin Foundation Routes & Auth", () => {

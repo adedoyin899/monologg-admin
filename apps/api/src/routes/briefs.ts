@@ -311,7 +311,7 @@ export async function briefRoutes(app: FastifyInstance): Promise<void> {
 
         void track(
           "applicant_selected",
-          { briefId: result.briefId, cap: 0 },
+          { briefId: result.application.briefId, cap: 0 },
           { actor: "USER", actorId: request.user!.userId, source: "API" },
         ).catch(() => {});
 

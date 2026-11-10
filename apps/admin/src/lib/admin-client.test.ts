@@ -72,5 +72,59 @@ describe("AdminClient", () => {
       "Multi-factor authentication required.",
     );
   });
+
+  it("calls getOverview with query parameters formatted correctly", async () => {
+    vi.mocked(localStorage.getItem).mockReturnValue("valid-token");
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ cards: {}, period: {} }),
+    });
+    vi.stubGlobal("fetch", mockFetch);
+
+    await client.getOverview({
+      from: "2026-01-01T00:00:00Z",
+      to: "2026-01-31T23:59:59Z",
+      userType: "TALENT",
+      currency: "NGN",
+      cohortTag: "alpha",
+    });
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining("/api/v1/admin/overview?"),
+      expect.any(Object),
+    );
+    const calledUrl = mockFetch.mock.calls[0][0] as string;
+    expect(calledUrl).toContain("from=2026-01-01T00%3A00%3A00Z");
+    expect(calledUrl).toContain("to=2026-01-31T23%3A59%3A59Z");
+    expect(calledUrl).toContain("userType=TALENT");
+    expect(calledUrl).toContain("currency=NGN");
+    expect(calledUrl).toContain("cohortTag=alpha");
+  });
+
+  it("calls getFeed with cursor pagination and group filters", async () => {
+    vi.mocked(localStorage.getItem).mockReturnValue("valid-token");
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ events: [], nextCursor: null }),
+    });
+    vi.stubGlobal("fetch", mockFetch);
+
+    await client.getFeed({
+      cursor: "105",
+      limit: 25,
+      eventGroup: "bookings",
+      userType: "CLIENT",
+      includeTestUsers: true,
+    });
+
+    const calledUrl = mockFetch.mock.calls[0][0] as string;
+    expect(calledUrl).toContain("cursor=105");
+    expect(calledUrl).toContain("limit=25");
+    expect(calledUrl).toContain("eventGroup=bookings");
+    expect(calledUrl).toContain("userType=CLIENT");
+    expect(calledUrl).toContain("includeTestUsers=true");
+  });
 });
 

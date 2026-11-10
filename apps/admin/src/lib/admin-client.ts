@@ -32,6 +32,137 @@ export interface AdminMeResponse {
   };
 }
 
+export interface OverviewFilterOptions {
+  from?: string;
+  to?: string;
+  cohortTag?: string;
+  userType?: "ALL" | "TALENT" | "CLIENT";
+  currency?: "ALL" | "NGN" | "USD" | "GBP";
+}
+
+export interface OverviewResponse {
+  period: {
+    from: string;
+    to: string;
+    previousFrom: string;
+    previousTo: string;
+  };
+  cards: {
+    signups: {
+      total: number;
+      talent: number;
+      client: number;
+      change: number | null;
+    };
+    activeUsers: {
+      dau: number;
+      wau: number;
+      mau: number;
+    };
+    talentActivated: {
+      total: number;
+      change: number | null;
+    };
+    clientActivated: {
+      total: number;
+      change: number | null;
+    };
+    bookingsCreated: {
+      total: number;
+      change: number | null;
+    };
+    escrowLocked: {
+      byCurrency: Record<string, number>;
+      change: number | null;
+    };
+    money: {
+      byCurrency: Array<{
+        currency: string;
+        gmv: number;
+        escrowHeld: number;
+        released: number;
+        platformRevenue: number;
+        talentEarned: number;
+        talentAvailable: number;
+        takeRate: number;
+      }>;
+    };
+    openTickets: {
+      total: number;
+    };
+    openDisputes: {
+      total: number;
+    };
+    criticalAlerts: {
+      total: number;
+    };
+  };
+  charts: {
+    signupsByDay: Array<{
+      date: string;
+      talent: number;
+      client: number;
+      total: number;
+    }>;
+    bookingsByState: Array<{
+      state: string;
+      count: number;
+    }>;
+    gmvByDay: Array<{
+      date: string;
+      amountsByCurrency: Record<string, number>;
+    }>;
+    activationFunnel: {
+      talent: Array<{ stage: string; count: number; conversion: number }>;
+      client: Array<{ stage: string; count: number; conversion: number }>;
+    };
+  };
+  freshness: {
+    lastRefreshedAt: string;
+    isStale: boolean;
+    stalenessMinutes: number;
+    paymentsMode: "TEST" | "LIVE";
+    environment: string;
+  };
+  criticalAlerts: Array<{
+    id: string;
+    ruleKey: string;
+    message: string;
+    severity: string;
+    lastSeenAt: string;
+  }>;
+}
+
+export interface FeedFilterOptions {
+  cursor?: string;
+  limit?: number;
+  eventGroup?: string;
+  userType?: string;
+  includeTestUsers?: boolean;
+}
+
+export interface FeedEventItem {
+  id: string;
+  name: string;
+  eventGroup: string;
+  occurredAt: string;
+  actorLabel: string;
+  userType: string | null;
+  country: string | null;
+  targetType: "user" | "booking" | "ticket" | null;
+  targetId: string | null;
+  targetUrl: string | null;
+  description: string;
+  props: Record<string, unknown>;
+}
+
+export interface FeedResponse {
+  events: FeedEventItem[];
+  nextCursor: string | null;
+  hasMore: boolean;
+  polledAt: string;
+}
+
 export class AdminClient {
   private baseUrl: string;
   private tokenKey = "monologg_admin_token";
@@ -134,6 +265,28 @@ export class AdminClient {
         body: JSON.stringify({ reason }),
       },
     );
+  }
+
+  async getOverview(filters?: OverviewFilterOptions): Promise<OverviewResponse> {
+    const params = new URLSearchParams();
+    if (filters?.from) params.set("from", filters.from);
+    if (filters?.to) params.set("to", filters.to);
+    if (filters?.cohortTag) params.set("cohortTag", filters.cohortTag);
+    if (filters?.userType && filters.userType !== "ALL") params.set("userType", filters.userType);
+    if (filters?.currency && filters.currency !== "ALL") params.set("currency", filters.currency);
+    const qs = params.toString();
+    return this.request<OverviewResponse>(`/api/v1/admin/overview${qs ? `?${qs}` : ""}`);
+  }
+
+  async getFeed(filters?: FeedFilterOptions): Promise<FeedResponse> {
+    const params = new URLSearchParams();
+    if (filters?.cursor) params.set("cursor", filters.cursor);
+    if (filters?.limit) params.set("limit", filters.limit.toString());
+    if (filters?.eventGroup && filters.eventGroup !== "all") params.set("eventGroup", filters.eventGroup);
+    if (filters?.userType && filters.userType !== "ALL") params.set("userType", filters.userType);
+    if (filters?.includeTestUsers) params.set("includeTestUsers", "true");
+    const qs = params.toString();
+    return this.request<FeedResponse>(`/api/v1/admin/feed${qs ? `?${qs}` : ""}`);
   }
 }
 

@@ -62,12 +62,19 @@ export class KpiService {
   /**
    * Helper to construct Prisma User filter excluding test users and admins.
    */
-  private getUserBaseFilter(options?: KpiFilterOptions) {
+  private async getUserBaseFilter(options?: KpiFilterOptions) {
     const filter: any = {
       isTestUser: false,
     };
     if (options?.userType) {
       filter.userType = options.userType;
+    }
+    if (options?.cohortTag) {
+      const taggedUsers = await this.db.userTag.findMany({
+        where: { tag: options.cohortTag },
+        select: { userId: true },
+      });
+      filter.id = { in: taggedUsers.map((t) => t.userId) };
     }
     if (options?.startDate || options?.endDate) {
       filter.createdAt = {};
@@ -81,7 +88,7 @@ export class KpiService {
    * 1. Signup KPI: Total User rows created, split by userType and accountOrigin.
    */
   async getSignups(options?: KpiFilterOptions): Promise<SignupKpi> {
-    const where = this.getUserBaseFilter(options);
+    const where = await this.getUserBaseFilter(options);
     const users = await this.db.user.findMany({
       where,
       select: {
@@ -109,8 +116,9 @@ export class KpiService {
    * 2. Email Verified: User.emailVerified = true or Google Auth.
    */
   async getEmailVerifiedCount(options?: KpiFilterOptions): Promise<number> {
+    const baseFilter = await this.getUserBaseFilter(options);
     const where = {
-      ...this.getUserBaseFilter(options),
+      ...baseFilter,
       emailVerified: true,
     };
     return await this.db.user.count({ where });
@@ -120,7 +128,7 @@ export class KpiService {
    * 3. Talent Onboarded: Creator with name, niche, location set.
    */
   async getTalentOnboardedCount(options?: KpiFilterOptions): Promise<number> {
-    const userFilter = this.getUserBaseFilter(options);
+    const userFilter = await this.getUserBaseFilter(options);
     return await this.db.creator.count({
       where: {
         user: userFilter,
@@ -134,7 +142,7 @@ export class KpiService {
    * 4. Talent Activated: Onboarded + >=1 RateCard + >=1 MediaAsset.
    */
   async getTalentActivatedCount(options?: KpiFilterOptions): Promise<number> {
-    const userFilter = this.getUserBaseFilter(options);
+    const userFilter = await this.getUserBaseFilter(options);
     return await this.db.creator.count({
       where: {
         user: userFilter,
@@ -150,7 +158,7 @@ export class KpiService {
    * 5. Client Activated: Client who created a Brief or started a booking.
    */
   async getClientActivatedCount(options?: KpiFilterOptions): Promise<number> {
-    const userFilter = this.getUserBaseFilter(options);
+    const userFilter = await this.getUserBaseFilter(options);
     return await this.db.client.count({
       where: {
         user: userFilter,
@@ -166,7 +174,7 @@ export class KpiService {
    * 6. Verified (Identity): Creator.verification = VERIFIED (KYC only).
    */
   async getIdentityVerifiedCount(options?: KpiFilterOptions): Promise<number> {
-    const userFilter = this.getUserBaseFilter(options);
+    const userFilter = await this.getUserBaseFilter(options);
     return await this.db.creator.count({
       where: {
         user: userFilter,
@@ -179,10 +187,11 @@ export class KpiService {
    * 7. Verification Recording Approved: VerificationRecording.status = APPROVED.
    */
   async getVerificationRecordingApprovedCount(options?: KpiFilterOptions): Promise<number> {
+    const userFilter = await this.getUserBaseFilter(options);
     const where: any = {
       status: "APPROVED",
       creator: {
-        user: this.getUserBaseFilter(options),
+        user: userFilter,
       },
     };
     return await this.db.verificationRecording.count({ where });
@@ -238,7 +247,7 @@ export class KpiService {
    * Median and 90th percentile in hours.
    */
   async getTimeToFirstBooking(options?: KpiFilterOptions): Promise<{ median: number | null; p90: number | null }> {
-    const userFilter = this.getUserBaseFilter(options);
+    const userFilter = await this.getUserBaseFilter(options);
     const usersWithBookings = await this.db.user.findMany({
       where: {
         ...userFilter,
@@ -274,8 +283,8 @@ export class KpiService {
     const diffHours: number[] = [];
 
     for (const u of usersWithBookings) {
-      const firstClientBooking = u.client?.bookings[0]?.createdAt;
-      const firstCreatorBooking = u.creator?.bookings[0]?.createdAt;
+      const firstClientBooking = u.client?.bookings?.[0]?.createdAt;
+      const firstCreatorBooking = u.creator?.bookings?.[0]?.createdAt;
       const firstDate = firstClientBooking && firstCreatorBooking
         ? (firstClientBooking < firstCreatorBooking ? firstClientBooking : firstCreatorBooking)
         : (firstClientBooking || firstCreatorBooking);
@@ -370,6 +379,15 @@ export class KpiService {
   async getMoneyByCurrency(options?: KpiFilterOptions): Promise<MonetaryKpiByCurrency[]> {
     const currencies = ["NGN", "USD", "GBP"];
 
+    let taggedUserIds: string[] | null = null;
+    if (options?.cohortTag) {
+      const tagged = await this.db.userTag.findMany({
+        where: { tag: options.cohortTag },
+        select: { userId: true },
+      });
+      taggedUserIds = tagged.map((t) => t.userId);
+    }
+
     const escrowEligibleStates: BookingState[] = [
       "ESCROW_LOCKED",
       "DELIVERABLES_PROVIDED",
@@ -389,7 +407,12 @@ export class KpiService {
       // Base booking query
       const bookingWhere: any = {
         currency,
-        client: { user: { isTestUser: false } },
+        client: {
+          user: {
+            isTestUser: false,
+            ...(taggedUserIds ? { id: { in: taggedUserIds } } : {}),
+          },
+        },
       };
 
       if (options?.startDate || options?.endDate) {
@@ -482,8 +505,22 @@ export class KpiService {
    * 12. Dispute rate: Bookings that entered DISPUTED / Bookings that reached ESCROW_LOCKED.
    */
   async getDisputeRate(options?: KpiFilterOptions): Promise<number> {
+    let taggedUserIds: string[] | null = null;
+    if (options?.cohortTag) {
+      const tagged = await this.db.userTag.findMany({
+        where: { tag: options.cohortTag },
+        select: { userId: true },
+      });
+      taggedUserIds = tagged.map((t) => t.userId);
+    }
+
     const bookingWhere: any = {
-      client: { user: { isTestUser: false } },
+      client: {
+        user: {
+          isTestUser: false,
+          ...(taggedUserIds ? { id: { in: taggedUserIds } } : {}),
+        },
+      },
     };
     if (options?.startDate || options?.endDate) {
       bookingWhere.createdAt = {};
