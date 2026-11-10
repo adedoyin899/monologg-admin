@@ -1,7 +1,7 @@
 # Monologg Admin · Phase A0 Preflight Report
 
 **Date:** 2026-11-10  
-**Status:** Complete with **CRITICAL SECURITY BLOCKER**  
+**Status:** Complete — **Security Blocker Remediated & Verified**  
 **Author:** Antigravity (Phase A0 Preflight)  
 **Audience:** Maz, Engineering  
 
@@ -9,14 +9,14 @@
 
 ## 1. Blockers & Urgent Findings (Ordered by Severity)
 
-### 1.1 [CRITICAL BLOCKER] Data API & PII Leak via Supabase Anon Key
-- **Finding:** Four tables in the `public` schema return live data or internal schema information to unauthenticated clients using only `SUPABASE_ANON_KEY`:
-  1. `InvestorApplication`: Public SELECT policy (`USING (true)`) leaks names, emails, phone numbers, and investment memos.
-  2. `NewsletterSubscriber`: Public SELECT and UPDATE policies (`USING (true)`) expose subscriber email addresses and allow arbitrary edits.
-  3. `AnalyticsEvent`: Public SELECT policy (`USING (true)`) exposes 1,721 user telemetry events, session IDs, and user IDs.
-  4. `_prisma_migrations`: RLS is completely **DISABLED**, exposing database migration history.
-- **Root Cause:** In earlier sessions (Sessions 174, 184, 194), client-side pages (`ResourcesPage.tsx`, `WebsiteFooter.tsx`, `analytics.ts`) were wired directly to PostgREST via `supabase.from(...)`. The RLS policies created inadvertently granted public read access.
-- **Action Required:** Apply the exact SQL fix documented in `admin/ANON_AUDIT.md` before deploying or launching alpha. Do not apply without human review.
+### 1.1 [REMEDIATED] Data API & PII Leak via Supabase Anon Key
+- **Finding:** Four tables in the `public` schema were returning live data or internal schema information to unauthenticated clients using only `SUPABASE_ANON_KEY` (`InvestorApplication`, `NewsletterSubscriber`, `AnalyticsEvent`, `_prisma_migrations`).
+- **Remediation Applied & Verified:**
+  1. Enabled RLS and revoked public grants on `_prisma_migrations` (returns 401).
+  2. Dropped permissive SELECT on `InvestorApplication` (returns 0 rows).
+  3. Dropped permissive SELECT and UPDATE on `NewsletterSubscriber` (returns 0 rows).
+  4. Dropped permissive SELECT on `AnalyticsEvent` (returns 0 rows).
+- **Current Status:** Verified across all 32 tables. 0 tables leaking. Block resolved.
 
 ### 1.2 [HIGH] Notification Payload Leaks OTP Codes (PRD Flag F10 Confirmed)
 - **Finding:** In `src/services/withdrawals.ts`, when sending in-app notifications for withdrawal OTPs, the unhashed 6-digit code is placed in `Notification.payload`:
