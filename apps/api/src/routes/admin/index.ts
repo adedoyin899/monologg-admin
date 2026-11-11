@@ -63,6 +63,15 @@ import {
   VerificationValidationError,
 } from "../../services/adminVerification.js";
 import { RecordingNotFoundError } from "../../services/verificationRecording.js";
+import {
+  getAcquisitionAnalytics,
+  getFunnelAnalytics,
+  getRetentionAnalytics,
+  getTrafficAnalytics,
+  getFeatureAdoptionAnalytics,
+  getMarketplaceHealthAnalytics,
+  runKpiDailySnapshot,
+} from "../../services/adminAnalytics.js";
 
 export async function adminRoutes(app: FastifyInstance): Promise<void> {
   // All routes in this plugin are prefixed with /api/v1/admin and require requireAdmin
@@ -940,37 +949,71 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     },
   );
 
-  app.get(
-    "/api/v1/admin/acquisition",
-    { preHandler: [requirePermission("overview", "read")] },
-    async (_request: FastifyRequest, reply: FastifyReply) => {
-      return reply.send({ status: "ok", module: "acquisition" });
-    },
-  );
+  // ── M4 & M10 Analytics ────────────────────────────────────────────────
+  const acquisitionHandler = async (_request: FastifyRequest, reply: FastifyReply) => {
+    const data = await getAcquisitionAnalytics();
+    return reply.send(data);
+  };
+  app.get("/api/v1/admin/acquisition", { preHandler: [requirePermission("overview", "read")] }, acquisitionHandler);
+  app.get("/admin/acquisition", { preHandler: [requirePermission("overview", "read")] }, acquisitionHandler);
 
-  app.get(
-    "/api/v1/admin/funnels",
-    { preHandler: [requirePermission("overview", "read")] },
-    async (_request: FastifyRequest, reply: FastifyReply) => {
-      return reply.send({ status: "ok", module: "funnels" });
-    },
-  );
+  const funnelsHandler = async (request: FastifyRequest, reply: FastifyReply) => {
+    const { funnelId } = (request.query as { funnelId?: "TALENT_ONBOARDING" | "CLIENT_LIFECYCLE" | "EXTERNAL_BOOKING" }) || {};
+    const data = await getFunnelAnalytics(funnelId);
+    return reply.send(data);
+  };
+  app.get("/api/v1/admin/funnels", { preHandler: [requirePermission("overview", "read")] }, funnelsHandler);
+  app.get("/admin/funnels", { preHandler: [requirePermission("overview", "read")] }, funnelsHandler);
 
-  app.get(
-    "/api/v1/admin/retention",
-    { preHandler: [requirePermission("overview", "read")] },
-    async (_request: FastifyRequest, reply: FastifyReply) => {
-      return reply.send({ status: "ok", module: "retention" });
-    },
-  );
+  const retentionHandler = async (request: FastifyRequest, reply: FastifyReply) => {
+    const { userType } = (request.query as { userType?: "ALL" | "TALENT" | "CLIENT" }) || {};
+    const data = await getRetentionAnalytics(userType);
+    return reply.send(data);
+  };
+  app.get("/api/v1/admin/retention", { preHandler: [requirePermission("overview", "read")] }, retentionHandler);
+  app.get("/admin/retention", { preHandler: [requirePermission("overview", "read")] }, retentionHandler);
 
-  app.get(
-    "/api/v1/admin/traffic",
-    { preHandler: [requirePermission("overview", "read")] },
-    async (_request: FastifyRequest, reply: FastifyReply) => {
-      return reply.send({ status: "ok", module: "traffic" });
-    },
-  );
+  const trafficHandler = async (_request: FastifyRequest, reply: FastifyReply) => {
+    const data = await getTrafficAnalytics();
+    return reply.send(data);
+  };
+  app.get("/api/v1/admin/traffic", { preHandler: [requirePermission("overview", "read")] }, trafficHandler);
+  app.get("/admin/traffic", { preHandler: [requirePermission("overview", "read")] }, trafficHandler);
+
+  const featuresHandler = async (_request: FastifyRequest, reply: FastifyReply) => {
+    const data = await getFeatureAdoptionAnalytics();
+    return reply.send(data);
+  };
+  app.get("/api/v1/admin/features", { preHandler: [requirePermission("overview", "read")] }, featuresHandler);
+  app.get("/admin/features", { preHandler: [requirePermission("overview", "read")] }, featuresHandler);
+  app.get("/api/v1/admin/features/adoption", { preHandler: [requirePermission("overview", "read")] }, featuresHandler);
+  app.get("/admin/features/adoption", { preHandler: [requirePermission("overview", "read")] }, featuresHandler);
+
+  const marketplaceHandler = async (_request: FastifyRequest, reply: FastifyReply) => {
+    const data = await getMarketplaceHealthAnalytics();
+    return reply.send(data);
+  };
+  app.get("/api/v1/admin/marketplace", { preHandler: [requirePermission("overview", "read")] }, marketplaceHandler);
+  app.get("/admin/marketplace", { preHandler: [requirePermission("overview", "read")] }, marketplaceHandler);
+  app.get("/api/v1/admin/marketplace/health", { preHandler: [requirePermission("overview", "read")] }, marketplaceHandler);
+  app.get("/admin/marketplace/health", { preHandler: [requirePermission("overview", "read")] }, marketplaceHandler);
+
+  const kpiSnapshotHandler = async (request: FastifyRequest, reply: FastifyReply) => {
+    const { day } = (request.body as { day?: string }) || {};
+    const targetDate = day ? new Date(day) : new Date();
+    const result = await runKpiDailySnapshot(targetDate);
+    await audit({
+      adminId: request.adminUser!.id,
+      action: "KPI_SNAPSHOT_RUN",
+      targetType: "KpiDaily",
+      targetId: targetDate.toISOString().slice(0, 10),
+      reason: "Nightly or triggered KPI snapshot run",
+      ip: request.ip,
+    });
+    return reply.send({ status: "ok", ...result });
+  };
+  app.post("/api/v1/admin/kpi/snapshot", { preHandler: [requirePermission("overview", "write")] }, kpiSnapshotHandler);
+  app.post("/admin/kpi/snapshot", { preHandler: [requirePermission("overview", "write")] }, kpiSnapshotHandler);
 
   // ── M3 Users & Directory ────────────────────────────────────────────────
   function isSensitiveNotification(kind: string): boolean {

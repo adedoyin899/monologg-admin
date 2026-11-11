@@ -102,3 +102,4 @@ export function getRemainingSlaHours(createdAt: Date | string): number {
   const remainingMs = slaTotalMs - ageMs;
   return Math.max(0, Math.round((remainingMs / (3600 * 1000)) * 10) / 10);
 }
+
