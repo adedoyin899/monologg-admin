@@ -28,6 +28,7 @@ import { withdrawalRoutes } from "./withdrawals.js";
 import { analyticsRoutes } from "./analytics.js";
 import { eventsRoutes } from "./events.js";
 import { newsletterRoutes } from "./newsletter.js";
+import { cronRoutes } from "./cron.js";
 
 /**
  * Route aggregator — registers all route plugins onto the Fastify instance.
@@ -63,4 +64,5 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
   await app.register(verificationRoutes);
   await app.register(attributesRoutes);
   await app.register(withdrawalRoutes);
+  await app.register(cronRoutes);
 }

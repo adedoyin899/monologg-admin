@@ -56,3 +56,4 @@ export const FUNNEL_DEFINITIONS: Record<"TALENT_ONBOARDING" | "CLIENT_LIFECYCLE"
     ],
   },
 };
+

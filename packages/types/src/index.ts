@@ -14,3 +14,4 @@ export * from "./application.js";
 export * from "./publicStorefront.js";
 export * from "./verification.js";
 export * from "./analytics.js";
+export * from "./alerts.js";

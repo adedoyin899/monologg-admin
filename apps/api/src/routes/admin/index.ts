@@ -72,6 +72,13 @@ import {
   getMarketplaceHealthAnalytics,
   runKpiDailySnapshot,
 } from "../../services/adminAnalytics.js";
+import {
+  listAlertEvents,
+  acknowledgeAlert,
+  resolveAlert,
+  evaluateAllAlertRules,
+} from "../../admin/alerts/engine.js";
+import { getSystemHealth } from "../../services/adminHealth.js";
 
 export async function adminRoutes(app: FastifyInstance): Promise<void> {
   // All routes in this plugin are prefixed with /api/v1/admin and require requireAdmin
@@ -3024,56 +3031,66 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
   );
 
   // ── M11 Alerts & System Health ───────────────────────────────────────────
-  app.get(
-    "/api/v1/admin/alerts",
-    { preHandler: [requirePermission("alerts", "read")] },
-    async (_request: FastifyRequest, reply: FastifyReply) => {
-      return reply.send({ status: "ok", module: "alerts" });
-    },
-  );
+  const getAlertsHandler = async (request: FastifyRequest, reply: FastifyReply) => {
+    const query = request.query as { severity?: string; status?: string; ruleKey?: string; limit?: string };
+    const data = await listAlertEvents({
+      severity: query.severity,
+      status: query.status,
+      ruleKey: query.ruleKey,
+      limit: query.limit ? Number(query.limit) : undefined,
+    });
+    return reply.send(data);
+  };
+  app.get("/api/v1/admin/alerts", { preHandler: [requirePermission("alerts", "read")] }, getAlertsHandler);
+  app.get("/admin/alerts", { preHandler: [requirePermission("alerts", "read")] }, getAlertsHandler);
 
-  app.post(
-    "/api/v1/admin/alerts/:id/ack",
-    { preHandler: [requirePermission("alerts", "read")] },
-    async (request: FastifyRequest, reply: FastifyReply) => {
-      const { id } = request.params as { id: string };
-      if (request.adminUser!.role === "VIEWER") {
-        return reply.status(403).send({ error: "VIEWER cannot acknowledge alerts." });
-      }
-      await audit({
-        adminId: request.adminUser!.id,
-        action: "ALERT_ACK",
-        targetType: "AlertEvent",
-        targetId: id,
-        ip: request.ip,
-      });
-      return reply.send({ status: "ok", module: "alerts_ack" });
-    },
-  );
+  const ackAlertHandler = async (request: FastifyRequest, reply: FastifyReply) => {
+    const { id } = request.params as { id: string };
+    if (request.adminUser!.role === "VIEWER") {
+      return reply.status(403).send({ error: "VIEWER cannot acknowledge alerts." });
+    }
+    try {
+      const result = await acknowledgeAlert(id, request.adminUser!, request.ip);
+      return reply.send(result);
+    } catch (err: any) {
+      const status = err.message?.includes("not found") ? 404 : 400;
+      return reply.status(status).send({ error: err.message });
+    }
+  };
+  app.post("/api/v1/admin/alerts/:id/ack", { preHandler: [requirePermission("alerts", "read")] }, ackAlertHandler);
+  app.post("/admin/alerts/:id/ack", { preHandler: [requirePermission("alerts", "read")] }, ackAlertHandler);
 
-  app.post(
-    "/api/v1/admin/alerts/:id/resolve",
-    { preHandler: [requirePermission("alerts", "write")] },
-    async (request: FastifyRequest, reply: FastifyReply) => {
-      const { id } = request.params as { id: string };
-      await audit({
-        adminId: request.adminUser!.id,
-        action: "ALERT_RESOLVED",
-        targetType: "AlertEvent",
-        targetId: id,
-        ip: request.ip,
-      });
-      return reply.send({ status: "ok", module: "alerts_resolve" });
-    },
-  );
+  const resolveAlertHandler = async (request: FastifyRequest, reply: FastifyReply) => {
+    const { id } = request.params as { id: string };
+    const { note, reason } = (request.body as { note?: string; reason?: string }) || {};
+    const resolutionNote = note || reason || "";
+    if (!resolutionNote.trim()) {
+      return reply.status(400).send({ error: "Resolution note is required." });
+    }
+    try {
+      const result = await resolveAlert(id, request.adminUser!, resolutionNote, request.ip);
+      return reply.send(result);
+    } catch (err: any) {
+      const status = err.message?.includes("not found") ? 404 : 400;
+      return reply.status(status).send({ error: err.message });
+    }
+  };
+  app.post("/api/v1/admin/alerts/:id/resolve", { preHandler: [requirePermission("alerts", "write")] }, resolveAlertHandler);
+  app.post("/admin/alerts/:id/resolve", { preHandler: [requirePermission("alerts", "write")] }, resolveAlertHandler);
 
-  app.get(
-    "/api/v1/admin/health",
-    { preHandler: [requirePermission("system_health", "read")] },
-    async (_request: FastifyRequest, reply: FastifyReply) => {
-      return reply.send({ status: "ok", module: "health" });
-    },
-  );
+  const evaluateAlertsHandler = async (_request: FastifyRequest, reply: FastifyReply) => {
+    const result = await evaluateAllAlertRules();
+    return reply.send({ status: "ok", ...result });
+  };
+  app.post("/api/v1/admin/alerts/evaluate", { preHandler: [requirePermission("alerts", "write")] }, evaluateAlertsHandler);
+  app.post("/admin/alerts/evaluate", { preHandler: [requirePermission("alerts", "write")] }, evaluateAlertsHandler);
+
+  const getHealthHandler = async (_request: FastifyRequest, reply: FastifyReply) => {
+    const data = await getSystemHealth();
+    return reply.send(data);
+  };
+  app.get("/api/v1/admin/health", { preHandler: [requirePermission("system_health", "read")] }, getHealthHandler);
+  app.get("/admin/health", { preHandler: [requirePermission("system_health", "read")] }, getHealthHandler);
 
   // ── M1.3 Audit Log & Exports ────────────────────────────────────────────
   app.get(

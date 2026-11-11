@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "npx pnpm --filter @monologg/web dev",
     "admin:dev": "npx pnpm --filter @monologg/admin dev",
+    "admin:tick": "npx tsx scripts/admin-tick.ts",
     "api:dev": "npx pnpm --filter @monologg/api dev",
     "db:seed": "npx pnpm --filter @monologg/api db:seed",
     "db:migrate": "npx pnpm --filter @monologg/api exec prisma migrate deploy",

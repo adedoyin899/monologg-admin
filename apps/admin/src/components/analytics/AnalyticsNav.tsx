@@ -95,3 +95,4 @@ export function AnalyticsNav({ dataFreshness }: { dataFreshness?: string }) {
     </div>
   );
 }
+
