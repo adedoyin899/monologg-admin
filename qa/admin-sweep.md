@@ -133,3 +133,4 @@
 - [x] **A VIEWER account sees dashboards only, with masked data and no exports** (enforced by RBAC middleware and UI guards).
 - [x] **You can run a full morning check from the runbook in under 15 minutes** (documented with step-by-step terminal commands and UI checklist).
 - [x] **Q1 to Q20 in the PRD can each be answered from the app** (verified across Overview, Analytics, Finance, and Health screens).
+

@@ -35,3 +35,4 @@ export interface PlatformSettingsResponse {
   featuresCount: number;
   funnelsCount: number;
 }
+

@@ -42,3 +42,4 @@ export function getPlatformSettings(): PlatformSettingsResponse {
     funnelsCount: Object.keys(FUNNELS).length,
   };
 }
+

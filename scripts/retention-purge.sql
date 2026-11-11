@@ -28,3 +28,4 @@ SELECT cron.schedule(
   WHERE "kind" = 'EXPORT' AND "runAfter" < NOW() - INTERVAL '7 days';
   $$
 );
+
