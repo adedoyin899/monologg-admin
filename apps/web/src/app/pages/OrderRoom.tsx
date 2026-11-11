@@ -95,7 +95,7 @@ export function OrderRoom() {
   const [disputeSuccessMsg, setDisputeSuccessMsg] = useState<string | null>(null);
 
   const handleSubmitDispute = async () => {
-    if (!disputeDesc.trim()) return;
+    if (!orderId || !disputeDesc.trim()) return;
     setIsSubmittingDispute(true);
     try {
       const res = await apiClient.openBookingDispute(orderId, {

@@ -191,28 +191,25 @@ export async function executeExportJob(jobId: string): Promise<{ rowCount: numbe
         select: {
           id: true,
           email: true,
+          phone: true,
           userType: true,
-          isTestUser: true,
-          suspendedAt: true,
           createdAt: true,
-          client: { select: { name: true, companyName: true, phone: true } },
-          creator: { select: { displayName: true, niche: true, location: true } },
+          client: { select: { name: true, orgName: true, location: true } },
+          creator: { select: { name: true, niche: true, location: true } },
         },
       });
 
-      rawData = users.map((u) => ({
+      rawData = users.map((u: any) => ({
         user_id: u.id,
         email: unmask ? u.email : maskEmail(u.email),
         name: unmask
-          ? u.client?.name || u.creator?.displayName || "User"
-          : maskName(u.client?.name || u.creator?.displayName || "User"),
+          ? u.client?.name || u.creator?.name || "User"
+          : maskName(u.client?.name || u.creator?.name || "User"),
         user_type: u.userType,
-        company: u.client?.companyName || "",
+        company: u.client?.orgName || "",
         niche: u.creator?.niche || "",
-        location: u.creator?.location || "",
-        phone: unmask ? u.client?.phone || "" : u.client?.phone ? maskPhone(u.client.phone) : "",
-        is_test_user: u.isTestUser,
-        is_suspended: Boolean(u.suspendedAt),
+        location: u.client?.location || u.creator?.location || "",
+        phone: unmask ? u.phone || "" : u.phone ? maskPhone(u.phone) : "",
         created_at: u.createdAt.toISOString(),
       }));
       break;
@@ -288,24 +285,24 @@ export async function executeExportJob(jobId: string): Promise<{ rowCount: numbe
         orderBy: { createdAt: "desc" },
         select: {
           id: true,
-          creatorId: true,
+          userId: true,
           amount: true,
           currency: true,
           status: true,
-          bankCode: true,
+          bankName: true,
           accountNumber: true,
           accountName: true,
           createdAt: true,
         },
       });
 
-      rawData = withdrawals.map((w) => ({
+      rawData = withdrawals.map((w: any) => ({
         withdrawal_id: w.id,
-        creator_id: w.creatorId,
+        user_id: w.userId,
         amount: Number(w.amount) / 100,
         currency: w.currency,
         status: w.status,
-        bank_code: w.bankCode,
+        bank_name: w.bankName,
         account_name: unmask ? w.accountName : maskName(w.accountName || "Account"),
         account_number: unmask ? w.accountNumber : w.accountNumber ? `***${w.accountNumber.slice(-4)}` : "",
         created_at: w.createdAt.toISOString(),
