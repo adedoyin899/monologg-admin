@@ -9,6 +9,31 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: monologg_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      NODE_ENV: test
+      DATABASE_URL: "postgresql://postgres:password@localhost:5432/monologg_test"
+      DIRECT_URL: "postgresql://postgres:password@localhost:5432/monologg_test"
+      JWT_ACCESS_SECRET: "mock_access_secret_length_minimum_32_chars"
+      JWT_REFRESH_SECRET: "mock_refresh_secret_length_minimum_32_chars"
+      CALENDAR_TOKEN_ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000001"
+      SUPABASE_MODE: "mock"
+      SUPABASE_JWT_SECRET: "mock_supabase_jwt_secret_for_tests_only_32"
+      WITHDRAWAL_OTP_MODE: "mock"
+
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -22,6 +47,9 @@ jobs:
 
       - name: Generate Prisma Client
         run: pnpm --filter @monologg/api exec prisma generate
+
+      - name: Push Database Schema
+        run: pnpm --filter @monologg/api exec prisma db push --skip-generate
 
       - name: Typecheck
         run: pnpm typecheck

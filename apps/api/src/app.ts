@@ -111,6 +111,12 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<FastifyInsta
   if (env.ADMIN_CORS_ORIGIN && !allowedOrigins.includes(env.ADMIN_CORS_ORIGIN)) {
     allowedOrigins.push(env.ADMIN_CORS_ORIGIN);
   }
+  if (!allowedOrigins.includes("http://localhost:3001")) {
+    allowedOrigins.push("http://localhost:3001");
+  }
+  if (!allowedOrigins.includes("http://localhost:3000")) {
+    allowedOrigins.push("http://localhost:3000");
+  }
   await app.register(cors, {
     origin: allowedOrigins,
     credentials: true,
