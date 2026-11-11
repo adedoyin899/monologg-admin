@@ -102,3 +102,4 @@ Phase A12 delivers the system-wide alerting engine, daily/weekly executive diges
 - [x] The daily digest reads clearly and the numbers match the Overview
 - [x] System health shows R2 storage and job status against configured limits
 - [x] Auto-resolution clears resolved conditions automatically
+

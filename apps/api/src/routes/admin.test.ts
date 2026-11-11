@@ -32,6 +32,7 @@ vi.mock("../db/client.js", () => {
       adminAuditLog: {
         create: vi.fn(),
         findMany: vi.fn(),
+        count: vi.fn().mockResolvedValue(0),
         update: vi.fn(),
         delete: vi.fn(),
       },
@@ -100,6 +101,8 @@ vi.mock("../db/adminRoClient.js", () => {
       supportTicket: { findMany: vi.fn().mockResolvedValue([]), count: vi.fn().mockResolvedValue(0) },
       dispute: { findMany: vi.fn().mockResolvedValue([]), findFirst: vi.fn().mockResolvedValue(null), count: vi.fn().mockResolvedValue(0) },
       alertEvent: { count: vi.fn().mockResolvedValue(0), findMany: vi.fn().mockResolvedValue([]) },
+      adminUser: { findMany: vi.fn().mockResolvedValue([]), findFirst: vi.fn().mockResolvedValue(null), count: vi.fn().mockResolvedValue(0) },
+      adminAuditLog: { findMany: vi.fn().mockResolvedValue([]), count: vi.fn().mockResolvedValue(0) },
       $queryRaw: vi.fn(),
     },
     getMaterializedViewLastRefreshed: vi.fn().mockResolvedValue(new Date()),

@@ -52,12 +52,14 @@ vi.mock("../db/client.js", () => {
       productEvent: {
         findMany: vi.fn(),
         count: vi.fn(),
+        deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
       },
       adminJob: {
         findMany: vi.fn(),
         findFirst: vi.fn(),
         count: vi.fn(),
         update: vi.fn(),
+        deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
       },
       jobRun: {
         findMany: vi.fn(),

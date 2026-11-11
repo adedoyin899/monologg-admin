@@ -79,6 +79,16 @@ import {
   evaluateAllAlertRules,
 } from "../../admin/alerts/engine.js";
 import { getSystemHealth } from "../../services/adminHealth.js";
+import { listAdminAuditLogs } from "../../services/adminAuditLog.js";
+import {
+  createExportJob,
+  listExportJobs,
+  executeExportJob,
+  verifyExportSignature,
+  ExportForbiddenError,
+  ExportReasonRequiredError,
+} from "../../services/adminExports.js";
+import { getPlatformSettings } from "../../services/adminSettings.js";
 
 export async function adminRoutes(app: FastifyInstance): Promise<void> {
   // All routes in this plugin are prefixed with /api/v1/admin and require requireAdmin
@@ -3092,34 +3102,118 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
   app.get("/api/v1/admin/health", { preHandler: [requirePermission("system_health", "read")] }, getHealthHandler);
   app.get("/admin/health", { preHandler: [requirePermission("system_health", "read")] }, getHealthHandler);
 
-  // ── M1.3 Audit Log & Exports ────────────────────────────────────────────
-  app.get(
-    "/api/v1/admin/audit",
-    { preHandler: [requirePermission("audit_log", "read")] },
-    async (_request: FastifyRequest, reply: FastifyReply) => {
-      const logs = await prisma.adminAuditLog.findMany({
-        take: 50,
-        orderBy: { createdAt: "desc" },
-      });
-      return reply.send({ logs });
-    },
-  );
+  // ── M1.3 Audit Log & Exports (AD-29 & AD-30) ───────────────────────────
+  const getAuditHandler = async (request: FastifyRequest, reply: FastifyReply) => {
+    const data = await listAdminAuditLogs(request.query as any);
+    return reply.send(data);
+  };
+  app.get("/api/v1/admin/audit", { preHandler: [requirePermission("audit_log", "read")] }, getAuditHandler);
+  app.get("/admin/audit", { preHandler: [requirePermission("audit_log", "read")] }, getAuditHandler);
 
-  app.post(
-    "/api/v1/admin/exports/:type",
-    { preHandler: [requirePermission("exports", "read")] },
-    async (request: FastifyRequest, reply: FastifyReply) => {
-      const { type } = request.params as { type: string };
-      const { reason } = (request.body as { reason?: string }) || {};
-      await audit({
+  const getExportsHandler = async (_request: FastifyRequest, reply: FastifyReply) => {
+    const data = await listExportJobs();
+    return reply.send(data);
+  };
+  app.get("/api/v1/admin/exports", { preHandler: [requirePermission("exports", "read")] }, getExportsHandler);
+  app.get("/admin/exports", { preHandler: [requirePermission("exports", "read")] }, getExportsHandler);
+
+  const createExportHandler = async (request: FastifyRequest, reply: FastifyReply) => {
+    const { type: paramType } = (request.params as { type?: string }) || {};
+    const body = (request.body as { type?: string; reason?: string; unmaskPii?: boolean; filters?: any }) || {};
+    const exportType = (paramType || body.type) as any;
+    const reason = body.reason || "";
+    const unmaskPii = Boolean(body.unmaskPii);
+    const filters = body.filters || {};
+
+    try {
+      const result = await createExportJob({
+        type: exportType,
         adminId: request.adminUser!.id,
-        action: "CSV_EXPORT",
-        targetType: "Export",
-        targetId: type,
-        reason: reason || "Export triggered",
+        adminRole: request.adminUser!.role,
+        adminEmail: request.adminUser!.email,
+        reason,
+        unmaskPii,
+        filters,
         ip: request.ip,
       });
-      return reply.send({ status: "ok", exportType: type });
-    },
-  );
+
+      // Immediately process in background / local mock
+      executeExportJob(result.jobId).catch((err) => {
+        console.error(`[exports] Background export job ${result.jobId} failed:`, err);
+      });
+
+      return reply.send({
+        status: "ok",
+        jobId: result.jobId,
+        exportType,
+        message: `Export of ${exportType} queued successfully. Download will be available shortly.`,
+      });
+    } catch (err: any) {
+      if (err instanceof ExportForbiddenError) {
+        return reply.status(403).send({ error: err.message });
+      }
+      if (err instanceof ExportReasonRequiredError) {
+        return reply.status(400).send({ error: err.message });
+      }
+      return reply.status(500).send({ error: err.message || "Failed to create export" });
+    }
+  };
+
+  app.post("/api/v1/admin/exports", { preHandler: [requirePermission("exports", "read")] }, createExportHandler);
+  app.post("/admin/exports", { preHandler: [requirePermission("exports", "read")] }, createExportHandler);
+  app.post("/api/v1/admin/exports/:type", { preHandler: [requirePermission("exports", "read")] }, createExportHandler);
+  app.post("/admin/exports/:type", { preHandler: [requirePermission("exports", "read")] }, createExportHandler);
+
+  const downloadExportHandler = async (request: FastifyRequest, reply: FastifyReply) => {
+    const { id } = request.params as { id: string };
+    const { exp, sig } = request.query as { exp?: string; sig?: string };
+
+    if (!exp || !sig) {
+      return reply.status(400).send({ error: "Missing signed URL parameters (exp, sig)." });
+    }
+
+    if (!verifyExportSignature(id, exp, sig)) {
+      return reply.status(403).send({ error: "Invalid export signature." });
+    }
+
+    const expiryTime = new Date(exp).getTime();
+    if (Date.now() > expiryTime) {
+      return reply.status(410).send({ error: "Export link has expired (24h validity exceeded). Please generate a new export." });
+    }
+
+    const job = await prisma.adminJob.findUnique({ where: { id } });
+    if (!job || job.kind !== "EXPORT") {
+      return reply.status(404).send({ error: "Export job not found." });
+    }
+
+    // Audit download (AD-30 requirement: every download audited)
+    await audit({
+      adminId: request.adminUser!.id,
+      action: "EXPORT_DOWNLOADED",
+      targetType: "ExportJob",
+      targetId: id,
+      reason: "Admin downloaded export CSV archive",
+      metadata: {
+        exportType: (job.payload as any)?.type,
+        rowCount: (job.payload as any)?.rowCount,
+      },
+      ip: request.ip,
+    });
+
+    const payload = (job.payload as any) || {};
+    const snippet = payload.csvSnapshotSnippet || "id,created_at\n";
+    reply.header("Content-Type", "text/csv");
+    reply.header("Content-Disposition", `attachment; filename="monologg-${payload.type || "export"}-${id}.csv"`);
+    return reply.send(snippet);
+  };
+  app.get("/api/v1/admin/exports/:id/download", { preHandler: [requirePermission("exports", "read")] }, downloadExportHandler);
+  app.get("/admin/exports/:id/download", { preHandler: [requirePermission("exports", "read")] }, downloadExportHandler);
+
+  // ── M12.3 Platform Settings (AD-32) ──────────────────────────────────────
+  const getSettingsHandler = async (_request: FastifyRequest, reply: FastifyReply) => {
+    const settings = getPlatformSettings();
+    return reply.send(settings);
+  };
+  app.get("/api/v1/admin/settings", { preHandler: [requirePermission("overview", "read")] }, getSettingsHandler);
+  app.get("/admin/settings", { preHandler: [requirePermission("overview", "read")] }, getSettingsHandler);
 }

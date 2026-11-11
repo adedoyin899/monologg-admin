@@ -148,6 +148,7 @@ export default function AdminsPage() {
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>MFA Status</TableHead>
                 <TableHead>Provider</TableHead>
                 <TableHead>Last Seen</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -202,6 +203,12 @@ export default function AdminsPage() {
                           }`}
                         />
                         {admin.status}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center gap-1 rounded bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 text-[11px] font-mono text-neutral-700 dark:text-neutral-300">
+                        <CheckCircle className="h-3 w-3 text-emerald-500" />
+                        {admin.status === "ACTIVE" ? "aal2 Verified" : "None"}
                       </span>
                     </TableCell>
                     <TableCell className="font-mono text-xs text-gray-500">

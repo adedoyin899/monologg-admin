@@ -2,6 +2,7 @@ import { prisma } from "../../db/client.js";
 import { evaluateAllAlertRules } from "../alerts/engine.js";
 import { generateAndSendDailyDigest, generateAndSendWeeklySummary } from "../alerts/digest.js";
 import { runKpiDailySnapshot } from "../../services/adminAnalytics.js";
+import { executeExportJob } from "../../services/adminExports.js";
 import { ALERT_CONFIG } from "../../config/alertRules.js";
 import type { CronTickResponse } from "@monologg/types";
 
@@ -70,20 +71,62 @@ export async function processPendingAdminExports(now = new Date()): Promise<{ pr
   });
 
   for (const job of pendingExports) {
-    await prisma.adminJob.update({
-      where: { id: job.id },
-      data: {
-        status: "DONE",
-        lockedUntil: null,
-      },
-    });
+    try {
+      await executeExportJob(job.id);
+    } catch (err: any) {
+      console.error(`[cron-tick] Export job ${job.id} failed:`, err);
+      await prisma.adminJob.update({
+        where: { id: job.id },
+        data: {
+          status: "FAILED",
+          lastError: err.message || "Export execution failed",
+          lockedUntil: null,
+        },
+      }).catch(() => {});
+    }
   }
 
   return { processedCount: pendingExports.length };
 }
 
 /**
- * Registered Scheduled Jobs Definition (PRD M11.1 / M11.2 / M11.3)
+ * Retention Purge helper (PRD Section 12.3 / Phase A13 item 4):
+ * Deletes ProductEvent beyond ANALYTICS_RETENTION_MONTHS after rolling into KpiDaily.
+ * Purges old export records (> 7 days).
+ * AdminAuditLog is strictly preserved (immutable append-only).
+ */
+export async function runRetentionPurge(now = new Date()): Promise<{ deletedEvents: number; purgedExports: number }> {
+  const retentionMonths = parseInt(process.env.ANALYTICS_RETENTION_MONTHS || "12", 10);
+  const eventCutoff = new Date(now.getFullYear(), now.getMonth() - retentionMonths, now.getDate());
+  const exportCutoff = new Date(now.getTime() - 7 * 24 * 3600 * 1000);
+
+  // 1. Purge expired export jobs (> 7 days)
+  const purgedExportsResult = typeof prisma.adminJob?.deleteMany === "function"
+    ? await prisma.adminJob.deleteMany({
+        where: {
+          kind: "EXPORT",
+          runAfter: { lte: exportCutoff },
+        },
+      }).catch(() => ({ count: 0 }))
+    : { count: 0 };
+
+  // 2. Delete ProductEvents older than retention months
+  const deletedEventsResult = typeof prisma.productEvent?.deleteMany === "function"
+    ? await prisma.productEvent.deleteMany({
+        where: {
+          occurredAt: { lte: eventCutoff },
+        },
+      }).catch(() => ({ count: 0 }))
+    : { count: 0 };
+
+  return {
+    deletedEvents: deletedEventsResult.count,
+    purgedExports: purgedExportsResult.count,
+  };
+}
+
+/**
+ * Registered Scheduled Jobs Definition (PRD M11.1 / M11.2 / M11.3 / M12.3)
  */
 export const SCHEDULED_JOBS: ScheduledJobDef[] = [
   // 1. Alerts Evaluation (every tick)
@@ -154,6 +197,19 @@ export const SCHEDULED_JOBS: ScheduledJobDef[] = [
     },
     run: async (now) => generateAndSendWeeklySummary(now),
     getNextDue: (now) => new Date(now.getTime() + 7 * 24 * 3600 * 1000),
+  },
+
+  // 7. Retention Purge (daily 03:30 UTC / PRD Section 12.3)
+  {
+    key: "retention_purge",
+    name: "Data Retention Purge (Old Events & Expired Exports)",
+    isDue: (now, lastRun) => {
+      if (!lastRun?.lastFinishedAt) return true;
+      const hoursSinceLast = (now.getTime() - lastRun.lastFinishedAt.getTime()) / (3600 * 1000);
+      return hoursSinceLast >= 20;
+    },
+    run: async (now) => runRetentionPurge(now),
+    getNextDue: (now) => new Date(now.getTime() + 24 * 3600 * 1000),
   },
 ];
 

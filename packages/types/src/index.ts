@@ -15,3 +15,6 @@ export * from "./publicStorefront.js";
 export * from "./verification.js";
 export * from "./analytics.js";
 export * from "./alerts.js";
+export * from "./audit.js";
+export * from "./exports.js";
+export * from "./settings.js";

@@ -755,6 +755,55 @@ export class AdminClient {
   async getSystemHealth(): Promise<SystemHealthResponse> {
     return this.request<SystemHealthResponse>("/api/v1/admin/health");
   }
+
+  // ── Audit Trail Log (PRD M1 / AD-29 / Phase A13) ───────────────────────────
+  async getAuditLogs(filters?: {
+    adminId?: string;
+    action?: string;
+    targetType?: string;
+    targetId?: string;
+    startDate?: string;
+    endDate?: string;
+    limit?: number;
+    cursor?: string;
+  }): Promise<AdminAuditListResponse> {
+    const params = new URLSearchParams();
+    if (filters?.adminId) params.set("adminId", filters.adminId);
+    if (filters?.action && filters.action !== "ALL") params.set("action", filters.action);
+    if (filters?.targetType && filters.targetType !== "ALL") params.set("targetType", filters.targetType);
+    if (filters?.targetId) params.set("targetId", filters.targetId);
+    if (filters?.startDate) params.set("startDate", filters.startDate);
+    if (filters?.endDate) params.set("endDate", filters.endDate);
+    if (filters?.limit) params.set("limit", String(filters.limit));
+    if (filters?.cursor) params.set("cursor", filters.cursor);
+    const qs = params.toString();
+    return this.request<AdminAuditListResponse>(`/api/v1/admin/audit${qs ? `?${qs}` : ""}`);
+  }
+
+  // ── Exports (PRD M12 / AD-30 / Phase A13) ──────────────────────────────────
+  async getExports(): Promise<AdminExportListResponse> {
+    return this.request<AdminExportListResponse>("/api/v1/admin/exports");
+  }
+
+  async createExport(
+    type: ExportType,
+    reason: string,
+    unmaskPii = false,
+    filters?: Record<string, any>,
+  ): Promise<{ status: string; jobId: string; exportType: string; message: string }> {
+    return this.request<{ status: string; jobId: string; exportType: string; message: string }>(
+      "/api/v1/admin/exports",
+      {
+        method: "POST",
+        body: JSON.stringify({ type, reason, unmaskPii, filters }),
+      },
+    );
+  }
+
+  // ── Settings (PRD M12.3 / AD-32 / Phase A13) ───────────────────────────────
+  async getSettings(): Promise<PlatformSettingsResponse> {
+    return this.request<PlatformSettingsResponse>("/api/v1/admin/settings");
+  }
 }
 
 export interface UserListItem {
@@ -2054,5 +2103,98 @@ export interface SystemHealthResponse {
   externalServices: ExternalServiceStatus[];
   dataFreshness: string;
 }
+
+// ── Audit & Exports Interfaces (PRD M1 & M12 / Phase A13) ───────────────────
+export interface AdminAuditLogItem {
+  id: string;
+  adminId: string;
+  adminEmail?: string;
+  adminRole?: string;
+  action: string;
+  targetType: string | null;
+  targetId: string | null;
+  reason: string | null;
+  metadata: Record<string, any>;
+  ipHash: string | null;
+  createdAt: string;
+}
+
+export interface AdminAuditListResponse {
+  logs: AdminAuditLogItem[];
+  total: number;
+  nextCursor: string | null;
+  hasMore: boolean;
+}
+
+export type ExportType =
+  | "users"
+  | "bookings"
+  | "payments"
+  | "withdrawals"
+  | "tickets"
+  | "funnels"
+  | "audit";
+
+export type ExportStatus = "PENDING" | "RUNNING" | "DONE" | "FAILED";
+
+export interface AdminExportJobItem {
+  id: string;
+  type: ExportType;
+  status: ExportStatus;
+  requestedByAdminId: string;
+  requestedByEmail?: string;
+  reason: string;
+  rowCount: number;
+  downloadUrl?: string | null;
+  expiresAt?: string | null;
+  createdAt: string;
+  completedAt?: string | null;
+  error?: string | null;
+  piiUnmasked: boolean;
+}
+
+export interface AdminExportListResponse {
+  exports: AdminExportJobItem[];
+  total: number;
+}
+
+export interface PlatformThresholds {
+  databaseLimitBytes: number;
+  databaseLimitMb: number;
+  storageLimitBytes: number;
+  storageLimitGb: number;
+  resourceAlertThresholdPct: number;
+  fourEyesThresholdNgn: number;
+  fourEyesThresholdUsd: number;
+}
+
+export interface SlaTargets {
+  urgentTicketHours: number;
+  highTicketHours: number;
+  normalTicketHours: number;
+  lowTicketHours: number;
+  verificationReviewHours: number;
+  disputeStalledDays: number;
+  withdrawalStalledHours: number;
+}
+
+export interface PlatformSettingsResponse {
+  version: {
+    appVersion: string;
+    configVersion: string;
+    environment: string;
+    commitHash?: string;
+  };
+  thresholds: PlatformThresholds;
+  slas: SlaTargets;
+  retention: {
+    analyticsRetentionMonths: number;
+    exportFileRetentionDays: number;
+    auditLogRetention: "PERMANENT";
+  };
+  featuresCount: number;
+  funnelsCount: number;
+}
+
 
 

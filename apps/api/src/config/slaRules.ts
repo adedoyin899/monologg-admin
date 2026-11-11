@@ -10,6 +10,13 @@ export const SLA_CONFIG: SlaConfig = {
   urgentFirstResponseHours: 4,
 };
 
+export const SLA_TARGETS_HOURS = {
+  URGENT: 4,
+  HIGH: 12,
+  NORMAL: 24,
+  LOW: 48,
+};
+
 export interface CannedReply {
   id: string;
   title: string;
