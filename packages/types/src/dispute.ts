@@ -58,3 +58,4 @@ export const ResolveDisputeInputSchema = z.object({
   splitTalentPct: z.number().int().min(0).max(100).optional(),
 });
 export type ResolveDisputeInput = z.infer<typeof ResolveDisputeInputSchema>;
+

@@ -50,6 +50,7 @@ export class InvalidReviewStatusError extends Error {
   }
 }
 export class RecordingNotFoundError extends Error {
+  statusCode = 404;
   constructor(id: string) {
     super(`VerificationRecording "${id}" not found`);
     this.name = "RecordingNotFoundError";

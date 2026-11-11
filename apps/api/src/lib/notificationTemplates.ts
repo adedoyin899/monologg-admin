@@ -81,6 +81,14 @@ const EN_TEMPLATES: Record<string, TemplateRenderer> = {
     subject: `Dispute resolved for booking ${data.bookingId}`,
     body: `The dispute for booking ${data.bookingId} has been resolved (${data.outcome}).\n\nResolution note: ${data.note || "Mediation concluded."}`,
   }),
+  verification_recording_approved: (data) => ({
+    subject: "Presentation recording approved",
+    body: `Your presentation recording has been approved by the Monologg review team.${data.note ? `\n\nReviewer note: ${data.note}` : ""}`,
+  }),
+  verification_recording_needs_rerecord: (data) => ({
+    subject: "Presentation recording: please re-record",
+    body: `Your presentation recording requires a re-record.${data.reason ? `\n\nReason: ${data.reason}` : ""}${data.note ? `\n\nReviewer note: ${data.note}` : ""}\n\nPlease review our presentation guidelines and submit a new recording from your profile.`,
+  }),
 };
 
 const LOCALES: Record<string, Record<string, TemplateRenderer>> = {

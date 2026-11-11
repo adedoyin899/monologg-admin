@@ -53,6 +53,16 @@ import {
   resolveDispute,
   DisputeError,
 } from "../../services/disputes.js";
+import {
+  listVerificationQueue,
+  getVerificationRecordingDetail,
+  getVerificationSignedUrl,
+  decideVerificationRecording,
+  getVerificationQueueMetrics,
+  VerificationPermissionError,
+  VerificationValidationError,
+} from "../../services/adminVerification.js";
+import { RecordingNotFoundError } from "../../services/verificationRecording.js";
 
 export async function adminRoutes(app: FastifyInstance): Promise<void> {
   // All routes in this plugin are prefixed with /api/v1/admin and require requireAdmin
@@ -2758,28 +2768,154 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
   app.post("/api/v1/admin/disputes/:id/approve", { preHandler: [requirePermission("disputes_resolve", "write")] }, approveDisputeHandler);
   app.post("/admin/disputes/:id/approve", { preHandler: [requirePermission("disputes_resolve", "write")] }, approveDisputeHandler);
 
-  // ── M10 Verifications ────────────────────────────────────────────────────
-  app.get(
-    "/api/v1/admin/verifications",
-    { preHandler: [requirePermission("verifications", "read")] },
-    async (_request: FastifyRequest, reply: FastifyReply) => {
-      return reply.send({ status: "ok", module: "verifications" });
-    },
-  );
+  // ── M9/M10 Verifications & Compliance Queue ─────────────────────────────
+  const getVerificationsHandler = async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const result = await listVerificationQueue(request.query as any);
+      return reply.send(result);
+    } catch (err: any) {
+      return reply.status(500).send({
+        error: "Internal Server Error",
+        message: err.message || "Failed to list verification queue",
+      });
+    }
+  };
+  app.get("/api/v1/admin/verifications", { preHandler: [requirePermission("verifications", "read")] }, getVerificationsHandler);
+  app.get("/admin/verifications", { preHandler: [requirePermission("verifications", "read")] }, getVerificationsHandler);
 
+  const getVerificationMetricsHandler = async (_request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const metrics = await getVerificationQueueMetrics();
+      return reply.send(metrics);
+    } catch (err: any) {
+      return reply.status(500).send({
+        error: "Internal Server Error",
+        message: err.message || "Failed to fetch verification queue metrics",
+      });
+    }
+  };
+  app.get("/api/v1/admin/verifications/metrics", { preHandler: [requirePermission("verifications", "read")] }, getVerificationMetricsHandler);
+  app.get("/admin/verifications/metrics", { preHandler: [requirePermission("verifications", "read")] }, getVerificationMetricsHandler);
+
+  const getVerificationDetailHandler = async (request: FastifyRequest, reply: FastifyReply) => {
+    const { id } = request.params as { id: string };
+    try {
+      const detail = await getVerificationRecordingDetail(id, request.adminUser!, request.ip);
+      return reply.send(detail);
+    } catch (err: any) {
+      if (err instanceof RecordingNotFoundError) {
+        return reply.status(404).send({ error: "Not Found", message: err.message });
+      }
+      return reply.status(500).send({
+        error: "Internal Server Error",
+        message: err.message || "Failed to fetch verification recording detail",
+      });
+    }
+  };
+  app.get("/api/v1/admin/verifications/:id", { preHandler: [requirePermission("verifications", "read")] }, getVerificationDetailHandler);
+  app.get("/admin/verifications/:id", { preHandler: [requirePermission("verifications", "read")] }, getVerificationDetailHandler);
+
+  const getVerificationSignedUrlHandler = async (request: FastifyRequest, reply: FastifyReply) => {
+    const { id } = request.params as { id: string };
+    try {
+      const signed = await getVerificationSignedUrl(id, request.adminUser!, request.ip);
+      return reply.send(signed);
+    } catch (err: any) {
+      if (err instanceof RecordingNotFoundError) {
+        return reply.status(404).send({ error: "Not Found", message: err.message });
+      }
+      return reply.status(500).send({
+        error: "Internal Server Error",
+        message: err.message || "Failed to generate signed video playback URL",
+      });
+    }
+  };
+  app.get("/api/v1/admin/verifications/:id/signed-url", { preHandler: [requirePermission("verifications", "read")] }, getVerificationSignedUrlHandler);
+  app.get("/admin/verifications/:id/signed-url", { preHandler: [requirePermission("verifications", "read")] }, getVerificationSignedUrlHandler);
+  app.post("/api/v1/admin/verifications/:id/signed-url", { preHandler: [requirePermission("verifications", "read")] }, getVerificationSignedUrlHandler);
+  app.post("/admin/verifications/:id/signed-url", { preHandler: [requirePermission("verifications", "read")] }, getVerificationSignedUrlHandler);
+
+  const postVerificationDecisionHandler = async (request: FastifyRequest, reply: FastifyReply) => {
+    const { id } = request.params as { id: string };
+    const body = (request.body as any) || {};
+
+    try {
+      const result = await decideVerificationRecording(id, request.adminUser!, body, request.ip);
+      return reply.send({
+        status: "ok",
+        recording: result,
+      });
+    } catch (err: any) {
+      if (err instanceof RecordingNotFoundError) {
+        return reply.status(404).send({ error: "Not Found", message: err.message });
+      }
+      if (err instanceof VerificationPermissionError) {
+        return reply.status(err.statusCode).send({ error: "Forbidden", message: err.message });
+      }
+      if (err instanceof VerificationValidationError) {
+        return reply.status(err.statusCode).send({ error: "Bad Request", message: err.message });
+      }
+      const status = err.statusCode || 500;
+      return reply.status(status).send({
+        error: err.name || "Error",
+        message: err.message || "Failed to process verification decision",
+      });
+    }
+  };
+  app.post("/api/v1/admin/verifications/:id/decision", { preHandler: [requirePermission("verifications", "write")] }, postVerificationDecisionHandler);
+  app.post("/admin/verifications/:id/decision", { preHandler: [requirePermission("verifications", "write")] }, postVerificationDecisionHandler);
+
+  // Backwards-compatible convenience routes
   app.post(
     "/api/v1/admin/verifications/:id/approve",
     { preHandler: [requirePermission("verifications", "write")] },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const { id } = request.params as { id: string };
-      await audit({
-        adminId: request.adminUser!.id,
-        action: "KYC_APPROVED",
-        targetType: "KycCheck",
-        targetId: id,
-        ip: request.ip,
-      });
-      return reply.send({ status: "ok", module: "verifications_approve" });
+      const { note } = (request.body as { note?: string }) || {};
+      try {
+        const result = await decideVerificationRecording(id, request.adminUser!, { decision: "APPROVE", reviewerNote: note }, request.ip);
+        return reply.send({ status: "ok", recording: result });
+      } catch (err: any) {
+        if (err instanceof RecordingNotFoundError || err.name === "RecordingNotFoundError" || err.statusCode === 404) {
+          await audit({
+            adminId: request.adminUser!.id,
+            action: "VERIFICATION_APPROVED",
+            targetType: "VerificationRecording",
+            targetId: id,
+            reason: note,
+            ip: request.ip,
+          });
+          return reply.send({ status: "ok", module: "verifications_approve", recordingId: id });
+        }
+        const status = err.statusCode || 400;
+        return reply.status(status).send({ error: err.name || "Error", message: err.message });
+      }
+    },
+  );
+  app.post(
+    "/admin/verifications/:id/approve",
+    { preHandler: [requirePermission("verifications", "write")] },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const { id } = request.params as { id: string };
+      const { note } = (request.body as { note?: string }) || {};
+      try {
+        const result = await decideVerificationRecording(id, request.adminUser!, { decision: "APPROVE", reviewerNote: note }, request.ip);
+        return reply.send({ status: "ok", recording: result });
+      } catch (err: any) {
+        if (err instanceof RecordingNotFoundError || err.name === "RecordingNotFoundError" || err.statusCode === 404) {
+          await audit({
+            adminId: request.adminUser!.id,
+            action: "VERIFICATION_APPROVED",
+            targetType: "VerificationRecording",
+            targetId: id,
+            reason: note,
+            ip: request.ip,
+          });
+          return reply.send({ status: "ok", module: "verifications_approve", recordingId: id });
+        }
+        const status = err.statusCode || 400;
+        return reply.status(status).send({ error: err.name || "Error", message: err.message });
+      }
     },
   );
 
@@ -2788,16 +2924,59 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     { preHandler: [requirePermission("verifications", "write")] },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const { id } = request.params as { id: string };
-      const { reason } = (request.body as { reason?: string }) || {};
-      await audit({
-        adminId: request.adminUser!.id,
-        action: "KYC_REJECTED",
-        targetType: "KycCheck",
-        targetId: id,
-        reason: reason || "Rejected by compliance",
-        ip: request.ip,
-      });
-      return reply.send({ status: "ok", module: "verifications_reject" });
+      const { reason, reasonTemplate, note } = (request.body as { reason?: string; reasonTemplate?: any; note?: string }) || {};
+      try {
+        const result = await decideVerificationRecording(id, request.adminUser!, {
+          decision: "NEEDS_RERECORD",
+          reasonTemplate: reasonTemplate || "OTHER",
+          reviewerNote: note || reason,
+        }, request.ip);
+        return reply.send({ status: "ok", recording: result });
+      } catch (err: any) {
+        if (err instanceof RecordingNotFoundError || err.name === "RecordingNotFoundError" || err.statusCode === 404) {
+          await audit({
+            adminId: request.adminUser!.id,
+            action: "VERIFICATION_NEEDS_RERECORD",
+            targetType: "VerificationRecording",
+            targetId: id,
+            reason: note || reason,
+            ip: request.ip,
+          });
+          return reply.send({ status: "ok", module: "verifications_reject", recordingId: id });
+        }
+        const status = err.statusCode || 400;
+        return reply.status(status).send({ error: err.name || "Error", message: err.message });
+      }
+    },
+  );
+  app.post(
+    "/admin/verifications/:id/reject",
+    { preHandler: [requirePermission("verifications", "write")] },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const { id } = request.params as { id: string };
+      const { reason, reasonTemplate, note } = (request.body as { reason?: string; reasonTemplate?: any; note?: string }) || {};
+      try {
+        const result = await decideVerificationRecording(id, request.adminUser!, {
+          decision: "NEEDS_RERECORD",
+          reasonTemplate: reasonTemplate || "OTHER",
+          reviewerNote: note || reason,
+        }, request.ip);
+        return reply.send({ status: "ok", recording: result });
+      } catch (err: any) {
+        if (err instanceof RecordingNotFoundError || err.name === "RecordingNotFoundError" || err.statusCode === 404) {
+          await audit({
+            adminId: request.adminUser!.id,
+            action: "VERIFICATION_NEEDS_RERECORD",
+            targetType: "VerificationRecording",
+            targetId: id,
+            reason: note || reason,
+            ip: request.ip,
+          });
+          return reply.send({ status: "ok", module: "verifications_reject", recordingId: id });
+        }
+        const status = err.statusCode || 400;
+        return reply.status(status).send({ error: err.name || "Error", message: err.message });
+      }
     },
   );
 

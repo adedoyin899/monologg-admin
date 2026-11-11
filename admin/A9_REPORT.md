@@ -159,3 +159,4 @@ As documented in preflight findings (A0), `PaymentProvider` does **not** support
 ## 5. Carry Forward
 
 **A9 done. Disputes can be opened in the app, reviewed with evidence and logged chat access, and resolved idempotently with four-eyes.**
+

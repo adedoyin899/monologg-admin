@@ -49,6 +49,19 @@ vi.mock("../db/client.js", () => {
         update: vi.fn().mockResolvedValue({ id: "disp-1", status: "RESOLVED" }),
         count: vi.fn().mockResolvedValue(0),
       },
+      verificationRecording: {
+        findUnique: vi.fn().mockResolvedValue(null),
+        findMany: vi.fn().mockResolvedValue([]),
+        update: vi.fn().mockResolvedValue({}),
+        count: vi.fn().mockResolvedValue(0),
+      },
+      creator: {
+        findUnique: vi.fn().mockResolvedValue(null),
+        count: vi.fn().mockResolvedValue(0),
+      },
+      kycCheck: {
+        count: vi.fn().mockResolvedValue(0),
+      },
       $queryRaw: vi.fn(),
     },
   };
@@ -70,7 +83,12 @@ vi.mock("../db/adminRoClient.js", () => {
       userTag: { findMany: vi.fn().mockResolvedValue([]) },
       creator: { count: vi.fn().mockResolvedValue(0) },
       client: { count: vi.fn().mockResolvedValue(0) },
-      verificationRecording: { count: vi.fn().mockResolvedValue(0) },
+      verificationRecording: {
+        count: vi.fn().mockResolvedValue(0),
+        findUnique: vi.fn().mockResolvedValue(null),
+        findMany: vi.fn().mockResolvedValue([]),
+        update: vi.fn().mockResolvedValue({}),
+      },
       booking: {
         findMany: vi.fn().mockResolvedValue([]),
         count: vi.fn().mockResolvedValue(0),

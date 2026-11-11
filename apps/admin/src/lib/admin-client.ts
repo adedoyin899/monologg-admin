@@ -628,6 +628,56 @@ export class AdminClient {
       body: JSON.stringify(payload ?? {}),
     });
   }
+
+  // ── Verifications & Compliance Queue (PRD M9 / Phase A10) ───────────────────
+  async getVerificationQueue(filters?: {
+    status?: string;
+    niche?: string;
+    search?: string;
+    isOverdue?: boolean;
+    dateFrom?: string;
+    dateTo?: string;
+    cursor?: string;
+    limit?: number;
+  }): Promise<VerificationQueueResponse> {
+    const params = new URLSearchParams();
+    if (filters?.status && filters.status !== "ALL") params.set("status", filters.status);
+    if (filters?.niche) params.set("niche", filters.niche);
+    if (filters?.search) params.set("search", filters.search);
+    if (filters?.isOverdue) params.set("isOverdue", "true");
+    if (filters?.dateFrom) params.set("dateFrom", filters.dateFrom);
+    if (filters?.dateTo) params.set("dateTo", filters.dateTo);
+    if (filters?.cursor) params.set("cursor", filters.cursor);
+    if (filters?.limit) params.set("limit", String(filters.limit));
+    const qs = params.toString();
+    return this.request<VerificationQueueResponse>(`/api/v1/admin/verifications${qs ? `?${qs}` : ""}`);
+  }
+
+  async getVerificationMetrics(): Promise<VerificationMetricsResponse> {
+    return this.request<VerificationMetricsResponse>("/api/v1/admin/verifications/metrics");
+  }
+
+  async getVerificationDetail(id: string): Promise<VerificationDetailResponse> {
+    return this.request<VerificationDetailResponse>(`/api/v1/admin/verifications/${id}`);
+  }
+
+  async getVerificationSignedUrl(id: string): Promise<{ id: string; signedUrl: string; expiresAt: string }> {
+    return this.request<{ id: string; signedUrl: string; expiresAt: string }>(`/api/v1/admin/verifications/${id}/signed-url`);
+  }
+
+  async submitVerificationDecision(
+    id: string,
+    payload: {
+      decision: "APPROVE" | "NEEDS_RERECORD";
+      reasonTemplate?: string;
+      reviewerNote?: string;
+    },
+  ): Promise<{ status: string; recording: any }> {
+    return this.request<{ status: string; recording: any }>(`/api/v1/admin/verifications/${id}/decision`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
 }
 
 export interface UserListItem {
@@ -1551,6 +1601,83 @@ export interface DisputeResolveResponse {
   message?: string;
   dispute?: any;
   paymentResult?: any;
+}
+
+export interface VerificationQueueItem {
+  id: string;
+  creatorId: string;
+  creatorName: string;
+  creatorNiche: string;
+  creatorLocation: string;
+  creatorAvatarUrl?: string | null;
+  status: "UPLOADED" | "IN_REVIEW" | "APPROVED" | "NEEDS_RERECORD";
+  durationSec: number;
+  guidelineAck: boolean;
+  reviewerNote?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  ageHours: number;
+  isOverdue: boolean;
+  slaRemainingHours: number;
+}
+
+export interface VerificationQueueResponse {
+  items: VerificationQueueItem[];
+  total: number;
+  hasMore: boolean;
+  nextCursor: string | null;
+}
+
+export interface VerificationMetricsResponse {
+  pendingUploadedCount: number;
+  inReviewCount: number;
+  overdueCount: number;
+  approvedCount: number;
+  needsRerecordCount: number;
+  totalReviewedCount: number;
+  approvalRatePct: number;
+  medianReviewHours: number;
+}
+
+export interface GuidelineCheckItem {
+  id: string;
+  label: string;
+  passed: boolean;
+  hint?: string;
+}
+
+export interface KycPanelFacts {
+  status: string;
+  attempts: number;
+  provider: string;
+  failureReasonCode?: string | null;
+  lastAttemptAt?: string | null;
+}
+
+export interface VerificationDetailResponse {
+  id: string;
+  creatorId: string;
+  creator: {
+    id: string;
+    userId: string;
+    name: string;
+    niche: string;
+    location: string;
+    avatarUrl?: string | null;
+    maskedEmail: string;
+    maskedPhone?: string | null;
+    userCreatedAt: string;
+  };
+  status: "UPLOADED" | "IN_REVIEW" | "APPROVED" | "NEEDS_RERECORD";
+  durationSec: number;
+  guidelineAck: boolean;
+  reviewerNote?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  ageHours: number;
+  isOverdue: boolean;
+  guidelineChecklist: GuidelineCheckItem[];
+  kycPanel: KycPanelFacts;
 }
 
 export const adminClient = new AdminClient();
