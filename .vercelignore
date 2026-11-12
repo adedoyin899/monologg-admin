@@ -1,0 +1,19 @@
+# Build and runtime outputs
+.next
+apps/admin/.next
+dist
+build
+coverage
+playwright-report
+test-results
+
+# Unused apps in admin deployment
+apps/web
+
+# Documentation, screenshots, skill assets
+reference-screenshots
+handoff
+qa
+*.skill
+*.html
+docker-compose.yml

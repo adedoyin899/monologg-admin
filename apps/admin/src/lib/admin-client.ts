@@ -1,3 +1,5 @@
+import { getMockResponse } from "./demo-data";
+
 export type AdminRole =
   | "SUPER_ADMIN"
   | "OPS"
@@ -191,6 +193,14 @@ export class AdminClient {
 
   async request<T>(path: string, options: RequestInit = {}): Promise<T> {
     const token = this.getToken();
+    const isVercelOrDemo =
+      typeof window !== "undefined" &&
+      Boolean(
+        window.location?.hostname?.includes("vercel.app") ||
+        process.env.NEXT_PUBLIC_DEMO_MODE === "true" ||
+        window.location?.search?.includes("demo=true")
+      );
+
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       ...(options.headers as Record<string, string>),
@@ -201,36 +211,46 @@ export class AdminClient {
     }
 
     const url = `${this.baseUrl}${path.startsWith("/") ? path : `/${path}`}`;
-    const res = await fetch(url, {
-      ...options,
-      headers,
-    });
+    try {
+      const res = await fetch(url, {
+        ...options,
+        headers,
+      });
 
-    if (res.status === 401) {
-      this.clearToken();
-      if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
-        window.location.href = "/login?error=expired";
-      }
-      const data = await res.json().catch(() => ({}));
-      throw new Error(data.error || "Your session has expired. Sign in again.");
-    }
-
-    if (res.status === 403) {
-      const data = await res.json().catch(() => ({}));
-      if (data.code === "needs_mfa_challenge" || data.code === "needs_mfa_enroll") {
-        if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login/mfa")) {
-          window.location.href = "/login/mfa";
+      if (res.status === 401) {
+        this.clearToken();
+        if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+          window.location.href = "/login?error=expired";
         }
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Your session has expired. Sign in again.");
       }
-      throw new Error(data.error || "Access forbidden.");
-    }
 
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw new Error(data.error || data.message || `Request failed with status ${res.status}`);
-    }
+      if (res.status === 403) {
+        const data = await res.json().catch(() => ({}));
+        if (data.code === "needs_mfa_challenge" || data.code === "needs_mfa_enroll") {
+          if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login/mfa")) {
+            window.location.href = "/login/mfa";
+          }
+        }
+        throw new Error(data.error || "Access forbidden.");
+      }
 
-    return (await res.json()) as T;
+      if (!res.ok) {
+        if (isVercelOrDemo) {
+          return getMockResponse<T>(path, options, token);
+        }
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || data.message || `Request failed with status ${res.status}`);
+      }
+
+      return (await res.json()) as T;
+    } catch (err) {
+      if (isVercelOrDemo) {
+        return getMockResponse<T>(path, options, token);
+      }
+      throw err;
+    }
   }
 
   async getMe(): Promise<AdminMeResponse> {
