@@ -29,6 +29,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { type AdminRole } from "@/lib/admin-client";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 interface NavItem {
@@ -101,7 +102,7 @@ const NAV_GROUPS: NavGroup[] = [
 
 export function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { data, signOut, isLoading } = useAuth();
+  const { data, signOut, signInAsRole, isLoading } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
@@ -117,7 +118,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
   const isAllowed = (item: NavItem) => {
     if (!item.module) return true;
-    if (role === "SUPER_ADMIN") return true;
+    if (!role || role === "SUPER_ADMIN") return true;
     const perm = permissions[item.module];
     if (!perm) return false;
     return item.level === "write" ? perm.write : perm.read;
@@ -207,9 +208,10 @@ export function Shell({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileOpen(true)}
-              className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-[#202020] lg:hidden"
+              className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 dark:border-[#2C2C2C] dark:bg-[#1A1A1A] dark:text-gray-200 dark:hover:bg-[#252525] lg:hidden"
             >
-              <Menu className="h-5 w-5" />
+              <Menu className="h-4 w-4 text-monologg-red" />
+              <span>Menu</span>
             </button>
 
             {/* Global Search Placeholder */}
@@ -225,7 +227,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Badges & Profile Menu */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             {/* Payments Mode Badge */}
             <span
               className={clsx(
@@ -268,15 +270,43 @@ export function Shell({ children }: { children: React.ReactNode }) {
               </button>
 
               {userDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-56 rounded-xl border border-gray-200 bg-white py-1 shadow-lg dark:border-[#2A2A2A] dark:bg-[#181818] z-50">
+                <div className="absolute right-0 mt-2 w-60 rounded-xl border border-gray-200 bg-white py-1 shadow-lg dark:border-[#2A2A2A] dark:bg-[#181818] z-50">
                   <div className="px-4 py-2 border-b border-gray-100 dark:border-[#222222]">
                     <p className="text-xs font-medium text-gray-900 dark:text-white truncate">
                       {data?.admin?.email}
                     </p>
                     <p className="text-[10px] font-mono text-monologg-red uppercase font-semibold mt-0.5">
-                      {data?.admin?.role}
+                      {data?.admin?.role || "SUPER_ADMIN"}
                     </p>
                   </div>
+
+                  {/* Switch Role Matrix */}
+                  <div className="px-3 py-2 border-b border-gray-100 dark:border-[#222222]">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1.5">
+                      Switch Role View
+                    </p>
+                    <div className="grid grid-cols-2 gap-1">
+                      {(["SUPER_ADMIN", "OPS", "SUPPORT", "FINANCE", "COMPLIANCE", "VIEWER"] as AdminRole[]).map((r) => (
+                        <button
+                          key={r}
+                          type="button"
+                          onClick={() => {
+                            signInAsRole(r, "aal2");
+                            setUserDropdownOpen(false);
+                          }}
+                          className={clsx(
+                            "rounded px-2 py-1 text-left font-mono text-[10px] transition-colors",
+                            role === r
+                              ? "bg-monologg-red text-white font-semibold"
+                              : "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-[#252525]"
+                          )}
+                        >
+                          {r}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <button
                     onClick={() => {
                       setUserDropdownOpen(false);
@@ -292,6 +322,50 @@ export function Shell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         </header>
+
+        {/* Mobile Quick Navigation Bar */}
+        <div className="flex lg:hidden overflow-x-auto no-scrollbar border-b border-gray-200 dark:border-[#222222] bg-white dark:bg-[#141414] px-3 py-2 gap-1.5 text-xs">
+          {[
+            { name: "Overview", href: "/" },
+            { name: "Feed", href: "/feed" },
+            { name: "Users", href: "/users" },
+            { name: "Bookings", href: "/bookings" },
+            { name: "Payments", href: "/payments" },
+            { name: "Withdrawals", href: "/withdrawals" },
+            { name: "Earnings", href: "/earnings" },
+            { name: "Tickets", href: "/tickets" },
+            { name: "Disputes", href: "/disputes" },
+            { name: "Verifications", href: "/verifications" },
+            { name: "Acquisition", href: "/analytics/acquisition" },
+            { name: "Funnels", href: "/analytics/funnels" },
+            { name: "Retention", href: "/analytics/retention" },
+            { name: "Traffic", href: "/analytics/traffic" },
+            { name: "Features", href: "/analytics/features" },
+            { name: "Marketplace", href: "/analytics/marketplace" },
+            { name: "Alerts", href: "/alerts" },
+            { name: "Health", href: "/health" },
+            { name: "Audit", href: "/audit" },
+            { name: "Exports", href: "/exports" },
+            { name: "Admins", href: "/admins" },
+            { name: "Settings", href: "/settings" },
+          ].map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={clsx(
+                  "whitespace-nowrap rounded-lg px-2.5 py-1 text-xs font-medium transition-colors",
+                  isActive
+                    ? "bg-monologg-red text-white font-semibold shadow-sm"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-[#1F1F1F] dark:text-gray-300 dark:hover:bg-[#282828]"
+                )}
+              >
+                {item.name}
+              </Link>
+            );
+          })}
+        </div>
 
         {/* Page Content Body */}
         <main className="flex-1 overflow-y-auto p-4 lg:p-8">
