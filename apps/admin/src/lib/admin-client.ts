@@ -201,6 +201,10 @@ export class AdminClient {
         window.location?.search?.includes("demo=true")
       );
 
+    if (isVercelOrDemo && (!process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_DEMO_MODE === "true")) {
+      return getMockResponse<T>(path, options, token);
+    }
+
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       ...(options.headers as Record<string, string>),

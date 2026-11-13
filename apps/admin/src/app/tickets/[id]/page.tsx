@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, use, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import {
   adminClient,
   type TicketDetailResponse,
@@ -35,9 +35,9 @@ import {
 const PRIORITIES = ["LOW", "NORMAL", "HIGH", "URGENT"];
 const STATUSES = ["OPEN", "IN_PROGRESS", "WAITING_ON_USER", "RESOLVED", "CLOSED"];
 
-export default function TicketDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = use(params);
-  const ticketId = resolvedParams.id;
+export default function TicketDetailPage() {
+  const params = useParams();
+  const ticketId = params.id as string;
   const router = useRouter();
 
   const [ticketData, setTicketData] = useState<TicketDetailResponse["ticket"] | null>(null);

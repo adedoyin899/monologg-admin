@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, use } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect, useCallback } from "react";
+import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -43,13 +43,10 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/Table";
 
-interface UserDetailPageProps {
-  params: Promise<{ id: string }>;
-}
-
-export default function UserDetailPage({ params }: UserDetailPageProps) {
+export default function UserDetailPage() {
   const router = useRouter();
-  const { id } = use(params);
+  const params = useParams();
+  const id = params.id as string;
 
   const [activeTab, setActiveTab] = useState("overview");
   const [data, setData] = useState<User360Response | null>(null);

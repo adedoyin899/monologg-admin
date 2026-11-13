@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import {
   adminClient,
   type VerificationDetailResponse,
@@ -32,13 +32,9 @@ const RE_RECORD_TEMPLATES = [
   { id: "OTHER", label: "Other guideline mismatch" },
 ] as const;
 
-export default function VerificationDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const resolvedParams = use(params);
-  const id = resolvedParams.id;
+export default function VerificationDetailPage() {
+  const params = useParams();
+  const id = params.id as string;
   const router = useRouter();
 
   const [detail, setDetail] = useState<VerificationDetailResponse | null>(null);
