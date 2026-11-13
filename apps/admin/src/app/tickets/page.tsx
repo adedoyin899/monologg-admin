@@ -224,10 +224,10 @@ function TicketsContent() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+            <span className="text-xs font-mono px-2 py-0.5 rounded bg-zinc-100 dark:bg-[#202020] text-zinc-700 dark:text-zinc-300">
               AD-15 · M7
             </span>
-            <span className="text-xs text-zinc-500">SLA Standard: 24h · Urgent: 4h</span>
+            <span className="text-xs text-zinc-600 dark:text-zinc-400">SLA Standard: 24h · Urgent: 4h</span>
           </div>
           <h1 className="text-2xl font-bold font-display text-zinc-900 dark:text-zinc-100 mt-1">
             Support &amp; Complaints
@@ -242,7 +242,7 @@ function TicketsContent() {
             type="button"
             onClick={loadTickets}
             disabled={loading}
-            className="h-9 px-3 text-xs font-medium rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="min-h-[38px] px-3 text-xs font-medium rounded-lg border border-zinc-200 dark:border-[#2A2A2A] bg-white dark:bg-[#181818] hover:bg-zinc-50 dark:hover:bg-[#222222] text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5 transition-colors cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
             <span>Refresh</span>
@@ -251,7 +251,7 @@ function TicketsContent() {
           <button
             type="button"
             onClick={() => setShowCreateModal(true)}
-            className="h-9 px-3.5 text-xs font-semibold rounded-lg bg-red-600 hover:bg-red-700 text-white flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+            className="min-h-[38px] px-3.5 text-xs font-semibold rounded-lg bg-monologg-red hover:bg-monologg-red/90 text-white flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
           >
             <PlusCircle className="w-3.5 h-3.5" />
             <span>New on Behalf</span>
@@ -260,7 +260,7 @@ function TicketsContent() {
       </div>
 
       {/* View Tabs */}
-      <div className="flex items-center gap-1 border-b border-zinc-200 dark:border-zinc-800 overflow-x-auto pb-px">
+      <div className="flex items-center gap-1 border-b border-zinc-200 dark:border-[#242424] overflow-x-auto no-scrollbar pb-px">
         {[
           { id: "unassigned", label: "Unassigned", count: counts.unassigned },
           { id: "mine", label: "Assigned to Me", count: counts.mine },
@@ -273,22 +273,22 @@ function TicketsContent() {
             <button
               key={tab.id}
               onClick={() => updateFilters({ view: tab.id })}
-              className={`px-4 py-2.5 text-xs font-medium border-b-2 transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
+              className={`px-3.5 py-2.5 min-h-[40px] text-xs font-medium border-b-2 transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
                 active
-                  ? "border-red-600 text-red-600 dark:text-red-400 font-semibold"
+                  ? "border-monologg-red text-[#D91B1D] dark:text-[#FF5C5E] font-semibold"
                   : "border-transparent text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
               }`}
             >
               <span>{tab.label}</span>
               <span
-                className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                className={`px-1.5 py-0.5 rounded-full text-[11px] font-mono tabular-nums ${
                   active
                     ? tab.highlight && tab.count > 0
-                      ? "bg-red-100 dark:bg-red-950 text-red-600 dark:text-red-400 font-bold"
-                      : "bg-red-50 dark:bg-zinc-800 text-red-600 dark:text-red-400"
+                      ? "bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 font-bold"
+                      : "bg-red-50 dark:bg-[#222222] text-red-700 dark:text-red-300"
                     : tab.highlight && tab.count > 0
-                      ? "bg-red-500/10 text-red-600 dark:text-red-400 font-bold"
-                      : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+                      ? "bg-red-500/10 text-red-700 dark:text-red-300 font-bold"
+                      : "bg-zinc-100 dark:bg-[#202020] text-zinc-700 dark:text-zinc-300"
                 }`}
               >
                 {tab.count}
@@ -299,25 +299,25 @@ function TicketsContent() {
       </div>
 
       {/* Filters Bar */}
-      <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs space-y-3">
-        <div className="flex flex-col md:flex-row items-center gap-3">
+      <div className="p-4 rounded-xl border border-zinc-200 dark:border-[#242424] bg-white dark:bg-[#141414] shadow-xs space-y-3">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
           <form onSubmit={handleSearchSubmit} className="relative flex-1 w-full">
-            <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-2.5" />
+            <Search className="w-4 h-4 text-zinc-500 dark:text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Search by ticket #, subject, reporter email, or user name..."
-              className="w-full h-9 pl-9 pr-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 text-xs text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-red-500"
+              className="w-full min-h-[38px] pl-9 pr-3 rounded-lg border border-zinc-200 dark:border-[#2A2A2A] bg-zinc-50 dark:bg-[#1A1A1A] text-xs text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-500 dark:placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-monologg-red"
             />
           </form>
 
-          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 w-full md:w-auto">
             {/* Category Filter */}
             <select
               value={currentCategory}
               onChange={(e) => updateFilters({ category: e.target.value })}
-              className="h-9 px-2.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 text-xs text-zinc-700 dark:text-zinc-300 focus:outline-none"
+              className="min-h-[38px] px-2.5 rounded-lg border border-zinc-200 dark:border-[#2A2A2A] bg-zinc-50 dark:bg-[#1A1A1A] text-xs text-zinc-800 dark:text-zinc-200 focus:outline-none"
             >
               <option value="ALL">All Categories</option>
               {CATEGORIES.filter((c) => c !== "ALL").map((c) => (
@@ -398,140 +398,211 @@ function TicketsContent() {
             description="No support requests or complaints match your current view and filter selection."
           />
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-24">Ticket #</TableHead>
-                  <TableHead>Subject &amp; Requester</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Priority</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>SLA Clock</TableHead>
-                  <TableHead>Assigned</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {tickets.map((t) => {
-                  const sla = formatSlaClock(t);
-                  return (
-                    <TableRow key={t.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
-                      {/* Ticket # */}
-                      <TableCell className="font-mono text-xs font-semibold text-zinc-900 dark:text-zinc-100">
-                        {t.number}
-                      </TableCell>
-
-                      {/* Subject & User */}
-                      <TableCell>
-                        <div className="min-w-[200px] max-w-sm">
-                          <Link
-                            href={`/tickets/${t.id}`}
-                            className="font-medium text-xs text-zinc-900 dark:text-zinc-100 hover:text-red-600 dark:hover:text-red-400 transition-colors line-clamp-1"
-                          >
-                            {t.subject}
-                          </Link>
-                          <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-zinc-500 dark:text-zinc-400">
-                            <span>{t.user?.name || t.reporterEmail || "User"}</span>
-                            <span>·</span>
-                            <span className="font-mono">{t.user?.userType || "USER"}</span>
-                            {t.bookingId && (
-                              <>
-                                <span>·</span>
-                                <span className="font-mono text-amber-600 dark:text-amber-400">
-                                  Booking: {t.bookingId.slice(-6)}
-                                </span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </TableCell>
-
-                      {/* Category */}
-                      <TableCell>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
-                          {t.category}
+          <>
+            {/* Mobile Ticket Cards */}
+            <div className="lg:hidden divide-y divide-zinc-200 dark:divide-[#242424]">
+              {tickets.map((t) => {
+                const sla = formatSlaClock(t);
+                return (
+                  <div key={t.id} className="p-4 space-y-2.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <span className="font-mono text-xs font-bold text-[#D91B1D] dark:text-[#FF5C5E]">
+                          #{t.number}
                         </span>
-                      </TableCell>
-
-                      {/* Priority */}
-                      <TableCell>
-                        <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                            t.priority === "URGENT"
-                              ? "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20"
-                              : t.priority === "HIGH"
-                                ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                                : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
-                          }`}
+                        <Link
+                          href={`/tickets/${t.id}`}
+                          className="block font-semibold text-sm text-zinc-900 dark:text-zinc-100 hover:underline mt-0.5 line-clamp-2"
                         >
-                          {t.priority}
-                        </span>
-                      </TableCell>
+                          {t.subject}
+                        </Link>
+                      </div>
+                      <span
+                        className={`px-2 py-0.5 rounded text-[11px] font-bold uppercase shrink-0 ${
+                          t.priority === "URGENT"
+                            ? "bg-red-500/10 text-red-700 dark:text-red-300 border border-red-500/20"
+                            : t.priority === "HIGH"
+                              ? "bg-amber-500/15 text-amber-800 dark:text-amber-300"
+                              : "bg-zinc-100 dark:bg-[#202020] text-zinc-700 dark:text-zinc-300"
+                        }`}
+                      >
+                        {t.priority}
+                      </span>
+                    </div>
 
-                      {/* Status */}
-                      <TableCell>
+                    <div className="text-xs text-zinc-600 dark:text-zinc-400">
+                      {t.user?.name || t.reporterEmail || "User"} · <span className="font-mono">{t.category}</span>
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-zinc-100 dark:border-[#202020]">
+                      <div className="flex items-center gap-2">
                         <span
-                          className={`px-2 py-0.5 rounded text-[11px] font-medium ${
-                            t.status === "OPEN"
-                              ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
-                              : t.status === "WAITING_ON_USER"
-                                ? "bg-purple-500/10 text-purple-600 dark:text-purple-400"
-                                : t.status === "IN_PROGRESS"
-                                  ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                                  : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                          }`}
-                        >
-                          {t.status.replace(/_/g, " ")}
-                        </span>
-                      </TableCell>
-
-                      {/* SLA Clock */}
-                      <TableCell>
-                        <div
                           className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-mono font-medium ${
                             sla.tone === "red"
-                              ? "bg-red-500/15 text-red-600 dark:text-red-400 font-bold border border-red-500/30 animate-pulse"
+                              ? "bg-red-500/15 text-red-700 dark:text-red-300 font-bold border border-red-500/30"
                               : sla.tone === "amber"
-                                ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/20"
+                                ? "bg-amber-500/15 text-amber-800 dark:text-amber-300"
                                 : sla.tone === "green"
-                                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                                  : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+                                  ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                                  : "bg-zinc-100 dark:bg-[#202020] text-zinc-700 dark:text-zinc-300"
                           }`}
                         >
                           <Clock className="w-3 h-3" />
-                          <span>{sla.label}</span>
-                        </div>
-                      </TableCell>
+                          {sla.label}
+                        </span>
+                        <span className="text-[11px] text-zinc-600 dark:text-zinc-400">
+                          {t.status.replace(/_/g, " ")}
+                        </span>
+                      </div>
 
-                      {/* Assigned Admin */}
-                      <TableCell className="text-xs text-zinc-600 dark:text-zinc-400">
-                        {t.assignedAdmin ? (
-                          <div className="flex items-center gap-1.5 font-medium">
-                            <UserCheck className="w-3.5 h-3.5 text-zinc-400" />
-                            <span className="truncate max-w-[120px]">{t.assignedAdmin.email.split("@")[0]}</span>
+                      <Link
+                        href={`/tickets/${t.id}`}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-rose-500/10 text-xs font-semibold text-[#D91B1D] dark:text-[#FF5C5E]"
+                      >
+                        Open <ChevronRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop Tickets Table */}
+            <div className="hidden lg:block overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-24">Ticket #</TableHead>
+                    <TableHead>Subject &amp; Requester</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Priority</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>SLA Clock</TableHead>
+                    <TableHead>Assigned</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {tickets.map((t) => {
+                    const sla = formatSlaClock(t);
+                    return (
+                      <TableRow key={t.id} className="hover:bg-zinc-50 dark:hover:bg-[#1A1A1A]">
+                        {/* Ticket # */}
+                        <TableCell className="font-mono text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+                          {t.number}
+                        </TableCell>
+
+                        {/* Subject & User */}
+                        <TableCell>
+                          <div className="min-w-[200px] max-w-sm">
+                            <Link
+                              href={`/tickets/${t.id}`}
+                              className="font-medium text-xs text-zinc-900 dark:text-zinc-100 hover:text-monologg-red dark:hover:text-[#FF5C5E] transition-colors line-clamp-1"
+                            >
+                              {t.subject}
+                            </Link>
+                            <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-zinc-600 dark:text-zinc-400">
+                              <span>{t.user?.name || t.reporterEmail || "User"}</span>
+                              <span>·</span>
+                              <span className="font-mono">{t.user?.userType || "USER"}</span>
+                              {t.bookingId && (
+                                <>
+                                  <span>·</span>
+                                  <span className="font-mono text-amber-700 dark:text-amber-300">
+                                    Booking: {t.bookingId.slice(-6)}
+                                  </span>
+                                </>
+                              )}
+                            </div>
                           </div>
-                        ) : (
-                          <span className="text-zinc-400 italic">Unassigned</span>
-                        )}
-                      </TableCell>
+                        </TableCell>
 
-                      {/* Action */}
-                      <TableCell className="text-right">
-                        <Link
-                          href={`/tickets/${t.id}`}
-                          className="inline-flex items-center gap-1 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-                        >
-                          <span>Open</span>
-                          <ChevronRight className="w-3.5 h-3.5" />
-                        </Link>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
+                        {/* Category */}
+                        <TableCell>
+                          <span className="px-2 py-0.5 rounded text-[11px] font-medium uppercase tracking-wider bg-zinc-100 dark:bg-[#202020] text-zinc-700 dark:text-zinc-300">
+                            {t.category}
+                          </span>
+                        </TableCell>
+
+                        {/* Priority */}
+                        <TableCell>
+                          <span
+                            className={`px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider ${
+                              t.priority === "URGENT"
+                                ? "bg-red-500/10 text-red-700 dark:text-red-300 border border-red-500/20"
+                                : t.priority === "HIGH"
+                                  ? "bg-amber-500/15 text-amber-800 dark:text-amber-300"
+                                  : "bg-zinc-100 dark:bg-[#202020] text-zinc-700 dark:text-zinc-300"
+                            }`}
+                          >
+                            {t.priority}
+                          </span>
+                        </TableCell>
+
+                        {/* Status */}
+                        <TableCell>
+                          <span
+                            className={`px-2 py-0.5 rounded text-[11px] font-medium ${
+                              t.status === "OPEN"
+                                ? "bg-blue-500/10 text-blue-700 dark:text-blue-300"
+                                : t.status === "WAITING_ON_USER"
+                                  ? "bg-indigo-500/10 text-indigo-700 dark:text-indigo-300"
+                                  : t.status === "IN_PROGRESS"
+                                    ? "bg-amber-500/15 text-amber-800 dark:text-amber-300"
+                                    : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                            }`}
+                          >
+                            {t.status.replace(/_/g, " ")}
+                          </span>
+                        </TableCell>
+
+                        {/* SLA Clock */}
+                        <TableCell>
+                          <div
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-mono font-medium ${
+                              sla.tone === "red"
+                                ? "bg-red-500/15 text-red-700 dark:text-red-300 font-bold border border-red-500/30 animate-pulse"
+                                : sla.tone === "amber"
+                                  ? "bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/20"
+                                  : sla.tone === "green"
+                                    ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                                    : "bg-zinc-100 dark:bg-[#202020] text-zinc-700 dark:text-zinc-300"
+                            }`}
+                          >
+                            <Clock className="w-3 h-3" />
+                            <span>{sla.label}</span>
+                          </div>
+                        </TableCell>
+
+                        {/* Assigned Admin */}
+                        <TableCell className="text-xs text-zinc-600 dark:text-zinc-400">
+                          {t.assignedAdmin ? (
+                            <div className="flex items-center gap-1.5 font-medium">
+                              <UserCheck className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
+                              <span className="truncate max-w-[120px]">{t.assignedAdmin.email.split("@")[0]}</span>
+                            </div>
+                          ) : (
+                            <span className="text-zinc-600 dark:text-zinc-400 italic">Unassigned</span>
+                          )}
+                        </TableCell>
+
+                        {/* Action */}
+                        <TableCell className="text-right">
+                          <Link
+                            href={`/tickets/${t.id}`}
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-[#D91B1D] dark:text-[#FF5C5E] hover:underline transition-colors"
+                          >
+                            <span>Open</span>
+                            <ChevronRight className="w-3.5 h-3.5" />
+                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </>
         )}
       </div>
 

@@ -188,7 +188,7 @@ export default function ExportsPage() {
             <h1 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
               Data Exports
             </h1>
-            <span className="font-mono text-xs font-semibold uppercase text-monologg-red">
+            <span className="font-mono text-xs font-semibold uppercase text-monologg-red dark:text-[#FF5C5E]">
               AD-30
             </span>
           </div>
@@ -247,23 +247,23 @@ export default function ExportsPage() {
                     <span className="font-semibold text-neutral-900 dark:text-neutral-100 text-sm">
                       {cfg.label}
                     </span>
-                    <span className="font-mono text-[10px] uppercase font-bold text-neutral-500 bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded">
+                    <span className="font-mono text-[10px] uppercase font-bold text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded">
                       {cfg.type}
                     </span>
                   </div>
-                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-4">
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400 mb-4">
                     {cfg.description}
                   </p>
                 </div>
 
-                <div className="pt-2 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
-                  <span className="text-[10px] text-neutral-400">
+                <div className="pt-2 border-t border-neutral-100 dark:border-[#222222] flex items-center justify-between gap-2">
+                  <span className="text-[11px] text-neutral-600 dark:text-neutral-400">
                     Roles: {cfg.allowedRoles.join(", ")}
                   </span>
                   <button
                     onClick={() => handleOpenExportModal(cfg.type)}
                     disabled={!isRoleAllowed}
-                    className="flex items-center gap-1 text-xs font-semibold text-monologg-red hover:text-red-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="flex items-center gap-1 text-xs font-semibold text-monologg-red dark:text-[#FF5C5E] hover:underline disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
                   >
                     <PlusCircle className="h-3.5 w-3.5" />
                     Configure
@@ -275,114 +275,188 @@ export default function ExportsPage() {
         </div>
       </div>
 
-      {/* Export History Table */}
-      <Card>
-        <div className="p-4 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center">
-          <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+      {/* Export History Table & Mobile Cards */}
+      <Card className="overflow-hidden">
+        <div className="p-4 border-b border-neutral-200 dark:border-[#242424] flex flex-wrap gap-2 justify-between items-center">
+          <span className="text-xs font-semibold text-neutral-600 dark:text-neutral-400 uppercase tracking-wider tabular-nums">
             Recent Export Jobs History ({exportsList.length})
           </span>
-          <span className="text-xs text-neutral-400">
+          <span className="text-xs text-neutral-600 dark:text-neutral-400">
             Files expire after 24 hours &middot; Lifecycle purge after 7 days
           </span>
         </div>
 
         {loading ? (
-          <div className="flex h-48 items-center justify-center text-sm text-neutral-500">
+          <div className="flex h-48 items-center justify-center text-sm text-neutral-600 dark:text-neutral-400">
             <RefreshCw className="h-5 w-5 animate-spin mr-2" />
             Loading export history...
           </div>
         ) : exportsList.length === 0 ? (
-          <div className="py-12 text-center text-sm text-neutral-500">
+          <div className="py-12 text-center text-sm text-neutral-600 dark:text-neutral-400">
             No export jobs generated yet. Select a dataset above to create an export.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Requested By</TableHead>
-                  <TableHead>Reason</TableHead>
-                  <TableHead>Rows</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {exportsList.map((job) => {
-                  const isDone = job.status === "DONE";
-                  const isExpired =
-                    job.expiresAt && new Date(job.expiresAt).getTime() < Date.now();
-
-                  return (
-                    <TableRow key={job.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-900/40">
-                      <TableCell>
-                        <span className="font-mono text-xs font-bold uppercase text-neutral-800 dark:text-neutral-200">
+          <>
+            {/* Mobile Export Cards */}
+            <div className="lg:hidden divide-y divide-neutral-200 dark:divide-[#242424]">
+              {exportsList.map((job) => {
+                const isDone = job.status === "DONE";
+                const isExpired =
+                  job.expiresAt && new Date(job.expiresAt).getTime() < Date.now();
+                return (
+                  <div key={job.id} className="p-4 space-y-2.5 text-xs">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="font-mono font-bold uppercase text-neutral-900 dark:text-neutral-100">
                           {job.type}
                         </span>
                         {job.piiUnmasked && (
-                          <span className="ml-2 inline-flex items-center rounded bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-800 dark:bg-amber-950/40 dark:text-amber-400">
+                          <span className="inline-flex items-center rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-900 dark:bg-amber-950/50 dark:text-amber-300">
                             UNMASKED
                           </span>
                         )}
-                      </TableCell>
-                      <TableCell>
-                        <span
-                          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                            job.status === "DONE"
-                              ? isExpired
-                                ? "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400"
-                                : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400"
-                              : job.status === "FAILED"
-                              ? "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-400"
-                              : "bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-400"
-                          }`}
+                      </div>
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium shrink-0 ${
+                          job.status === "DONE"
+                            ? isExpired
+                              ? "bg-neutral-100 text-neutral-700 dark:bg-[#222222] dark:text-neutral-300"
+                              : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
+                            : job.status === "FAILED"
+                              ? "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-300"
+                              : "bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300"
+                        }`}
+                      >
+                        {isExpired ? "EXPIRED" : job.status}
+                      </span>
+                    </div>
+
+                    <div className="text-neutral-600 dark:text-neutral-400">
+                      By: <span className="text-neutral-900 dark:text-neutral-100">{job.requestedByEmail || job.requestedByAdminId}</span> · <span className="font-mono tabular-nums">{job.rowCount.toLocaleString()} rows</span>
+                    </div>
+
+                    {job.reason && (
+                      <p className="text-neutral-600 dark:text-neutral-400 line-clamp-2">{job.reason}</p>
+                    )}
+
+                    <div className="flex items-center justify-between pt-2 border-t border-neutral-100 dark:border-[#202020]">
+                      <span className="text-neutral-600 dark:text-neutral-400 tabular-nums">
+                        {new Date(job.createdAt).toLocaleDateString()}
+                      </span>
+                      {isDone && !isExpired && job.downloadUrl ? (
+                        <a
+                          href={job.downloadUrl}
+                          download
+                          className="inline-flex items-center gap-1 rounded bg-monologg-red px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-red-700"
                         >
-                          {job.status === "DONE" && !isExpired && <CheckCircle className="h-3 w-3" />}
-                          {job.status === "FAILED" && <AlertTriangle className="h-3 w-3" />}
-                          {isExpired ? "EXPIRED" : job.status}
+                          <Download className="h-3 w-3" />
+                          Download CSV
+                        </a>
+                      ) : isExpired ? (
+                        <span className="text-xs text-neutral-600 dark:text-neutral-400 italic">Link Expired</span>
+                      ) : job.status === "FAILED" ? (
+                        <span className="text-xs text-red-700 dark:text-red-400">{job.error || "Failed"}</span>
+                      ) : (
+                        <span className="inline-flex items-center text-xs text-neutral-600 dark:text-neutral-400">
+                          <RefreshCw className="h-3 w-3 animate-spin mr-1" />
+                          Processing
                         </span>
-                      </TableCell>
-                      <TableCell className="text-xs text-neutral-600 dark:text-neutral-400">
-                        {job.requestedByEmail || job.requestedByAdminId}
-                      </TableCell>
-                      <TableCell className="max-w-xs truncate text-xs text-neutral-600 dark:text-neutral-400">
-                        {job.reason}
-                      </TableCell>
-                      <TableCell className="font-mono text-xs text-neutral-700 dark:text-neutral-300">
-                        {job.rowCount.toLocaleString()}
-                      </TableCell>
-                      <TableCell className="text-xs text-neutral-500 whitespace-nowrap">
-                        {new Date(job.createdAt).toLocaleString()}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {isDone && !isExpired && job.downloadUrl ? (
-                          <a
-                            href={job.downloadUrl}
-                            download
-                            className="inline-flex items-center gap-1 rounded bg-monologg-red px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:bg-red-700"
-                          >
-                            <Download className="h-3 w-3" />
-                            Download CSV
-                          </a>
-                        ) : isExpired ? (
-                          <span className="text-xs text-neutral-400 italic">Link Expired</span>
-                        ) : job.status === "FAILED" ? (
-                          <span className="text-xs text-red-500">{job.error || "Failed"}</span>
-                        ) : (
-                          <span className="inline-flex items-center text-xs text-neutral-400">
-                            <RefreshCw className="h-3 w-3 animate-spin mr-1" />
-                            Processing
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop Export History Table */}
+            <div className="hidden lg:block overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Requested By</TableHead>
+                    <TableHead>Reason</TableHead>
+                    <TableHead>Rows</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {exportsList.map((job) => {
+                    const isDone = job.status === "DONE";
+                    const isExpired =
+                      job.expiresAt && new Date(job.expiresAt).getTime() < Date.now();
+
+                    return (
+                      <TableRow key={job.id} className="hover:bg-neutral-50 dark:hover:bg-[#1A1A1A]">
+                        <TableCell>
+                          <span className="font-mono text-xs font-bold uppercase text-neutral-900 dark:text-neutral-100">
+                            {job.type}
                           </span>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
+                          {job.piiUnmasked && (
+                            <span className="ml-2 inline-flex items-center rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-900 dark:bg-amber-950/50 dark:text-amber-300">
+                              UNMASKED
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <span
+                            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                              job.status === "DONE"
+                                ? isExpired
+                                  ? "bg-neutral-100 text-neutral-700 dark:bg-[#222222] dark:text-neutral-300"
+                                  : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
+                                : job.status === "FAILED"
+                                ? "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-300"
+                                : "bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300"
+                            }`}
+                          >
+                            {job.status === "DONE" && !isExpired && <CheckCircle className="h-3 w-3" />}
+                            {job.status === "FAILED" && <AlertTriangle className="h-3 w-3" />}
+                            {isExpired ? "EXPIRED" : job.status}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-xs text-neutral-700 dark:text-neutral-300">
+                          {job.requestedByEmail || job.requestedByAdminId}
+                        </TableCell>
+                        <TableCell className="max-w-xs truncate text-xs text-neutral-600 dark:text-neutral-400">
+                          {job.reason}
+                        </TableCell>
+                        <TableCell className="font-mono text-xs tabular-nums text-neutral-700 dark:text-neutral-300">
+                          {job.rowCount.toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-xs tabular-nums text-neutral-600 dark:text-neutral-400 whitespace-nowrap">
+                          {new Date(job.createdAt).toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {isDone && !isExpired && job.downloadUrl ? (
+                            <a
+                              href={job.downloadUrl}
+                              download
+                              className="inline-flex items-center gap-1 rounded bg-monologg-red px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:bg-red-700"
+                            >
+                              <Download className="h-3 w-3" />
+                              Download CSV
+                            </a>
+                          ) : isExpired ? (
+                            <span className="text-xs text-neutral-600 dark:text-neutral-400 italic">Link Expired</span>
+                          ) : job.status === "FAILED" ? (
+                            <span className="text-xs text-red-700 dark:text-red-400">{job.error || "Failed"}</span>
+                          ) : (
+                            <span className="inline-flex items-center text-xs text-neutral-600 dark:text-neutral-400">
+                              <RefreshCw className="h-3 w-3 animate-spin mr-1" />
+                              Processing
+                            </span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </>
         )}
       </Card>
 
@@ -407,7 +481,7 @@ export default function ExportsPage() {
 
           <div>
             <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
-              Business Justification / Reason <span className="text-monologg-red">*</span>
+              Business Justification / Reason <span className="text-monologg-red dark:text-[#FF5C5E]">*</span>
             </label>
             <textarea
               required

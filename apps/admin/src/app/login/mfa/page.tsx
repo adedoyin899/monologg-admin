@@ -44,19 +44,19 @@ export default function MfaChallengePage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-[#0A0A0A] px-4 py-12">
       <div className="w-full max-w-md space-y-6 rounded-2xl border border-gray-200 dark:border-[#242424] bg-white dark:bg-[#141414] p-8 shadow-xl text-center">
-        <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-monologg-purple/10 text-monologg-purple mb-2">
+        <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-monologg-red/10 text-monologg-red dark:text-[#FF5C5E] mb-2">
           <Smartphone className="h-6 w-6" />
         </div>
 
         <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
           Two-Factor Authentication
         </h1>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
+        <p className="text-xs text-gray-600 dark:text-gray-400">
           Enter the 6-digit TOTP verification code from your authenticator app (aal2 required).
         </p>
 
         {error && (
-          <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-3 text-xs text-red-600 dark:text-red-400">
+          <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-3 text-xs text-red-700 dark:text-red-400">
             {error}
           </div>
         )}
@@ -87,7 +87,7 @@ export default function MfaChallengePage() {
           <button
             type="button"
             onClick={simulateSuccess}
-            className="text-xs font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
+            className="text-xs font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
           >
             [Dev Mock] Bypass with Simulated aal2 Challenge
           </button>

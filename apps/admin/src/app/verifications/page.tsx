@@ -148,58 +148,58 @@ function VerificationsContent() {
             <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 mt-1">
               {metrics.pendingUploadedCount}
             </div>
-            <span className="text-[11px] text-zinc-400">Awaiting reviewer</span>
+            <span className="text-[11px] text-zinc-600 dark:text-zinc-400">Awaiting reviewer</span>
           </div>
 
-          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
-            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">In Review</span>
-            <div className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">
+          <div className="rounded-xl border border-zinc-200 dark:border-[#242424] bg-white dark:bg-[#141414] p-4">
+            <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">In Review</span>
+            <div className="text-2xl font-bold tabular-nums text-amber-700 dark:text-amber-300 mt-1">
               {metrics.inReviewCount}
             </div>
-            <span className="text-[11px] text-zinc-400">Currently open</span>
+            <span className="text-[11px] text-zinc-600 dark:text-zinc-400">Currently open</span>
           </div>
 
           <div className={`rounded-xl border p-4 ${
             metrics.overdueCount > 0
-              ? "border-red-200 dark:border-red-900/60 bg-red-50/30 dark:bg-red-950/20"
-              : "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900"
+              ? "border-red-200 dark:border-red-900/60 bg-red-50/40 dark:bg-red-950/20"
+              : "border-zinc-200 dark:border-[#242424] bg-white dark:bg-[#141414]"
           }`}>
-            <span className="text-xs font-medium text-red-600 dark:text-red-400 flex items-center gap-1">
+            <span className="text-xs font-medium text-red-700 dark:text-red-400 flex items-center gap-1">
               <Clock className="w-3.5 h-3.5" /> Overdue (&gt;48h)
             </span>
-            <div className="text-2xl font-bold text-red-700 dark:text-red-400 mt-1">
+            <div className="text-2xl font-bold tabular-nums text-red-700 dark:text-red-400 mt-1">
               {metrics.overdueCount}
             </div>
-            <span className="text-[11px] text-red-500/80">SLA breached</span>
+            <span className="text-[11px] text-red-700 dark:text-red-400">SLA breached</span>
           </div>
 
-          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
-            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Approval Rate</span>
-            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
+          <div className="rounded-xl border border-zinc-200 dark:border-[#242424] bg-white dark:bg-[#141414] p-4">
+            <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Approval Rate</span>
+            <div className="text-2xl font-bold tabular-nums text-emerald-700 dark:text-emerald-400 mt-1">
               {metrics.approvalRatePct}%
             </div>
-            <span className="text-[11px] text-zinc-400">{metrics.totalReviewedCount} total reviews</span>
+            <span className="text-[11px] text-zinc-600 dark:text-zinc-400 tabular-nums">{metrics.totalReviewedCount} total reviews</span>
           </div>
 
-          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
-            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Median Review Time</span>
-            <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 mt-1">
+          <div className="rounded-xl border border-zinc-200 dark:border-[#242424] bg-white dark:bg-[#141414] p-4">
+            <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Median Review Time</span>
+            <div className="text-2xl font-bold tabular-nums text-zinc-900 dark:text-zinc-50 mt-1">
               {metrics.medianReviewHours}h
             </div>
-            <span className="text-[11px] text-zinc-400">Target &lt; 48 hours</span>
+            <span className="text-[11px] text-zinc-600 dark:text-zinc-400">Target &lt; 48 hours</span>
           </div>
         </div>
       )}
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-1 overflow-x-auto border-b border-zinc-200 dark:border-zinc-800 pb-px">
+      <div className="flex items-center gap-1 overflow-x-auto no-scrollbar border-b border-zinc-200 dark:border-[#242424] pb-px">
         {STATUS_TABS.map((tab) => (
           <button
             key={tab.id}
             onClick={() => updateFilters({ status: tab.id })}
-            className={`px-3.5 py-2 text-xs font-medium rounded-t-lg transition-colors cursor-pointer shrink-0 border-b-2 -mb-px ${
+            className={`px-3.5 py-2.5 min-h-[40px] text-xs font-medium rounded-t-lg transition-colors cursor-pointer shrink-0 border-b-2 -mb-px ${
               currentStatus === tab.id
-                ? "border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-950/20"
+                ? "border-monologg-red text-[#D91B1D] dark:text-[#FF5C5E] bg-rose-50/50 dark:bg-rose-950/20 font-semibold"
                 : "border-transparent text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
             }`}
           >
@@ -217,13 +217,13 @@ function VerificationsContent() {
           }}
           className="relative flex-1 max-w-md"
         >
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 dark:text-zinc-400" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search talent name or email..."
-            className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full min-h-[38px] pl-9 pr-3 py-1.5 text-xs rounded-lg border border-zinc-200 dark:border-[#2A2A2A] bg-white dark:bg-[#141414] text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-500 dark:placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-monologg-red"
           />
         </form>
 
@@ -232,7 +232,7 @@ function VerificationsContent() {
           <select
             value={currentNiche}
             onChange={(e) => updateFilters({ niche: e.target.value })}
-            className="text-xs rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+            className="min-h-[38px] text-xs rounded-lg border border-zinc-200 dark:border-[#2A2A2A] bg-white dark:bg-[#141414] text-zinc-800 dark:text-zinc-200 px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-monologg-red cursor-pointer"
           >
             {NICHES.map((n) => (
               <option key={n.id} value={n.id}>
@@ -281,135 +281,207 @@ function VerificationsContent() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-zinc-50 dark:bg-zinc-800/50 text-zinc-500 dark:text-zinc-400 border-b border-zinc-200 dark:border-zinc-800">
-                <tr>
-                  <th className="py-3 px-4 font-medium">Talent</th>
-                  <th className="py-3 px-4 font-medium">Niche / Location</th>
-                  <th className="py-3 px-4 font-medium">Duration</th>
-                  <th className="py-3 px-4 font-medium">Status</th>
-                  <th className="py-3 px-4 font-medium">SLA / Age</th>
-                  <th className="py-3 px-4 font-medium text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
-                {recordings.map((rec) => {
-                  const isDurationCompliant = rec.durationSec <= 90;
-
-                  return (
-                    <tr
-                      key={rec.id}
-                      className="hover:bg-zinc-50/60 dark:hover:bg-zinc-800/40 transition-colors"
-                    >
-                      {/* Talent Name & Avatar */}
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-xs font-semibold text-zinc-600 dark:text-zinc-300 overflow-hidden shrink-0">
-                            {rec.creatorAvatarUrl ? (
-                              <img src={rec.creatorAvatarUrl} alt="" className="w-full h-full object-cover" />
-                            ) : (
-                              rec.creatorName.slice(0, 1)
-                            )}
-                          </div>
-                          <div>
-                            <span className="font-medium text-zinc-900 dark:text-zinc-100 block">
-                              {rec.creatorName}
-                            </span>
-                            <span className="text-[11px] text-zinc-400 font-mono">
-                              ID: {rec.creatorId.slice(0, 8)}...
-                            </span>
-                          </div>
+          <>
+            {/* Mobile Verification Cards */}
+            <div className="lg:hidden divide-y divide-zinc-200 dark:divide-[#242424]">
+              {recordings.map((rec) => {
+                const isDurationCompliant = rec.durationSec <= 90;
+                return (
+                  <div key={rec.id} className="p-4 space-y-3 text-xs">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-[#1E1E1E] border border-zinc-200 dark:border-[#2C2C2C] flex items-center justify-center text-xs font-semibold text-zinc-700 dark:text-zinc-300 overflow-hidden shrink-0">
+                          {rec.creatorAvatarUrl ? (
+                            <img src={rec.creatorAvatarUrl} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            rec.creatorName.slice(0, 1)
+                          )}
                         </div>
-                      </td>
-
-                      {/* Niche & Location */}
-                      <td className="py-3.5 px-4">
-                        <div className="text-zinc-900 dark:text-zinc-200 font-medium">
-                          {rec.creatorNiche}
+                        <div className="min-w-0">
+                          <span className="font-semibold text-sm text-zinc-900 dark:text-zinc-100 block truncate">
+                            {rec.creatorName}
+                          </span>
+                          <span className="text-[11px] text-zinc-600 dark:text-zinc-400">
+                            {rec.creatorNiche} · {rec.creatorLocation}
+                          </span>
                         </div>
-                        <div className="text-[11px] text-zinc-400">
-                          {rec.creatorLocation}
-                        </div>
-                      </td>
+                      </div>
 
-                      {/* Stored Duration */}
-                      <td className="py-3.5 px-4">
+                      <span
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border shrink-0 ${
+                          rec.status === "UPLOADED"
+                            ? "bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900/60"
+                            : rec.status === "IN_REVIEW"
+                              ? "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/60"
+                              : rec.status === "APPROVED"
+                                ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/60"
+                                : "bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900/60"
+                        }`}
+                      >
+                        {rec.status}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-zinc-100 dark:border-[#202020]">
+                      <div className="flex items-center gap-2 tabular-nums">
                         <span
                           className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium border ${
                             isDurationCompliant
-                              ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/60"
-                              : "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-900/60"
+                              ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/60"
+                              : "bg-red-50 text-red-800 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-900/60"
                           }`}
                         >
                           <Video className="w-3 h-3" />
                           {rec.durationSec}s / 90s
                         </span>
-                      </td>
-
-                      {/* Status */}
-                      <td className="py-3.5 px-4">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${
-                            rec.status === "UPLOADED"
-                              ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900/60"
-                              : rec.status === "IN_REVIEW"
-                              ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/60"
-                              : rec.status === "APPROVED"
-                              ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/60"
-                              : "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-900/60"
-                          }`}
-                        >
-                          {rec.status === "APPROVED" && <CheckCircle2 className="w-3 h-3" />}
-                          {rec.status === "NEEDS_RERECORD" && <XCircle className="w-3 h-3" />}
-                          {rec.status}
+                        <span className={rec.isOverdue ? "font-bold text-red-700 dark:text-red-400" : "text-zinc-600 dark:text-zinc-400"}>
+                          {rec.isOverdue ? `Overdue (${rec.ageHours}h)` : `Age ${rec.ageHours}h`}
                         </span>
-                      </td>
+                      </div>
 
-                      {/* SLA & Age */}
-                      <td className="py-3.5 px-4">
-                        {rec.isOverdue ? (
-                          <div className="space-y-0.5">
-                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-red-600 dark:text-red-400">
-                              <AlertTriangle className="w-3 h-3" /> Overdue
-                            </span>
-                            <div className="text-[11px] text-zinc-400">
-                              Age: {rec.ageHours}h (SLA 48h)
+                      <Link
+                        href={`/verifications/${rec.id}`}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-monologg-red text-white"
+                      >
+                        Review <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop Verification Table */}
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-zinc-50 dark:bg-[#1A1A1A] text-zinc-600 dark:text-zinc-400 border-b border-zinc-200 dark:border-[#242424]">
+                  <tr>
+                    <th className="py-3 px-4 font-semibold">Talent</th>
+                    <th className="py-3 px-4 font-semibold">Niche / Location</th>
+                    <th className="py-3 px-4 font-semibold">Duration</th>
+                    <th className="py-3 px-4 font-semibold">Status</th>
+                    <th className="py-3 px-4 font-semibold">SLA / Age</th>
+                    <th className="py-3 px-4 font-semibold text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-200 dark:divide-[#242424]">
+                  {recordings.map((rec) => {
+                    const isDurationCompliant = rec.durationSec <= 90;
+
+                    return (
+                      <tr
+                        key={rec.id}
+                        className="hover:bg-zinc-50/60 dark:hover:bg-[#1A1A1A] transition-colors"
+                      >
+                        {/* Talent Name & Avatar */}
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-[#202020] border border-zinc-200 dark:border-[#2C2C2C] flex items-center justify-center text-xs font-semibold text-zinc-700 dark:text-zinc-300 overflow-hidden shrink-0">
+                              {rec.creatorAvatarUrl ? (
+                                <img src={rec.creatorAvatarUrl} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                rec.creatorName.slice(0, 1)
+                              )}
+                            </div>
+                            <div>
+                              <span className="font-medium text-zinc-900 dark:text-zinc-100 block">
+                                {rec.creatorName}
+                              </span>
+                              <span className="text-[11px] text-zinc-600 dark:text-zinc-400 font-mono">
+                                ID: {rec.creatorId.slice(0, 8)}...
+                              </span>
                             </div>
                           </div>
-                        ) : rec.status === "UPLOADED" || rec.status === "IN_REVIEW" ? (
-                          <div className="space-y-0.5">
-                            <span className="inline-flex items-center gap-1 text-[11px] text-zinc-700 dark:text-zinc-300">
-                              <Clock className="w-3 h-3 text-zinc-400" />
-                              {rec.slaRemainingHours}h remaining
-                            </span>
-                            <div className="text-[11px] text-zinc-400">
-                              Age: {rec.ageHours}h
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="text-[11px] text-zinc-400">
-                            Decided · Age {rec.ageHours}h
-                          </div>
-                        )}
-                      </td>
+                        </td>
 
-                      {/* Action */}
-                      <td className="py-3.5 px-4 text-right">
-                        <Link
-                          href={`/verifications/${rec.id}`}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
-                        >
-                          Review
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </Link>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                        {/* Niche & Location */}
+                        <td className="py-3.5 px-4">
+                          <div className="text-zinc-900 dark:text-zinc-200 font-medium">
+                            {rec.creatorNiche}
+                          </div>
+                          <div className="text-[11px] text-zinc-600 dark:text-zinc-400">
+                            {rec.creatorLocation}
+                          </div>
+                        </td>
+
+                        {/* Stored Duration */}
+                        <td className="py-3.5 px-4 tabular-nums">
+                          <span
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium border ${
+                              isDurationCompliant
+                                ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/60"
+                                : "bg-red-50 text-red-800 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-900/60"
+                            }`}
+                          >
+                            <Video className="w-3 h-3" />
+                            {rec.durationSec}s / 90s
+                          </span>
+                        </td>
+
+                        {/* Status */}
+                        <td className="py-3.5 px-4">
+                          <span
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${
+                              rec.status === "UPLOADED"
+                                ? "bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900/60"
+                                : rec.status === "IN_REVIEW"
+                                ? "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/60"
+                                : rec.status === "APPROVED"
+                                ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/60"
+                                : "bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900/60"
+                            }`}
+                          >
+                            {rec.status === "APPROVED" && <CheckCircle2 className="w-3 h-3" />}
+                            {rec.status === "NEEDS_RERECORD" && <XCircle className="w-3 h-3" />}
+                            {rec.status}
+                          </span>
+                        </td>
+
+                        {/* SLA & Age */}
+                        <td className="py-3.5 px-4 tabular-nums">
+                          {rec.isOverdue ? (
+                            <div className="space-y-0.5">
+                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-red-700 dark:text-red-400">
+                                <AlertTriangle className="w-3 h-3" /> Overdue
+                              </span>
+                              <div className="text-[11px] text-zinc-600 dark:text-zinc-400">
+                                Age: {rec.ageHours}h (SLA 48h)
+                              </div>
+                            </div>
+                          ) : rec.status === "UPLOADED" || rec.status === "IN_REVIEW" ? (
+                            <div className="space-y-0.5">
+                              <span className="inline-flex items-center gap-1 text-[11px] text-zinc-700 dark:text-zinc-300">
+                                <Clock className="w-3 h-3 text-zinc-500 dark:text-zinc-400" />
+                                {rec.slaRemainingHours}h remaining
+                              </span>
+                              <div className="text-[11px] text-zinc-600 dark:text-zinc-400">
+                                Age: {rec.ageHours}h
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-[11px] text-zinc-600 dark:text-zinc-400">
+                              Decided · Age {rec.ageHours}h
+                            </div>
+                          )}
+                        </td>
+
+                        {/* Action */}
+                        <td className="py-3.5 px-4 text-right">
+                          <Link
+                            href={`/verifications/${rec.id}`}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
+                          >
+                            Review
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </div>

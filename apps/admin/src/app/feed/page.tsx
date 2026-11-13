@@ -157,43 +157,43 @@ export default function LiveFeedPage() {
       case "auth":
         return {
           icon: <User className="h-3.5 w-3.5" />,
-          color: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+          color: "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20",
           name: "Auth",
         };
       case "bookings":
         return {
           icon: <Calendar className="h-3.5 w-3.5" />,
-          color: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+          color: "bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-500/30",
           name: "Booking",
         };
       case "payments":
         return {
           icon: <CreditCard className="h-3.5 w-3.5" />,
-          color: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+          color: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20",
           name: "Payment",
         };
       case "projects":
         return {
           icon: <Briefcase className="h-3.5 w-3.5" />,
-          color: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20",
+          color: "bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/20",
           name: "Project",
         };
       case "media":
         return {
           icon: <ImageIcon className="h-3.5 w-3.5" />,
-          color: "bg-pink-500/10 text-pink-600 dark:text-pink-400 border-pink-500/20",
+          color: "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20",
           name: "Media",
         };
       case "withdrawals":
         return {
           icon: <Banknote className="h-3.5 w-3.5" />,
-          color: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20",
+          color: "bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border-cyan-500/20",
           name: "Payout",
         };
       case "support":
         return {
           icon: <HelpCircle className="h-3.5 w-3.5" />,
-          color: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20",
+          color: "bg-orange-500/10 text-orange-800 dark:text-orange-300 border-orange-500/30",
           name: "Support",
         };
       default:
@@ -211,13 +211,13 @@ export default function LiveFeedPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="font-mono text-xs font-semibold uppercase text-monologg-red">AD-03</span>
-            <span className="text-gray-300 dark:text-gray-600">/</span>
+            <span className="font-mono text-xs font-semibold uppercase text-monologg-red dark:text-[#FF5C5E]">AD-03</span>
+            <span className="text-gray-500 dark:text-gray-400" aria-hidden="true">/</span>
             <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
               Live Activity Feed
             </h1>
           </div>
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
             Chronological audit stream of platform events with actor masking and 15s live polling.
           </p>
         </div>
@@ -227,10 +227,10 @@ export default function LiveFeedPage() {
           {/* Pause / Resume Button */}
           <button
             onClick={() => setIsPolling(!isPolling)}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] rounded-lg border text-xs font-semibold transition-all ${
               isPolling
-                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20"
-                : "bg-gray-100 dark:bg-[#202020] text-gray-600 dark:text-gray-400 border-gray-200 dark:border-[#2E2E2E]"
+                ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20"
+                : "bg-gray-100 dark:bg-[#202020] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-[#2E2E2E]"
             }`}
           >
             {isPolling ? (
@@ -250,23 +250,23 @@ export default function LiveFeedPage() {
           {/* Timezone Toggle */}
           <button
             onClick={() => setUseUtc(!useUtc)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#1A1A1A] text-gray-700 dark:text-gray-300 text-xs font-mono font-medium hover:bg-gray-50 dark:hover:bg-[#222222] transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] rounded-lg border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#1A1A1A] text-gray-700 dark:text-gray-300 text-xs font-mono font-medium hover:bg-gray-50 dark:hover:bg-[#222222] transition-colors"
             title="Toggle between local browser timezone and UTC"
           >
-            <Clock className="h-3.5 w-3.5 text-gray-400" />
+            <Clock className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
             <span>{useUtc ? "Time: UTC" : "Time: Local"}</span>
           </button>
 
           {/* Refresh & Elapsed Indicator */}
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#1A1A1A] text-xs font-mono text-gray-500">
-            <span>{secondsAgo < 5 ? "Updated just now" : `Updated ${secondsAgo}s ago`}</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 min-h-[36px] rounded-lg border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#1A1A1A] text-xs font-mono text-gray-600 dark:text-gray-400">
+            <span className="tabular-nums">{secondsAgo < 5 ? "Updated just now" : `Updated ${secondsAgo}s ago`}</span>
             <button
               onClick={() => fetchFeed(false)}
               disabled={loading}
-              className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 disabled:opacity-50"
+              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 disabled:opacity-50 p-1"
               title="Refresh now"
             >
-              <RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />
+              <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
             </button>
           </div>
         </div>
@@ -276,15 +276,15 @@ export default function LiveFeedPage() {
       <div className="rounded-xl border border-gray-200 dark:border-[#242424] bg-white dark:bg-[#141414] p-4 shadow-sm space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           {/* Category Filter Pills */}
-          <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto pb-1">
+          <div className="flex flex-wrap items-center gap-1.5">
             {EVENT_GROUP_FILTERS.map((f) => (
               <button
                 key={f.id}
                 onClick={() => setEventGroup(f.id)}
-                className={`px-3 py-1 text-xs font-medium rounded-full transition-colors whitespace-nowrap border ${
+                className={`px-3 py-1.5 min-h-[34px] text-xs font-medium rounded-full transition-colors whitespace-nowrap border ${
                   eventGroup === f.id
                     ? "bg-gray-900 text-white dark:bg-white dark:text-black border-transparent shadow-xs"
-                    : "border-gray-200 dark:border-[#2E2E2E] text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600"
+                    : "border-gray-200 dark:border-[#2E2E2E] text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
                 }`}
               >
                 {f.label}
@@ -294,11 +294,11 @@ export default function LiveFeedPage() {
 
           {/* User Type Filter */}
           <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
-            <span className="text-xs text-gray-500">Actor Type:</span>
+            <span className="text-xs text-gray-600 dark:text-gray-400">Actor Type:</span>
             <select
               value={userType}
               onChange={(e) => setUserType(e.target.value)}
-              className="text-xs rounded-lg border border-gray-200 dark:border-[#2A2A2A] bg-gray-50 dark:bg-[#1A1A1A] text-gray-800 dark:text-gray-200 px-2.5 py-1 focus:outline-hidden focus:ring-1 focus:ring-monologg-red"
+              className="text-xs min-h-[36px] rounded-lg border border-gray-200 dark:border-[#2A2A2A] bg-gray-50 dark:bg-[#1A1A1A] text-gray-800 dark:text-gray-200 px-2.5 py-1.5 focus:outline-hidden focus:ring-1 focus:ring-monologg-red"
             >
               <option value="ALL">All Actors</option>
               <option value="TALENT">Talent</option>
@@ -341,7 +341,7 @@ export default function LiveFeedPage() {
 
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-semibold text-sm text-gray-900 dark:text-white truncate">
+                      <span className="font-semibold text-sm text-gray-900 dark:text-white break-words">
                         {ev.description}
                       </span>
 
@@ -354,23 +354,23 @@ export default function LiveFeedPage() {
 
                       {/* Actor Type Pill */}
                       {ev.userType && (
-                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-gray-100 dark:bg-[#202020] text-gray-600 dark:text-gray-400">
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-gray-100 dark:bg-[#202020] text-gray-700 dark:text-gray-300">
                           {ev.userType}
                         </span>
                       )}
                     </div>
 
-                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
-                      <span className="font-mono text-gray-700 dark:text-gray-300">
+                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-600 dark:text-gray-400">
+                      <span className="font-mono text-gray-800 dark:text-gray-200">
                         Actor: {ev.actorLabel}
                       </span>
                       {ev.country && (
-                        <span className="inline-flex items-center gap-1 font-mono text-[11px] text-gray-500">
+                        <span className="inline-flex items-center gap-1 font-mono text-[11px] text-gray-600 dark:text-gray-400">
                           <Globe className="h-3 w-3" />
                           {ev.country}
                         </span>
                       )}
-                      <span className="font-mono text-[11px] text-gray-400">
+                      <span className="font-mono text-[11px] tabular-nums text-gray-600 dark:text-gray-400">
                         {formatEventTime(ev.occurredAt)}
                       </span>
                     </div>

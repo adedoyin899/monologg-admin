@@ -192,12 +192,12 @@ export default function TicketDetailPage() {
   if (error || !ticketData) {
     return (
       <div className="p-8 text-center space-y-4">
-        <AlertTriangle className="w-10 h-10 text-red-500 mx-auto" />
+        <AlertTriangle className="w-10 h-10 text-red-700 dark:text-red-400 mx-auto" />
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Ticket Not Found</h2>
-        <p className="text-sm text-zinc-500">{error || "The requested ticket could not be found."}</p>
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">{error || "The requested ticket could not be found."}</p>
         <Link
           href="/tickets"
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-xs font-semibold hover:bg-zinc-200"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-xs font-semibold text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700"
         >
           <ChevronLeft className="w-4 h-4" /> Back to Support Inbox
         </Link>
@@ -226,7 +226,7 @@ export default function TicketDetailPage() {
               <span className="text-xs px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-medium">
                 {ticketData.category}
               </span>
-              <span className="text-xs text-zinc-400">· Source: {ticketData.source}</span>
+              <span className="text-xs text-zinc-600 dark:text-zinc-400">&middot; Source: {ticketData.source}</span>
             </div>
             <h1 className="text-xl font-bold font-display text-zinc-900 dark:text-zinc-100 mt-0.5 line-clamp-1">
               {ticketData.subject}
@@ -238,7 +238,7 @@ export default function TicketDetailPage() {
         <div className="flex flex-wrap items-center gap-2">
           {/* Priority selector */}
           <div className="flex items-center gap-1">
-            <span className="text-[11px] text-zinc-500">Priority:</span>
+            <span className="text-[11px] text-zinc-600 dark:text-zinc-400">Priority:</span>
             <select
               value={ticketData.priority}
               onChange={(e) => handlePriorityChange(e.target.value)}
@@ -254,7 +254,7 @@ export default function TicketDetailPage() {
 
           {/* Status selector */}
           <div className="flex items-center gap-1">
-            <span className="text-[11px] text-zinc-500">Status:</span>
+            <span className="text-[11px] text-zinc-600 dark:text-zinc-400">Status:</span>
             <select
               value={ticketData.status}
               onChange={(e) => handleStatusChange(e.target.value)}
@@ -317,12 +317,12 @@ export default function TicketDetailPage() {
                     <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
                       {ticketData.user?.name || ticketData.reporterEmail || "User"}
                     </span>
-                    <span className="text-[11px] text-zinc-500 ml-1.5 font-mono">
+                    <span className="text-[11px] text-zinc-600 dark:text-zinc-400 ml-1.5 font-mono">
                       (Initial Complaint)
                     </span>
                   </div>
                 </div>
-                <span className="text-[11px] text-zinc-400">
+                <span className="text-[11px] text-zinc-600 dark:text-zinc-400 tabular-nums">
                   {new Date(ticketData.createdAt).toLocaleString()}
                 </span>
               </div>
@@ -350,7 +350,7 @@ export default function TicketDetailPage() {
                             <span>Staff Internal Note · Never shown to user</span>
                           </span>
                         </div>
-                        <span className="text-[11px] text-zinc-400">
+                        <span className="text-[11px] text-zinc-600 dark:text-zinc-400 tabular-nums">
                           {new Date(msg.createdAt).toLocaleString()}
                         </span>
                       </div>
@@ -368,7 +368,7 @@ export default function TicketDetailPage() {
                         <div
                           className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs ${
                             isAdmin
-                              ? "bg-red-600 text-white"
+                              ? "bg-red-700 text-white"
                               : "bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
                           }`}
                         >
@@ -378,12 +378,12 @@ export default function TicketDetailPage() {
                           <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
                             {isAdmin ? "Monologg Support Team" : ticketData.user?.name || "User"}
                           </span>
-                          <span className="text-[11px] text-zinc-500 ml-1.5 font-mono">
+                          <span className="text-[11px] text-zinc-600 dark:text-zinc-400 ml-1.5 font-mono">
                             {isAdmin ? "(Public Reply)" : "(User Reply)"}
                           </span>
                         </div>
                       </div>
-                      <span className="text-[11px] text-zinc-400">
+                      <span className="text-[11px] text-zinc-600 dark:text-zinc-400 tabular-nums">
                         {new Date(msg.createdAt).toLocaleString()}
                       </span>
                     </div>
@@ -478,8 +478,8 @@ export default function TicketDetailPage() {
 
             {/* Composer Footer & Shortcuts hint */}
             <div className="flex items-center justify-between pt-1">
-              <div className="text-[11px] text-zinc-400 flex items-center gap-1.5">
-                <kbd className="px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-[10px] font-mono border border-zinc-200 dark:border-zinc-700">
+              <div className="text-[11px] text-zinc-600 dark:text-zinc-400 flex items-center gap-1.5">
+                <kbd className="px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-[10px] font-mono border border-zinc-200 dark:border-zinc-700">
                   ⌘ + Enter
                 </kbd>
                 <span>to send</span>
@@ -491,8 +491,8 @@ export default function TicketDetailPage() {
                 disabled={!composerBody.trim() || sendingMessage}
                 className={`h-9 px-4 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-50 ${
                   composerMode === "note"
-                    ? "bg-amber-600 hover:bg-amber-700 text-white"
-                    : "bg-red-600 hover:bg-red-700 text-white"
+                    ? "bg-amber-700 hover:bg-amber-800 text-white"
+                    : "bg-monologg-red hover:bg-monologg-red/90 text-white"
                 }`}
               >
                 {sendingMessage ? (
@@ -518,13 +518,13 @@ export default function TicketDetailPage() {
           {/* User Profile Card */}
           <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-xs space-y-3">
             <div className="flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-800">
-              <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+              <span className="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
                 Requester
               </span>
               {ticketData.userId && (
                 <Link
                   href={`/users/${ticketData.userId}`}
-                  className="text-xs font-semibold text-red-600 dark:text-red-400 hover:underline flex items-center gap-1"
+                  className="text-xs font-semibold text-red-700 dark:text-red-400 hover:underline flex items-center gap-1"
                 >
                   <span>User 360</span>
                   <ExternalLink className="w-3 h-3" />
@@ -534,14 +534,14 @@ export default function TicketDetailPage() {
 
             <div className="space-y-2">
               <div>
-                <span className="text-[11px] text-zinc-400 block">Name</span>
+                <span className="text-[11px] text-zinc-600 dark:text-zinc-400 block">Name</span>
                 <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 block">
                   {ticketData.user?.name || "User"}
                 </span>
               </div>
 
               <div>
-                <span className="text-[11px] text-zinc-400 block">Email</span>
+                <span className="text-[11px] text-zinc-600 dark:text-zinc-400 block">Email</span>
                 <span className="text-xs font-mono text-zinc-700 dark:text-zinc-300 block truncate">
                   {ticketData.user?.email || ticketData.reporterEmail || "—"}
                 </span>
@@ -549,7 +549,7 @@ export default function TicketDetailPage() {
 
               {ticketData.user?.phone && (
                 <div>
-                  <span className="text-[11px] text-zinc-400 block">Phone</span>
+                  <span className="text-[11px] text-zinc-600 dark:text-zinc-400 block">Phone</span>
                   <span className="text-xs font-mono text-zinc-700 dark:text-zinc-300 block">
                     {ticketData.user.phone}
                   </span>
@@ -558,14 +558,14 @@ export default function TicketDetailPage() {
 
               <div className="flex items-center justify-between pt-1">
                 <div>
-                  <span className="text-[11px] text-zinc-400 block">Account Type</span>
+                  <span className="text-[11px] text-zinc-600 dark:text-zinc-400 block">Account Type</span>
                   <span className="text-xs font-mono font-medium text-zinc-800 dark:text-zinc-200">
                     {ticketData.user?.userType || "USER"}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[11px] text-zinc-400 block text-right">Verification</span>
-                  <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                  <span className="text-[11px] text-zinc-600 dark:text-zinc-400 block text-right">Verification</span>
+                  <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
                     {ticketData.user?.verification || "UNVERIFIED"}
                   </span>
                 </div>
@@ -576,14 +576,14 @@ export default function TicketDetailPage() {
           {/* Assigned Staff Card */}
           <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-xs space-y-3">
             <div className="flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-800">
-              <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+              <span className="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
                 Assignment
               </span>
               {!isEditingAssign && (
                 <button
                   type="button"
                   onClick={() => setIsEditingAssign(true)}
-                  className="text-xs font-semibold text-red-600 dark:text-red-400 hover:underline"
+                  className="text-xs font-semibold text-red-700 dark:text-red-400 hover:underline"
                 >
                   Change
                 </button>
@@ -603,14 +603,14 @@ export default function TicketDetailPage() {
                   <button
                     type="button"
                     onClick={() => setIsEditingAssign(false)}
-                    className="px-2.5 py-1 text-xs rounded border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100"
+                    className="px-2.5 py-1 text-xs rounded border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
                     onClick={handleAssignSave}
-                    className="px-2.5 py-1 text-xs font-semibold rounded bg-red-600 text-white"
+                    className="px-2.5 py-1 text-xs font-semibold rounded bg-monologg-red text-white hover:bg-monologg-red/90"
                   >
                     Save
                   </button>
@@ -618,7 +618,7 @@ export default function TicketDetailPage() {
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <UserCheck className="w-4 h-4 text-zinc-400" />
+                <UserCheck className="w-4 h-4 text-zinc-500 dark:text-zinc-400" />
                 <span className="text-xs text-zinc-800 dark:text-zinc-200 font-medium">
                   {ticketData.assignedAdmin
                     ? ticketData.assignedAdmin.email
@@ -632,12 +632,12 @@ export default function TicketDetailPage() {
           {ticketData.linkedBooking && (
             <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-xs space-y-3">
               <div className="flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-800">
-                <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+                <span className="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
                   Linked Booking
                 </span>
                 <Link
                   href={`/bookings/${ticketData.bookingId}`}
-                  className="text-xs font-semibold text-red-600 dark:text-red-400 hover:underline flex items-center gap-1"
+                  className="text-xs font-semibold text-red-700 dark:text-red-400 hover:underline flex items-center gap-1"
                 >
                   <span>View</span>
                   <ExternalLink className="w-3 h-3" />
@@ -646,30 +646,30 @@ export default function TicketDetailPage() {
 
               <div className="space-y-2 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-zinc-400 font-mono">
+                  <span className="text-zinc-600 dark:text-zinc-400 font-mono">
                     ID: {ticketData.linkedBooking.id.slice(-8)}
                   </span>
-                  <span className="font-semibold text-purple-600 dark:text-purple-400 font-mono">
+                  <span className="font-semibold text-indigo-700 dark:text-indigo-400 font-mono">
                     {ticketData.linkedBooking.state}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-zinc-500">Performer</span>
+                  <span className="text-zinc-600 dark:text-zinc-400">Performer</span>
                   <span className="font-medium text-zinc-900 dark:text-zinc-100">
                     {ticketData.linkedBooking.talentName}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-zinc-500">Client</span>
+                  <span className="text-zinc-600 dark:text-zinc-400">Client</span>
                   <span className="font-medium text-zinc-900 dark:text-zinc-100">
                     {ticketData.linkedBooking.clientName}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between pt-1 border-t border-zinc-100 dark:border-zinc-800 font-mono">
-                  <span className="text-zinc-500">Amount</span>
+                  <span className="text-zinc-600 dark:text-zinc-400">Amount</span>
                   <span className="font-bold text-zinc-900 dark:text-zinc-100">
                     {ticketData.linkedBooking.currency}{" "}
                     {(ticketData.linkedBooking.baseAmount / 100).toLocaleString()}

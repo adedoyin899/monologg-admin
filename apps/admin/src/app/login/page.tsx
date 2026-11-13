@@ -62,7 +62,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-[#0A0A0A] px-4 py-12">
       <div className="w-full max-w-md space-y-8 rounded-2xl border border-gray-200 dark:border-[#242424] bg-white dark:bg-[#141414] p-8 shadow-xl">
         <div className="text-center">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-monologg-red/10 text-monologg-red mb-3">
+          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-monologg-red/10 text-monologg-red dark:text-[#FF5C5E] mb-3">
             <Shield className="h-6 w-6" />
           </div>
           <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
@@ -108,7 +108,7 @@ export default function LoginPage() {
         {/* Dev Mock Sign-in Selector */}
         {isMockAllowed && (
           <div className="pt-6 border-t border-gray-100 dark:border-[#202020] space-y-4">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-amber-500">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-amber-800 dark:text-amber-300">
               <Key className="h-3.5 w-3.5" />
               <span>Dev Mock Authentication</span>
             </div>
@@ -142,8 +142,8 @@ export default function LoginPage() {
                     onClick={() => setSelectedAal("aal2")}
                     className={`rounded-lg border px-3 py-1.5 font-medium transition-colors ${
                       selectedAal === "aal2"
-                        ? "border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                        : "border-gray-200 dark:border-[#2C2C2C] text-gray-500 hover:bg-gray-100 dark:hover:bg-[#1F1F1F]"
+                        ? "border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                        : "border-gray-200 dark:border-[#2C2C2C] text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#1F1F1F]"
                     }`}
                   >
                     aal2 (MFA Verified)
@@ -153,8 +153,8 @@ export default function LoginPage() {
                     onClick={() => setSelectedAal("aal1")}
                     className={`rounded-lg border px-3 py-1.5 font-medium transition-colors ${
                       selectedAal === "aal1"
-                        ? "border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                        : "border-gray-200 dark:border-[#2C2C2C] text-gray-500 hover:bg-gray-100 dark:hover:bg-[#1F1F1F]"
+                        ? "border-amber-500 bg-amber-500/10 text-amber-800 dark:text-amber-300"
+                        : "border-gray-200 dark:border-[#2C2C2C] text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#1F1F1F]"
                     }`}
                   >
                     aal1 (MFA Pending)

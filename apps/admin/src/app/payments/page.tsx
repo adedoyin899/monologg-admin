@@ -220,7 +220,7 @@ function PaymentsContent() {
             }`}
           />
           <span>PAYMENTS MODE: {summaryData?.mode || "TEST"}</span>
-          <span className="text-gray-500 font-normal">
+          <span className="text-gray-600 dark:text-gray-300 font-normal">
             ({summaryData?.mode === "LIVE" ? "Live payment gateway active" : "Test mode with mock webhooks enabled"})
           </span>
         </div>
@@ -228,7 +228,7 @@ function PaymentsContent() {
         <button
           onClick={() => loadData()}
           disabled={isLoading}
-          className="inline-flex items-center gap-1 text-[11px] font-medium text-gray-700 dark:text-gray-300 hover:underline"
+          className="inline-flex items-center gap-1 text-xs font-medium text-gray-800 dark:text-gray-200 hover:underline self-start sm:self-auto"
         >
           <RefreshCw className={`h-3 w-3 ${isLoading ? "animate-spin" : ""}`} />
           Refresh Data
@@ -240,26 +240,26 @@ function PaymentsContent() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-              Transactions & Finance
+              Transactions &amp; Finance
             </h1>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+            <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded-md bg-rose-500/10 text-monologg-red dark:text-[#FF5C5E] border border-rose-500/20">
               AD-09
             </span>
           </div>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
             Real-time financial reconciliation, escrow locks, stored revenue cuts, and payment failure metrics.
           </p>
         </div>
 
         {/* Currency Selector (No cross-currency totals!) */}
-        <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-1 bg-gray-100 dark:bg-[#1C1C1C] p-1 rounded-xl border border-gray-200 dark:border-[#2A2A2A] self-start sm:self-auto">
           {["NGN", "USD", "GBP"].map((c) => (
             <button
               key={c}
               onClick={() => handleCurrencyChange(c)}
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${
+              className={`px-3 py-1.5 min-h-[34px] text-xs font-bold rounded-lg transition-colors ${
                 selectedCurrency === c
-                  ? "bg-white dark:bg-gray-900 text-primary shadow-sm"
+                  ? "bg-white dark:bg-[#2A2A2A] text-[#D91B1D] dark:text-[#FF5C5E] shadow-sm"
                   : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
               }`}
             >
@@ -276,12 +276,12 @@ function PaymentsContent() {
             <ShieldAlert className="h-4 w-4 text-rose-600 dark:text-rose-400" />
             <span>{summaryData.mismatchesCount} Financial Inconsistencies Detected</span>
           </div>
-          <p className="text-rose-700 dark:text-rose-300">
+          <p className="text-rose-800 dark:text-rose-300">
             Automated detectors found booking/payment state mismatches. Review offending records below.
           </p>
           <div className="mt-2 space-y-1">
             {summaryData.recentMismatches.slice(0, 3).map((m, idx) => (
-              <div key={idx} className="font-mono text-[11px] text-rose-800 dark:text-rose-300 flex items-center gap-1.5">
+              <div key={idx} className="font-mono text-[11px] text-rose-900 dark:text-rose-200 flex items-center gap-1.5">
                 <span className="font-bold">[{m.severity}]</span>
                 <span>{m.description}</span>
               </div>
@@ -291,125 +291,125 @@ function PaymentsContent() {
       )}
 
       {/* KPI Cards for Selected Currency */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         {/* GMV */}
         <Card className="p-4">
-          <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider block">
+          <span className="text-[11px] font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider block">
             GMV ({selectedCurrency})
           </span>
-          <div className="text-xl font-bold text-gray-900 dark:text-white mt-1">
+          <div className="text-xl font-bold tabular-nums text-gray-900 dark:text-white mt-1">
             {formatCurrency(currSummary.gmv, selectedCurrency)}
           </div>
-          <div className="text-[10px] text-gray-500 mt-1">Escrowed & completed</div>
+          <div className="text-[11px] text-gray-600 dark:text-gray-400 mt-1">Escrowed &amp; completed</div>
         </Card>
 
         {/* Escrow Held Now */}
         <Card className="p-4">
-          <span className="text-[11px] font-semibold text-blue-600 uppercase tracking-wider block flex items-center gap-1">
+          <span className="text-[11px] font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wider block flex items-center gap-1">
             <Lock className="h-3 w-3" />
             Escrow Held Now
           </span>
-          <div className="text-xl font-bold text-blue-600 dark:text-blue-400 mt-1">
+          <div className="text-xl font-bold tabular-nums text-blue-700 dark:text-blue-400 mt-1">
             {formatCurrency(currSummary.escrowHeld, selectedCurrency)}
           </div>
-          <div className="text-[10px] text-gray-500 mt-1">Active safe storage</div>
+          <div className="text-[11px] text-gray-600 dark:text-gray-400 mt-1">Active safe storage</div>
         </Card>
 
         {/* Released */}
         <Card className="p-4">
-          <span className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider block flex items-center gap-1">
+          <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider block flex items-center gap-1">
             <CheckCircle className="h-3 w-3" />
             Released to Talent
           </span>
-          <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
+          <div className="text-xl font-bold tabular-nums text-emerald-700 dark:text-emerald-400 mt-1">
             {formatCurrency(currSummary.released, selectedCurrency)}
           </div>
-          <div className="text-[10px] text-gray-500 mt-1">Finalized payouts</div>
+          <div className="text-[11px] text-gray-600 dark:text-gray-400 mt-1">Finalized payouts</div>
         </Card>
 
         {/* Platform Revenue */}
         <Card className="p-4">
-          <span className="text-[11px] font-semibold text-purple-600 uppercase tracking-wider block flex items-center gap-1">
+          <span className="text-[11px] font-semibold text-[#D91B1D] dark:text-[#FF5C5E] uppercase tracking-wider block flex items-center gap-1">
             <TrendingUp className="h-3 w-3" />
             Platform Revenue
           </span>
-          <div className="text-xl font-bold text-purple-600 dark:text-purple-400 mt-1">
+          <div className="text-xl font-bold tabular-nums text-[#D91B1D] dark:text-[#FF5C5E] mt-1">
             {formatCurrency(currSummary.platformRevenue, selectedCurrency)}
           </div>
-          <div className="text-[10px] text-gray-500 mt-1">
+          <div className="text-[11px] text-gray-600 dark:text-gray-400 mt-1 tabular-nums">
             Take rate: <strong>{currSummary.takeRatePct}%</strong> (stored cuts)
           </div>
         </Card>
 
         {/* Refunded */}
         <Card className="p-4">
-          <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider block">
+          <span className="text-[11px] font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider block">
             Refunded
           </span>
-          <div className="text-lg font-bold text-gray-700 dark:text-gray-300 mt-1">
+          <div className="text-lg font-bold tabular-nums text-gray-800 dark:text-gray-200 mt-1">
             {formatCurrency(currSummary.refunded, selectedCurrency)}
           </div>
-          <div className="text-[10px] text-gray-500 mt-1">Returned to clients</div>
+          <div className="text-[11px] text-gray-600 dark:text-gray-400 mt-1">Returned to clients</div>
         </Card>
 
         {/* Average Booking Value */}
         <Card className="p-4">
-          <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider block">
+          <span className="text-[11px] font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider block">
             Avg Booking Value
           </span>
-          <div className="text-lg font-bold text-gray-900 dark:text-white mt-1">
+          <div className="text-lg font-bold tabular-nums text-gray-900 dark:text-white mt-1">
             {formatCurrency(currSummary.averageBookingValue, selectedCurrency)}
           </div>
-          <div className="text-[10px] text-gray-500 mt-1">Across active bookings</div>
+          <div className="text-[11px] text-gray-600 dark:text-gray-400 mt-1">Across active bookings</div>
         </Card>
 
         {/* Payment Failure Rate */}
         <Card className="p-4">
-          <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider block flex items-center gap-1">
+          <span className="text-[11px] font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider block flex items-center gap-1">
             <Percent className="h-3 w-3" />
             Failure Rate
           </span>
-          <div className={`text-lg font-bold mt-1 ${currSummary.paymentFailureRatePct > 10 ? "text-rose-600" : "text-gray-900 dark:text-white"}`}>
+          <div className={`text-lg font-bold tabular-nums mt-1 ${currSummary.paymentFailureRatePct > 10 ? "text-rose-700 dark:text-rose-400" : "text-gray-900 dark:text-white"}`}>
             {currSummary.paymentFailureRatePct}%
           </div>
-          <div className="text-[10px] text-gray-500 mt-1">
+          <div className="text-[11px] text-gray-600 dark:text-gray-400 mt-1 tabular-nums">
             {currSummary.failedPayments} / {currSummary.totalPayments} attempts
           </div>
         </Card>
 
         {/* Quick Link to Earnings */}
-        <Card className="p-4 bg-gray-50/50 dark:bg-gray-800/30 flex flex-col justify-between">
-          <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider block">
+        <Card className="p-4 bg-gray-50/70 dark:bg-[#191919] flex flex-col justify-between">
+          <span className="text-[11px] font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider block">
             Talent Ledger
           </span>
           <div className="mt-1">
             <Link
               href="/earnings"
-              className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
+              className="text-xs font-bold text-[#D91B1D] dark:text-[#FF5C5E] hover:underline inline-flex items-center gap-1"
             >
               View Talent Balances
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
-          <div className="text-[10px] text-gray-400 mt-1">Derived earnings & withdrawals</div>
+          <div className="text-[11px] text-gray-600 dark:text-gray-400 mt-1">Derived earnings &amp; withdrawals</div>
         </Card>
       </div>
 
       {/* Filter and Search Bar for Payments Table */}
-      <div className="bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm space-y-3">
+      <div className="bg-white dark:bg-[#141414] p-4 rounded-xl border border-gray-200 dark:border-[#242424] shadow-sm space-y-3">
         <div className="flex flex-col sm:flex-row gap-3">
           <form onSubmit={handleSearchSubmit} className="flex-1 relative">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400" />
             <input
               type="text"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Search payments by ID, reference, payer, talent..."
-              className="w-full pl-9 pr-20 py-2 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white"
+              className="w-full min-h-[40px] pl-9 pr-20 py-2 text-sm bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2C2C2C] rounded-lg text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
             />
             <button
               type="submit"
-              className="absolute right-1.5 top-1.5 px-3 py-1 text-xs font-medium text-white bg-primary rounded-md"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-3 py-1.5 text-xs font-semibold text-white bg-monologg-red rounded-md hover:bg-monologg-red/90"
             >
               Search
             </button>
@@ -419,7 +419,7 @@ function PaymentsContent() {
           <select
             value={status}
             onChange={(e) => updateFilters({ status: e.target.value })}
-            className="text-xs py-2 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white"
+            className="min-h-[40px] text-xs py-2 px-3 bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2C2C2C] rounded-lg text-gray-900 dark:text-white"
           >
             <option value="ALL">All Statuses</option>
             <option value="ESCROW_HELD">Escrow Held</option>
@@ -433,7 +433,7 @@ function PaymentsContent() {
           <select
             value={provider}
             onChange={(e) => updateFilters({ provider: e.target.value })}
-            className="text-xs py-2 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white"
+            className="min-h-[40px] text-xs py-2 px-3 bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2C2C2C] rounded-lg text-gray-900 dark:text-white"
           >
             <option value="ALL">All Providers</option>
             <option value="paystack">Paystack</option>
@@ -443,8 +443,8 @@ function PaymentsContent() {
         </div>
       </div>
 
-      {/* Payments Table */}
-      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+      {/* Payments List / Table */}
+      <div className="bg-white dark:bg-[#141414] rounded-xl border border-gray-200 dark:border-[#242424] shadow-sm overflow-hidden">
         {isLoading ? (
           <div className="p-6 space-y-4">
             <Skeleton className="h-6 w-1/4" />
@@ -453,10 +453,10 @@ function PaymentsContent() {
             <Skeleton className="h-10 w-full" />
           </div>
         ) : error ? (
-          <div className="p-8 text-center text-rose-500">
-            <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-rose-500" />
+          <div className="p-8 text-center text-rose-700 dark:text-rose-400">
+            <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-rose-700 dark:text-rose-400" />
             <p className="font-semibold">Error Loading Payments</p>
-            <p className="text-xs text-gray-500 mt-1">{error}</p>
+            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{error}</p>
           </div>
         ) : payments.length === 0 ? (
           <EmptyState
@@ -465,100 +465,150 @@ function PaymentsContent() {
             icon={<CreditCard className="h-8 w-8 text-gray-400" />}
           />
         ) : (
-          <div className="overflow-x-auto min-w-[360px]">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Payment ID</TableHead>
-                  <TableHead>Booking</TableHead>
-                  <TableHead>Payer</TableHead>
-                  <TableHead>Provider & Ref</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Platform Revenue</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {payments.map((p) => (
-                  <TableRow key={p.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
-                    {/* Payment ID */}
-                    <TableCell className="font-mono text-xs font-semibold text-primary">
-                      <Link href={`/payments/${p.id}`} className="hover:underline flex items-center gap-1">
-                        {p.id}
-                        <ExternalLink className="h-3 w-3 opacity-60" />
-                      </Link>
-                    </TableCell>
-
-                    {/* Booking ID */}
-                    <TableCell className="font-mono text-xs">
-                      <Link href={`/bookings/${p.bookingId}`} className="text-gray-700 dark:text-gray-300 hover:underline">
-                        {p.bookingId}
-                      </Link>
-                      <div className="text-[10px] text-gray-400">{p.bookingState}</div>
-                    </TableCell>
-
-                    {/* Payer */}
-                    <TableCell>
-                      <div className="text-xs font-medium text-gray-900 dark:text-white">{p.payer.name}</div>
-                      <div className="text-[11px] font-mono text-gray-500">{p.payer.email}</div>
-                    </TableCell>
-
-                    {/* Provider & Ref */}
-                    <TableCell>
-                      <div className="text-xs uppercase font-semibold text-gray-800 dark:text-gray-200">{p.provider}</div>
-                      <div className="text-[10px] font-mono text-gray-400 truncate max-w-[120px]">
-                        {p.providerRef || "—"}
-                      </div>
-                    </TableCell>
-
-                    {/* Status */}
-                    <TableCell>{getPaymentStatusBadge(p.status)}</TableCell>
-
-                    {/* Amount */}
-                    <TableCell>
-                      <div className="text-xs font-bold text-gray-900 dark:text-white">
-                        {formatCurrency(p.amount, p.currency)}
-                      </div>
-                    </TableCell>
-
-                    {/* Platform Revenue */}
-                    <TableCell>
-                      <div className="text-xs font-semibold text-purple-600 dark:text-purple-400">
-                        {formatCurrency(p.platformFee, p.currency)}
-                      </div>
-                      <div className="text-[10px] text-gray-400">
-                        Talent: {formatCurrency(p.talentFee, p.currency)}
-                      </div>
-                    </TableCell>
-
-                    {/* Date */}
-                    <TableCell className="text-xs text-gray-500 font-mono">
-                      {new Date(p.createdAt).toLocaleDateString()}
-                    </TableCell>
-
-                    {/* Action */}
-                    <TableCell className="text-right">
+          <>
+            {/* Mobile & Tablet Payment Cards */}
+            <div className="lg:hidden divide-y divide-gray-200 dark:divide-[#242424]">
+              {payments.map((p) => (
+                <div key={p.id} className="p-4 space-y-2.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
                       <Link
                         href={`/payments/${p.id}`}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-primary hover:bg-primary/10 rounded-md transition-colors"
+                        className="font-mono text-xs font-semibold text-[#D91B1D] dark:text-[#FF5C5E] hover:underline inline-flex items-center gap-1"
                       >
-                        Detail
-                        <ArrowRight className="h-3 w-3" />
+                        {p.id}
+                        <ExternalLink className="h-3 w-3 shrink-0" />
                       </Link>
-                    </TableCell>
+                      <div className="text-sm font-semibold text-gray-900 dark:text-white truncate mt-0.5">
+                        {p.payer.name}
+                      </div>
+                      <div className="text-xs font-mono text-gray-600 dark:text-gray-400 truncate">
+                        {p.payer.email}
+                      </div>
+                    </div>
+                    <div className="shrink-0">{getPaymentStatusBadge(p.status)}</div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs pt-1 tabular-nums">
+                    <div>
+                      <span className="block text-[11px] text-gray-600 dark:text-gray-400">Amount</span>
+                      <span className="font-bold text-gray-900 dark:text-white">
+                        {formatCurrency(p.amount, p.currency)}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="block text-[11px] text-gray-600 dark:text-gray-400">Platform Cut</span>
+                      <span className="font-semibold text-[#D91B1D] dark:text-[#FF5C5E]">
+                        {formatCurrency(p.platformFee, p.currency)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-100 dark:border-[#202020] text-xs">
+                    <span className="font-mono text-gray-600 dark:text-gray-400 uppercase">
+                      {p.provider} · {new Date(p.createdAt).toLocaleDateString()}
+                    </span>
+                    <Link
+                      href={`/payments/${p.id}`}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-[#D91B1D] dark:text-[#FF5C5E] bg-rose-500/10 rounded-md"
+                    >
+                      Detail <ArrowRight className="h-3 w-3" />
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Payments Table */}
+            <div className="hidden lg:block overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Payment / Booking</TableHead>
+                    <TableHead>Payer</TableHead>
+                    <TableHead>Provider &amp; Ref</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Platform Cut</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {payments.map((p) => (
+                    <TableRow key={p.id} className="hover:bg-gray-50/50 dark:hover:bg-[#1A1A1A] transition-colors">
+                      {/* Payment & Booking ID */}
+                      <TableCell className="font-mono text-xs">
+                        <Link href={`/payments/${p.id}`} className="font-semibold text-[#CF1719] dark:text-[#FF5C5E] hover:underline flex items-center gap-1">
+                          {p.id}
+                          <ExternalLink className="h-3 w-3 opacity-70" />
+                        </Link>
+                        <Link href={`/bookings/${p.bookingId}`} className="text-[11px] text-gray-600 dark:text-gray-400 hover:underline block">
+                          {p.bookingId} ({p.bookingState})
+                        </Link>
+                      </TableCell>
+
+                      {/* Payer */}
+                      <TableCell className="max-w-[150px]">
+                        <div className="text-xs font-medium text-gray-900 dark:text-white truncate">{p.payer.name}</div>
+                        <div className="text-[11px] font-mono text-gray-600 dark:text-gray-400 truncate">{p.payer.email}</div>
+                      </TableCell>
+
+                      {/* Provider & Ref */}
+                      <TableCell>
+                        <div className="text-xs uppercase font-semibold text-gray-800 dark:text-gray-200">{p.provider}</div>
+                        <div className="text-[11px] font-mono text-gray-600 dark:text-gray-400 truncate max-w-[120px]">
+                          {p.providerRef || "—"}
+                        </div>
+                      </TableCell>
+
+                      {/* Status */}
+                      <TableCell>{getPaymentStatusBadge(p.status)}</TableCell>
+
+                      {/* Amount */}
+                      <TableCell>
+                        <div className="text-xs font-bold tabular-nums text-gray-900 dark:text-white">
+                          {formatCurrency(p.amount, p.currency)}
+                        </div>
+                      </TableCell>
+
+                      {/* Platform Revenue */}
+                      <TableCell className="tabular-nums">
+                        <div className="text-xs font-semibold text-[#D91B1D] dark:text-[#FF5C5E]">
+                          {formatCurrency(p.platformFee, p.currency)}
+                        </div>
+                        <div className="text-[11px] text-gray-600 dark:text-gray-400">
+                          Talent: {formatCurrency(p.talentFee, p.currency)}
+                        </div>
+                      </TableCell>
+
+                      {/* Date */}
+                      <TableCell className="text-xs text-gray-600 dark:text-gray-400 font-mono tabular-nums">
+                        {new Date(p.createdAt).toLocaleDateString()}
+                      </TableCell>
+
+                      {/* Action */}
+                      <TableCell className="text-right">
+                        <Link
+                          href={`/payments/${p.id}`}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-[#D91B1D] dark:text-[#FF5C5E] hover:bg-rose-500/10 rounded-md transition-colors"
+                        >
+                          Detail
+                          <ArrowRight className="h-3 w-3" />
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </>
         )}
 
         {/* Cursor Pagination Bar */}
-        <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
-          <div className="text-xs text-gray-500 dark:text-gray-400">
-            Showing <span className="font-semibold">{payments.length}</span> payments
+        <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-t border-gray-200 dark:border-[#242424] bg-gray-50 dark:bg-[#191919]">
+          <div className="text-xs text-gray-600 dark:text-gray-400 tabular-nums">
+            Showing <span className="font-semibold text-gray-900 dark:text-white">{payments.length}</span> payments
             {totalCount > 0 && <span> (approx. {totalCount.toLocaleString()} total)</span>}
           </div>
 
@@ -566,7 +616,7 @@ function PaymentsContent() {
             {cursor && (
               <button
                 onClick={() => updateFilters({ cursor: null })}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md"
+                className="inline-flex items-center gap-1 px-3 py-1.5 min-h-[34px] text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-md dark:bg-[#1F1F1F] dark:text-gray-200 dark:border-[#303030]"
               >
                 <ChevronLeft className="h-3.5 w-3.5" />
                 First Page
@@ -576,7 +626,7 @@ function PaymentsContent() {
             {hasMore && nextCursor && (
               <button
                 onClick={() => updateFilters({ cursor: nextCursor })}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-primary rounded-md shadow-sm"
+                className="inline-flex items-center gap-1 px-3 py-1.5 min-h-[34px] text-xs font-semibold text-white bg-monologg-red rounded-md shadow-sm hover:bg-monologg-red/90"
               >
                 Next Page
                 <ChevronRight className="h-3.5 w-3.5" />

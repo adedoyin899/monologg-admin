@@ -239,14 +239,14 @@ export default function UserDetailPage() {
       <div className="space-y-6">
         <Link
           href="/users"
-          className="inline-flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white"
+          className="inline-flex items-center gap-1 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
         >
           <ArrowLeft className="h-4 w-4" /> Back to Users Directory
         </Link>
         <Card className="p-8 text-center">
-          <AlertTriangle className="h-8 w-8 text-red-500 mx-auto mb-3" />
+          <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-400 mx-auto mb-3" />
           <h2 className="text-lg font-bold text-gray-900 dark:text-white">User not found</h2>
-          <p className="text-sm text-gray-500 mt-1">{error || "Unable to retrieve user record."}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{error || "Unable to retrieve user record."}</p>
         </Card>
       </div>
     );
@@ -279,7 +279,7 @@ export default function UserDetailPage() {
       <div className="flex items-center justify-between">
         <Link
           href="/users"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
         >
           <ArrowLeft className="h-4 w-4" /> Back to Users Directory
         </Link>
@@ -291,7 +291,7 @@ export default function UserDetailPage() {
       {/* Success Notification */}
       {actionSuccessMessage && (
         <div className="rounded-xl border border-green-200 dark:border-green-900/50 bg-green-50 dark:bg-green-950/20 p-4 text-sm text-green-800 dark:text-green-300 flex items-center gap-3">
-          <CheckCircle2 className="h-5 w-5 shrink-0 text-green-600" />
+          <CheckCircle2 className="h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
           <span>{actionSuccessMessage}</span>
         </div>
       )}
@@ -300,7 +300,7 @@ export default function UserDetailPage() {
       <Card className="p-6">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="flex items-start gap-4">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-monologg-red/10 text-monologg-red font-bold text-xl">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-monologg-red/10 text-monologg-red dark:text-[#FF5C5E] font-bold text-xl">
               {displayName.slice(0, 2).toUpperCase()}
             </div>
             <div>
@@ -411,31 +411,31 @@ export default function UserDetailPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Account Facts */}
               <Card className="p-5 space-y-3">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400">
                   Account Facts
                 </h3>
                 <div className="space-y-2 text-xs">
                   <div className="flex justify-between py-1 border-b border-gray-100 dark:border-[#202020]">
-                    <span className="text-gray-500">Auth Provider</span>
+                    <span className="text-gray-600 dark:text-gray-400">Auth Provider</span>
                     <span className="font-semibold text-gray-800 dark:text-gray-200">
                       {overview.authProvider}
                     </span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-gray-100 dark:border-[#202020]">
-                    <span className="text-gray-500">Account Origin</span>
+                    <span className="text-gray-600 dark:text-gray-400">Account Origin</span>
                     <span className="font-semibold text-gray-800 dark:text-gray-200">
                       {overview.accountOrigin}
                     </span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-gray-100 dark:border-[#202020]">
-                    <span className="text-gray-500">Signed Up</span>
-                    <span className="font-semibold text-gray-800 dark:text-gray-200">
+                    <span className="text-gray-600 dark:text-gray-400">Signed Up</span>
+                    <span className="font-semibold text-gray-800 dark:text-gray-200 tabular-nums">
                       {new Date(overview.createdAt).toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between py-1">
-                    <span className="text-gray-500">Last Active</span>
-                    <span className="font-semibold text-gray-800 dark:text-gray-200">
+                    <span className="text-gray-600 dark:text-gray-400">Last Active</span>
+                    <span className="font-semibold text-gray-800 dark:text-gray-200 tabular-nums">
                       {overview.lastActiveAt
                         ? new Date(overview.lastActiveAt).toLocaleString()
                         : "Never"}
@@ -446,49 +446,49 @@ export default function UserDetailPage() {
 
               {/* Acquisition Source */}
               <Card className="p-5 space-y-3">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">
-                  Acquisition & Origin
+                <h3 className="text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400">
+                  Acquisition &amp; Origin
                 </h3>
                 {overview.acquisition ? (
                   <div className="space-y-2 text-xs">
                     <div className="flex justify-between py-1 border-b border-gray-100 dark:border-[#202020]">
-                      <span className="text-gray-500">Country</span>
+                      <span className="text-gray-600 dark:text-gray-400">Country</span>
                       <span className="font-semibold text-gray-800 dark:text-gray-200">
                         {overview.acquisition.signupCountry || "Unknown"}
                       </span>
                     </div>
                     <div className="flex justify-between py-1 border-b border-gray-100 dark:border-[#202020]">
-                      <span className="text-gray-500">Device Class</span>
+                      <span className="text-gray-600 dark:text-gray-400">Device Class</span>
                       <span className="font-semibold text-gray-800 dark:text-gray-200 capitalize">
                         {overview.acquisition.signupDeviceClass || "Unknown"}
                       </span>
                     </div>
                     <div className="flex justify-between py-1 border-b border-gray-100 dark:border-[#202020]">
-                      <span className="text-gray-500">UTM Source</span>
+                      <span className="text-gray-600 dark:text-gray-400">UTM Source</span>
                       <span className="font-semibold text-gray-800 dark:text-gray-200">
                         {overview.acquisition.utmSource || "-"}
                       </span>
                     </div>
                     <div className="flex justify-between py-1">
-                      <span className="text-gray-500">Referral Code</span>
+                      <span className="text-gray-600 dark:text-gray-400">Referral Code</span>
                       <span className="font-semibold text-gray-800 dark:text-gray-200 font-mono">
                         {overview.acquisition.referralCodeUsed || "-"}
                       </span>
                     </div>
                   </div>
                 ) : (
-                  <p className="text-xs text-gray-400">No acquisition record captured.</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">No acquisition record captured.</p>
                 )}
               </Card>
 
               {/* Tags & Moderation */}
               <Card className="p-5 space-y-3">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">
-                  Tags & Moderation
+                <h3 className="text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400">
+                  Tags &amp; Moderation
                 </h3>
                 <div className="space-y-2 text-xs">
                   <div>
-                    <span className="text-gray-500 block mb-1.5">Cohort Tags:</span>
+                    <span className="text-gray-600 dark:text-gray-400 block mb-1.5">Cohort Tags:</span>
                     <div className="flex flex-wrap gap-1">
                       {overview.tags.length > 0 ? (
                         overview.tags.map((t) => (
@@ -500,18 +500,18 @@ export default function UserDetailPage() {
                           </span>
                         ))
                       ) : (
-                        <span className="text-gray-400">No tags assigned.</span>
+                        <span className="text-gray-600 dark:text-gray-400">No tags assigned.</span>
                       )}
                     </div>
                   </div>
 
                   {overview.suspended && (
                     <div className="pt-2 border-t border-gray-100 dark:border-[#202020]">
-                      <span className="text-red-500 font-semibold block">Suspension Reason:</span>
-                      <p className="mt-1 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/20 p-2 rounded-lg">
+                      <span className="text-red-700 dark:text-red-400 font-semibold block">Suspension Reason:</span>
+                      <p className="mt-1 text-xs text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/20 p-2 rounded-lg">
                         {overview.suspendedReason || "No reason specified."}
                       </p>
-                      <span className="text-[10px] text-gray-400 mt-1 block">
+                      <span className="text-[11px] text-gray-600 dark:text-gray-400 mt-1 block">
                         Suspended at: {new Date(overview.suspendedAt!).toLocaleString()}
                       </span>
                     </div>
@@ -535,7 +535,7 @@ export default function UserDetailPage() {
               </div>
 
               {overview.notes.length === 0 ? (
-                <p className="text-xs text-gray-400 py-3">No staff notes added yet for this account.</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400 py-3">No staff notes added yet for this account.</p>
               ) : (
                 <div className="space-y-3">
                   {overview.notes.map((n) => (
@@ -543,7 +543,7 @@ export default function UserDetailPage() {
                       key={n.id}
                       className="rounded-xl border border-gray-100 dark:border-[#222222] bg-gray-50/50 dark:bg-[#181818] p-3 text-xs space-y-1"
                     >
-                      <div className="flex items-center justify-between text-gray-400">
+                      <div className="flex items-center justify-between text-gray-600 dark:text-gray-400">
                         <span className="font-mono">Admin ID: {n.adminId}</span>
                         <span>{new Date(n.createdAt).toLocaleString()}</span>
                       </div>
@@ -568,25 +568,25 @@ export default function UserDetailPage() {
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                     <div>
-                      <span className="text-gray-400 block">Niche:</span>
+                      <span className="text-gray-600 dark:text-gray-400 block">Niche:</span>
                       <span className="font-semibold text-gray-800 dark:text-gray-200">
                         {profile.niche}
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-400 block">Location:</span>
+                      <span className="text-gray-600 dark:text-gray-400 block">Location:</span>
                       <span className="font-semibold text-gray-800 dark:text-gray-200">
                         {profile.location || "-"}
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-400 block">Celebrity Badge:</span>
+                      <span className="text-gray-600 dark:text-gray-400 block">Celebrity Badge:</span>
                       <span className="font-semibold text-gray-800 dark:text-gray-200">
                         {profile.badges?.celebrityBadge ? "Yes (Referral-earned)" : "No"}
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-400 block">Media Kit Mode:</span>
+                      <span className="text-gray-600 dark:text-gray-400 block">Media Kit Mode:</span>
                       <span className="font-semibold text-gray-800 dark:text-gray-200">
                         {profile.mediaKitMode}
                       </span>
@@ -595,14 +595,14 @@ export default function UserDetailPage() {
 
                   {profile.bio && (
                     <div className="text-xs pt-2 border-t border-gray-100 dark:border-[#202020]">
-                      <span className="text-gray-400 block mb-1">Bio:</span>
+                      <span className="text-gray-600 dark:text-gray-400 block mb-1">Bio:</span>
                       <p className="text-gray-700 dark:text-gray-300 italic">{profile.bio}</p>
                     </div>
                   )}
 
                   {profile.styleTags && profile.styleTags.length > 0 && (
                     <div className="text-xs pt-2 border-t border-gray-100 dark:border-[#202020]">
-                      <span className="text-gray-400 block mb-1.5">Style & Vibe Tags:</span>
+                      <span className="text-gray-600 dark:text-gray-400 block mb-1.5">Style & Vibe Tags:</span>
                       <div className="flex flex-wrap gap-1.5">
                         {profile.styleTags.map((tag) => (
                           <span
@@ -643,7 +643,7 @@ export default function UserDetailPage() {
                           </div>
                           <button
                             onClick={() => handlePlayMediaPreview(m.id)}
-                            className="flex items-center gap-1.5 text-monologg-red font-semibold hover:underline text-xs"
+                            className="flex items-center gap-1.5 text-monologg-red dark:text-[#FF5C5E] font-semibold hover:underline text-xs"
                           >
                             <Play className="h-3 w-3" /> Preview Media (5-min Signed URL)
                           </button>
@@ -651,7 +651,7 @@ export default function UserDetailPage() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-xs text-gray-400">No media assets uploaded.</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">No media assets uploaded.</p>
                   )}
                 </Card>
 
@@ -662,7 +662,7 @@ export default function UserDetailPage() {
                       <h3 className="text-sm font-bold text-gray-900 dark:text-white">
                         Physical Attributes & Privacy
                       </h3>
-                      <p className="text-xs text-gray-400 mt-0.5">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                         Completeness: {profile.attributes?.completeness.filled} /{" "}
                         {profile.attributes?.completeness.total} (
                         {profile.attributes?.completeness.percentage}%)
@@ -671,7 +671,7 @@ export default function UserDetailPage() {
                     {!revealedPii && (
                       <button
                         onClick={() => setIsRevealDialogOpen(true)}
-                        className="rounded-lg bg-monologg-red/10 text-monologg-red px-3 py-1.5 text-xs font-semibold hover:bg-monologg-red/20 transition-colors"
+                        className="rounded-lg bg-monologg-red/10 text-monologg-red dark:text-[#FF5C5E] px-3 py-1.5 text-xs font-semibold hover:bg-monologg-red/20 transition-colors"
                       >
                         Reveal Searchable Attributes
                       </button>
@@ -796,7 +796,7 @@ export default function UserDetailPage() {
                 <TableBody>
                   {bookings.map((b) => (
                     <TableRow key={b.id} onClick={() => router.push(`/bookings/${b.id}`)}>
-                      <TableCell className="font-mono text-xs text-monologg-red hover:underline">
+                      <TableCell className="font-mono text-xs text-monologg-red dark:text-[#FF5C5E] hover:underline">
                         {b.id}
                       </TableCell>
                       <TableCell>{b.otherPartyName}</TableCell>

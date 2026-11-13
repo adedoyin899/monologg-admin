@@ -168,7 +168,7 @@ function UsersListContent() {
               AD-04
             </span>
           </div>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
             Search, moderate, inspect activity, and view holistic user profiles.
           </p>
         </div>
@@ -176,7 +176,7 @@ function UsersListContent() {
           <button
             onClick={() => loadUsers()}
             disabled={isLoading}
-            className="flex items-center gap-2 rounded-xl border border-gray-200 dark:border-[#2C2C2C] bg-white dark:bg-[#181818] px-3.5 py-2 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#222222] transition-colors"
+            className="flex items-center gap-2 rounded-xl border border-gray-200 dark:border-[#2C2C2C] bg-white dark:bg-[#181818] px-3.5 py-2 min-h-[40px] text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#222222] transition-colors"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? "animate-spin" : ""}`} />
             Refresh
@@ -189,7 +189,7 @@ function UsersListContent() {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
           {/* Search */}
           <div className="md:col-span-5 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400" />
             <input
               type="text"
               placeholder="Search by masked name, email, referral code or ID..."
@@ -198,7 +198,7 @@ function UsersListContent() {
               onKeyDown={(e) => {
                 if (e.key === "Enter") updateFilters({ search: searchTerm });
               }}
-              className="w-full rounded-xl border border-gray-200 dark:border-[#282828] bg-gray-50/50 dark:bg-[#161616] pl-9 pr-8 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:border-monologg-red focus:outline-none focus:ring-1 focus:ring-monologg-red"
+              className="w-full min-h-[40px] rounded-xl border border-gray-200 dark:border-[#282828] bg-gray-50/50 dark:bg-[#161616] pl-9 pr-8 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:border-monologg-red focus:outline-none focus:ring-1 focus:ring-monologg-red"
             />
             {searchTerm && (
               <button
@@ -206,7 +206,8 @@ function UsersListContent() {
                   setSearchTerm("");
                   updateFilters({ search: null });
                 }}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                aria-label="Clear search"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-1"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -218,7 +219,7 @@ function UsersListContent() {
             <select
               value={userTypeParam}
               onChange={(e) => updateFilters({ userType: e.target.value })}
-              className="w-full rounded-xl border border-gray-200 dark:border-[#282828] bg-gray-50/50 dark:bg-[#161616] px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-monologg-red focus:outline-none focus:ring-1 focus:ring-monologg-red"
+              className="w-full min-h-[40px] rounded-xl border border-gray-200 dark:border-[#282828] bg-gray-50/50 dark:bg-[#161616] px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-monologg-red focus:outline-none focus:ring-1 focus:ring-monologg-red"
             >
               <option value="ALL">All Types</option>
               <option value="TALENT">Talent (Creators)</option>
@@ -231,7 +232,7 @@ function UsersListContent() {
             <select
               value={verificationParam}
               onChange={(e) => updateFilters({ verification: e.target.value })}
-              className="w-full rounded-xl border border-gray-200 dark:border-[#282828] bg-gray-50/50 dark:bg-[#161616] px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-monologg-red focus:outline-none focus:ring-1 focus:ring-monologg-red"
+              className="w-full min-h-[40px] rounded-xl border border-gray-200 dark:border-[#282828] bg-gray-50/50 dark:bg-[#161616] px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-monologg-red focus:outline-none focus:ring-1 focus:ring-monologg-red"
             >
               <option value="ALL">All Verification</option>
               <option value="VERIFIED">Verified</option>
@@ -246,7 +247,7 @@ function UsersListContent() {
             <select
               value={suspendedParam}
               onChange={(e) => updateFilters({ suspended: e.target.value })}
-              className="w-full rounded-xl border border-gray-200 dark:border-[#282828] bg-gray-50/50 dark:bg-[#161616] px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-monologg-red focus:outline-none focus:ring-1 focus:ring-monologg-red"
+              className="w-full min-h-[40px] rounded-xl border border-gray-200 dark:border-[#282828] bg-gray-50/50 dark:bg-[#161616] px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-monologg-red focus:outline-none focus:ring-1 focus:ring-monologg-red"
             >
               <option value="ALL">All Status</option>
               <option value="false">Active Only</option>
@@ -258,7 +259,7 @@ function UsersListContent() {
           <div className="md:col-span-1">
             <button
               onClick={() => updateFilters({ search: searchTerm })}
-              className="w-full rounded-xl bg-monologg-red px-3 py-2 text-sm font-semibold text-white hover:bg-monologg-red/90 transition-colors shadow-sm text-center"
+              className="w-full min-h-[40px] rounded-xl bg-monologg-red px-3 py-2 text-sm font-semibold text-white hover:bg-monologg-red/90 transition-colors shadow-sm text-center"
             >
               Apply
             </button>
@@ -267,7 +268,7 @@ function UsersListContent() {
 
         {/* Secondary filters: Country & Cohort Tag */}
         <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-gray-100 dark:border-[#222222] text-xs">
-          <span className="font-medium text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+          <span className="font-medium text-gray-600 dark:text-gray-400 flex items-center gap-1.5">
             <Filter className="h-3.5 w-3.5" /> Filters:
           </span>
 
@@ -277,7 +278,7 @@ function UsersListContent() {
             placeholder="Country (e.g. NG, US)"
             value={countryParam}
             onChange={(e) => updateFilters({ country: e.target.value.toUpperCase() })}
-            className="rounded-lg border border-gray-200 dark:border-[#282828] bg-white dark:bg-[#161616] px-2.5 py-1 text-xs text-gray-800 dark:text-gray-200 uppercase w-32 focus:border-monologg-red focus:outline-none"
+            className="rounded-lg border border-gray-200 dark:border-[#282828] bg-white dark:bg-[#161616] px-2.5 py-1.5 min-h-[34px] text-xs text-gray-800 dark:text-gray-200 uppercase w-32 focus:border-monologg-red focus:outline-none"
           />
 
           {/* Cohort tag filter */}
@@ -286,7 +287,7 @@ function UsersListContent() {
             placeholder="Cohort tag..."
             value={cohortTagParam}
             onChange={(e) => updateFilters({ cohortTag: e.target.value })}
-            className="rounded-lg border border-gray-200 dark:border-[#282828] bg-white dark:bg-[#161616] px-2.5 py-1 text-xs text-gray-800 dark:text-gray-200 w-36 focus:border-monologg-red focus:outline-none"
+            className="rounded-lg border border-gray-200 dark:border-[#282828] bg-white dark:bg-[#161616] px-2.5 py-1.5 min-h-[34px] text-xs text-gray-800 dark:text-gray-200 w-36 focus:border-monologg-red focus:outline-none"
           />
 
           {/* Reset active filters */}
@@ -301,7 +302,7 @@ function UsersListContent() {
                 setSearchTerm("");
                 router.push(pathname);
               }}
-              className="text-xs text-monologg-red hover:underline font-medium ml-auto"
+              className="text-xs text-monologg-red dark:text-[#FF5C5E] hover:underline font-medium ml-auto"
             >
               Clear all filters
             </button>
@@ -312,7 +313,7 @@ function UsersListContent() {
       {/* Bulk actions banner */}
       {selectedUserIds.length > 0 && (
         <div className="flex items-center justify-between rounded-xl bg-monologg-red/10 border border-monologg-red/20 px-4 py-3 text-sm">
-          <div className="flex items-center gap-2 font-medium text-monologg-red">
+          <div className="flex items-center gap-2 font-medium text-monologg-red dark:text-[#FF5C5E]">
             <CheckSquare className="h-4 w-4" />
             <span>{selectedUserIds.length} user(s) selected</span>
           </div>
@@ -331,7 +332,7 @@ function UsersListContent() {
                 setBulkTagAction("REMOVE");
                 setIsBulkTagDialogOpen(true);
               }}
-              className="rounded-lg border border-monologg-red/30 bg-white dark:bg-[#181818] px-3 py-1.5 text-xs font-medium text-monologg-red hover:bg-red-50 dark:hover:bg-[#201515] transition-colors"
+              className="rounded-lg border border-monologg-red/30 bg-white dark:bg-[#181818] px-3 py-1.5 text-xs font-medium text-monologg-red dark:text-[#FF5C5E] hover:bg-red-50 dark:hover:bg-[#201515] transition-colors"
             >
               Remove Cohort Tag
             </button>
@@ -381,176 +382,275 @@ function UsersListContent() {
         />
       ) : (
         <div className="space-y-4">
-          <Table>
-            <TableHeader>
-              <tr>
-                <TableHead className="w-10">
-                  <button onClick={toggleSelectAll} className="text-gray-400 hover:text-gray-600">
-                    {selectedUserIds.length === users.length && users.length > 0 ? (
-                      <CheckSquare className="h-4 w-4 text-monologg-red" />
-                    ) : (
-                      <Square className="h-4 w-4" />
-                    )}
-                  </button>
-                </TableHead>
-                <TableHead>User</TableHead>
-                <TableHead>Masked Contact</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Verification</TableHead>
-                <TableHead>Country / Source</TableHead>
-                <TableHead>Signed Up</TableHead>
-                <TableHead>Last Active</TableHead>
-                <TableHead>Bookings</TableHead>
-                <TableHead>Tags</TableHead>
-                <TableHead>Status</TableHead>
-              </tr>
-            </TableHeader>
-            <TableBody>
-              {users.map((u) => {
-                const isSelected = selectedUserIds.includes(u.id);
-                return (
-                  <TableRow
-                    key={u.id}
-                    onClick={() => router.push(`/users/${u.id}`)}
-                    className={isSelected ? "bg-monologg-red/5 dark:bg-monologg-red/10" : ""}
-                  >
-                    <TableCell onClick={(e) => toggleSelectUser(u.id, e)}>
-                      <button className="text-gray-400 hover:text-gray-600">
+          {/* Mobile & Tablet User Cards */}
+          <div className="lg:hidden space-y-3">
+            <div className="flex items-center justify-between px-1 text-xs text-gray-600 dark:text-gray-400">
+              <button
+                type="button"
+                onClick={toggleSelectAll}
+                className="inline-flex items-center gap-2 font-medium py-1"
+              >
+                {selectedUserIds.length === users.length && users.length > 0 ? (
+                  <CheckSquare className="h-4 w-4 text-monologg-red" />
+                ) : (
+                  <Square className="h-4 w-4" />
+                )}
+                <span>Select all on page</span>
+              </button>
+              <span className="tabular-nums">{users.length} loaded</span>
+            </div>
+
+            {users.map((u) => {
+              const isSelected = selectedUserIds.includes(u.id);
+              return (
+                <div
+                  key={u.id}
+                  onClick={() => router.push(`/users/${u.id}`)}
+                  className={`rounded-xl border p-4 space-y-3 cursor-pointer transition-colors ${
+                    isSelected
+                      ? "border-monologg-red/50 bg-monologg-red/5 dark:bg-monologg-red/10"
+                      : "border-gray-200 dark:border-[#242424] bg-white dark:bg-[#141414]"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start gap-2.5 min-w-0">
+                      <button
+                        type="button"
+                        onClick={(e) => toggleSelectUser(u.id, e)}
+                        aria-label={`Select ${u.name}`}
+                        className="mt-0.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 p-0.5"
+                      >
                         {isSelected ? (
                           <CheckSquare className="h-4 w-4 text-monologg-red" />
                         ) : (
                           <Square className="h-4 w-4" />
                         )}
                       </button>
-                    </TableCell>
-
-                    {/* Name & ID */}
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="font-semibold text-gray-900 dark:text-white">
+                      <div className="min-w-0">
+                        <div className="font-semibold text-sm text-gray-900 dark:text-white truncate">
                           {u.name}
-                        </span>
-                        <span className="text-xs text-gray-400 font-mono">
-                          {u.id.slice(0, 10)}...
-                        </span>
-                      </div>
-                    </TableCell>
-
-                    {/* Masked Email */}
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="text-xs font-mono text-gray-700 dark:text-gray-300">
+                        </div>
+                        <div className="text-xs font-mono text-gray-600 dark:text-gray-400 truncate">
                           {u.maskedEmail}
-                        </span>
-                        <span className="text-[11px] text-gray-400 font-mono">{u.phone}</span>
+                        </div>
                       </div>
-                    </TableCell>
+                    </div>
 
-                    {/* Type */}
-                    <TableCell>
-                      <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                          u.type === "TALENT"
-                            ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
-                            : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-                        }`}
-                      >
-                        {u.type}
+                    {u.suspended ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-800 dark:bg-red-900/40 dark:text-red-300 shrink-0">
+                        <ShieldAlert className="h-3 w-3" /> Suspended
                       </span>
-                    </TableCell>
-
-                    {/* Verification */}
-                    <TableCell>
-                      <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                          u.verification === "VERIFIED"
-                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
-                            : u.verification === "PROCESSING"
-                              ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"
-                              : u.verification === "FAILED"
-                                ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
-                                : "bg-gray-100 text-gray-600 dark:bg-[#202020] dark:text-gray-400"
-                        }`}
-                      >
-                        {u.verification}
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-300 shrink-0">
+                        Active
                       </span>
-                    </TableCell>
+                    )}
+                  </div>
 
-                    {/* Country & Source */}
-                    <TableCell>
-                      <div className="flex flex-col text-xs">
-                        <span className="font-medium text-gray-700 dark:text-gray-300">
-                          {u.country || "Unknown"}
-                        </span>
-                        <span className="text-[11px] text-gray-400 truncate max-w-[120px]">
-                          {u.source}
-                        </span>
-                      </div>
-                    </TableCell>
+                  <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                    <span
+                      className={`inline-flex items-center rounded-full px-2 py-0.5 font-medium ${
+                        u.type === "TALENT"
+                          ? "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-200"
+                          : "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                      }`}
+                    >
+                      {u.type}
+                    </span>
+                    <span
+                      className={`inline-flex items-center rounded-full px-2 py-0.5 font-medium ${
+                        u.verification === "VERIFIED"
+                          ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                          : u.verification === "PROCESSING"
+                            ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+                            : u.verification === "FAILED"
+                              ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
+                              : "bg-gray-100 text-gray-700 dark:bg-[#202020] dark:text-gray-300"
+                      }`}
+                    >
+                      {u.verification}
+                    </span>
+                    <span className="text-gray-600 dark:text-gray-400 font-mono">
+                      {u.country || "Unknown"} · {u.bookings} bookings
+                    </span>
+                  </div>
 
-                    {/* Signed Up */}
-                    <TableCell>
-                      <span className="text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap">
-                        {new Date(u.signedUp).toLocaleDateString()}
-                      </span>
-                    </TableCell>
+                  <div className="flex items-center justify-between text-[11px] text-gray-600 dark:text-gray-400 pt-2 border-t border-gray-100 dark:border-[#202020]">
+                    <span>Joined {new Date(u.signedUp).toLocaleDateString()}</span>
+                    <span>
+                      Active {u.lastActive ? new Date(u.lastActive).toLocaleDateString() : "Never"}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
 
-                    {/* Last Active */}
-                    <TableCell>
-                      <span className="text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap">
-                        {u.lastActive ? new Date(u.lastActive).toLocaleDateString() : "Never"}
-                      </span>
-                    </TableCell>
-
-                    {/* Bookings */}
-                    <TableCell>
-                      <span className="inline-flex items-center rounded-md bg-gray-100 dark:bg-[#222222] px-2 py-0.5 text-xs font-semibold text-gray-700 dark:text-gray-300">
-                        {u.bookings}
-                      </span>
-                    </TableCell>
-
-                    {/* Tags */}
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1 max-w-[150px]">
-                        {u.tags.length > 0 ? (
-                          u.tags.slice(0, 2).map((tag) => (
-                            <span
-                              key={tag}
-                              className="rounded bg-gray-100 dark:bg-[#202020] px-1.5 py-0.5 text-[10px] font-mono text-gray-600 dark:text-gray-400"
-                            >
-                              {tag}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-xs text-gray-400">-</span>
-                        )}
-                        {u.tags.length > 2 && (
-                          <span className="text-[10px] text-gray-400">+{u.tags.length - 2}</span>
-                        )}
-                      </div>
-                    </TableCell>
-
-                    {/* Status */}
-                    <TableCell>
-                      {u.suspended ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700 dark:bg-red-900/30 dark:text-red-400">
-                          <ShieldAlert className="h-3 w-3" /> Suspended
-                        </span>
+          <div className="hidden lg:block">
+            <Table>
+              <TableHeader>
+                <tr>
+                  <TableHead className="w-9">
+                    <button onClick={toggleSelectAll} aria-label="Select all users" className="text-gray-500 dark:text-gray-400 hover:text-gray-700">
+                      {selectedUserIds.length === users.length && users.length > 0 ? (
+                        <CheckSquare className="h-4 w-4 text-monologg-red" />
                       ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                          Active
-                        </span>
+                        <Square className="h-4 w-4" />
                       )}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+                    </button>
+                  </TableHead>
+                  <TableHead>User</TableHead>
+                  <TableHead>Masked Contact</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Verification</TableHead>
+                  <TableHead>Origin</TableHead>
+                  <TableHead>Dates</TableHead>
+                  <TableHead>Bookings</TableHead>
+                  <TableHead>Tags</TableHead>
+                  <TableHead>Status</TableHead>
+                </tr>
+              </TableHeader>
+              <TableBody>
+                {users.map((u) => {
+                  const isSelected = selectedUserIds.includes(u.id);
+                  return (
+                    <TableRow
+                      key={u.id}
+                      onClick={() => router.push(`/users/${u.id}`)}
+                      className={isSelected ? "bg-monologg-red/5 dark:bg-monologg-red/10" : ""}
+                    >
+                      <TableCell onClick={(e) => toggleSelectUser(u.id, e)}>
+                        <button aria-label={`Select ${u.name}`} className="text-gray-500 dark:text-gray-400 hover:text-gray-700">
+                          {isSelected ? (
+                            <CheckSquare className="h-4 w-4 text-monologg-red" />
+                          ) : (
+                            <Square className="h-4 w-4" />
+                          )}
+                        </button>
+                      </TableCell>
+
+                      {/* Name & ID */}
+                      <TableCell className="max-w-[130px]">
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-gray-900 dark:text-white truncate">
+                            {u.name}
+                          </span>
+                          <span className="text-[11px] text-gray-600 dark:text-gray-400 font-mono truncate">
+                            {u.id.slice(0, 12)}
+                          </span>
+                        </div>
+                      </TableCell>
+
+                      {/* Masked Email */}
+                      <TableCell className="max-w-[135px]">
+                        <div className="flex flex-col">
+                          <span className="text-xs font-mono text-gray-700 dark:text-gray-300 truncate">
+                            {u.maskedEmail}
+                          </span>
+                          <span className="text-[11px] text-gray-600 dark:text-gray-400 font-mono truncate">{u.phone}</span>
+                        </div>
+                      </TableCell>
+
+                      {/* Type */}
+                      <TableCell>
+                        <span
+                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                            u.type === "TALENT"
+                              ? "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-200"
+                              : "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                          }`}
+                        >
+                          {u.type}
+                        </span>
+                      </TableCell>
+
+                      {/* Verification */}
+                      <TableCell>
+                        <span
+                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                            u.verification === "VERIFIED"
+                              ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                              : u.verification === "PROCESSING"
+                                ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+                                : u.verification === "FAILED"
+                                  ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
+                                  : "bg-gray-100 text-gray-700 dark:bg-[#202020] dark:text-gray-300"
+                          }`}
+                        >
+                          {u.verification}
+                        </span>
+                      </TableCell>
+
+                      {/* Country & Source */}
+                      <TableCell>
+                        <div className="flex flex-col text-xs max-w-[95px]">
+                          <span className="font-medium text-gray-700 dark:text-gray-300 truncate">
+                            {u.country || "Unknown"}
+                          </span>
+                          <span className="text-[11px] text-gray-600 dark:text-gray-400 truncate">
+                            {u.source}
+                          </span>
+                        </div>
+                      </TableCell>
+
+                      {/* Signed Up / Last Active */}
+                      <TableCell>
+                        <div className="flex flex-col text-[11px] text-gray-600 dark:text-gray-400 tabular-nums">
+                          <span>Joined {new Date(u.signedUp).toLocaleDateString()}</span>
+                          <span>Active {u.lastActive ? new Date(u.lastActive).toLocaleDateString() : "Never"}</span>
+                        </div>
+                      </TableCell>
+
+                      {/* Bookings */}
+                      <TableCell>
+                        <span className="inline-flex items-center rounded-md bg-gray-100 dark:bg-[#222222] px-2 py-0.5 text-xs font-semibold tabular-nums text-gray-800 dark:text-gray-200">
+                          {u.bookings}
+                        </span>
+                      </TableCell>
+
+                      {/* Tags */}
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1 max-w-[150px]">
+                          {u.tags.length > 0 ? (
+                            u.tags.slice(0, 2).map((tag) => (
+                              <span
+                                key={tag}
+                                className="rounded bg-gray-100 dark:bg-[#202020] px-1.5 py-0.5 text-[10px] font-mono text-gray-700 dark:text-gray-300"
+                              >
+                                {tag}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-xs text-gray-600 dark:text-gray-400">-</span>
+                          )}
+                          {u.tags.length > 2 && (
+                            <span className="text-[10px] text-gray-600 dark:text-gray-400">+{u.tags.length - 2}</span>
+                          )}
+                        </div>
+                      </TableCell>
+
+                      {/* Status */}
+                      <TableCell>
+                        {u.suspended ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                            <ShieldAlert className="h-3 w-3" /> Suspended
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                            Active
+                          </span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
 
           {/* Pagination Controls */}
           <div className="flex items-center justify-between pt-2">
-            <span className="text-xs text-gray-500 dark:text-gray-400">
+            <span className="text-xs text-gray-600 dark:text-gray-400 tabular-nums">
               Showing {users.length} users {totalCount !== null ? `of ~${totalCount}` : ""}
             </span>
             <div className="flex items-center gap-2">

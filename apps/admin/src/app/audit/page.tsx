@@ -161,7 +161,7 @@ export default function AuditLogPage() {
             <h1 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
               Audit Trail Log
             </h1>
-            <span className="font-mono text-xs font-semibold uppercase text-monologg-red">
+            <span className="font-mono text-xs font-semibold uppercase text-monologg-red dark:text-[#FF5C5E]">
               AD-29
             </span>
           </div>
@@ -269,86 +269,126 @@ export default function AuditLogPage() {
         </div>
       </Card>
 
-      {/* Table */}
-      <Card>
-        <div className="p-4 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center">
-          <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+      {/* Table & Mobile Cards */}
+      <Card className="overflow-hidden">
+        <div className="p-4 border-b border-neutral-200 dark:border-[#242424] flex flex-wrap gap-2 justify-between items-center">
+          <span className="text-xs font-semibold text-neutral-600 dark:text-neutral-400 uppercase tracking-wider tabular-nums">
             Displaying {logs.length} of {totalCount} Recorded Events
           </span>
-          <span className="text-xs text-neutral-400">
+          <span className="text-xs text-neutral-600 dark:text-neutral-400">
             Retention: Permanent &middot; Direct Postgres Trigger Protected
           </span>
         </div>
 
         {loading ? (
-          <div className="flex h-48 items-center justify-center text-sm text-neutral-500">
+          <div className="flex h-48 items-center justify-center text-sm text-neutral-600 dark:text-neutral-400">
             <RefreshCw className="h-5 w-5 animate-spin mr-2" />
             Loading audit events...
           </div>
         ) : logs.length === 0 ? (
-          <div className="py-12 text-center text-sm text-neutral-500">
+          <div className="py-12 text-center text-sm text-neutral-600 dark:text-neutral-400">
             No audit records match the selected criteria.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Timestamp</TableHead>
-                  <TableHead>Admin</TableHead>
-                  <TableHead>Action</TableHead>
-                  <TableHead>Target</TableHead>
-                  <TableHead>Reason / Notes</TableHead>
-                  <TableHead>IP Hash</TableHead>
-                  <TableHead className="text-right">Details</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {logs.map((log) => (
-                  <TableRow key={log.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-900/40">
-                    <TableCell className="font-mono text-xs text-neutral-500 whitespace-nowrap">
-                      {new Date(log.createdAt).toLocaleString()}
-                    </TableCell>
-                    <TableCell>
-                      <div className="font-medium text-neutral-900 dark:text-neutral-100 text-xs">
-                        {log.adminEmail || log.adminId}
-                      </div>
-                      {log.adminRole && (
-                        <span className="text-[10px] font-semibold text-neutral-400">
-                          {log.adminRole}
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <span className="inline-flex items-center rounded-md bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200 font-mono">
-                        {log.action}
+          <>
+            {/* Mobile & Tablet Audit Cards */}
+            <div className="lg:hidden divide-y divide-neutral-200 dark:divide-[#242424]">
+              {logs.map((log) => (
+                <div key={log.id} className="p-4 space-y-2 text-xs">
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="inline-flex items-center rounded-md bg-neutral-100 px-2 py-1 font-medium text-neutral-900 dark:bg-[#202020] dark:text-neutral-100 font-mono break-all">
+                      {log.action}
+                    </span>
+                    <button
+                      onClick={() => setSelectedLog(log)}
+                      className="inline-flex items-center gap-1 rounded px-2.5 py-1.5 text-xs font-semibold text-monologg-red dark:text-[#FF5C5E] hover:bg-red-50 dark:hover:bg-red-950/30 shrink-0"
+                    >
+                      <Eye className="h-3.5 w-3.5" />
+                      View
+                    </button>
+                  </div>
+                  <div className="font-medium text-neutral-900 dark:text-neutral-100">
+                    {log.adminEmail || log.adminId}{" "}
+                    {log.adminRole && (
+                      <span className="text-neutral-600 dark:text-neutral-400 font-normal">
+                        ({log.adminRole})
                       </span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-xs text-neutral-700 dark:text-neutral-300 font-mono">
-                        {log.targetType ? `${log.targetType}: ${log.targetId || "-"}` : "-"}
-                      </div>
-                    </TableCell>
-                    <TableCell className="max-w-xs truncate text-xs text-neutral-600 dark:text-neutral-400">
-                      {log.reason || "-"}
-                    </TableCell>
-                    <TableCell className="font-mono text-[10px] text-neutral-400">
-                      {log.ipHash ? `${log.ipHash.slice(0, 12)}...` : "-"}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <button
-                        onClick={() => setSelectedLog(log)}
-                        className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-monologg-red hover:bg-red-50 dark:hover:bg-red-950/30"
-                      >
-                        <Eye className="h-3 w-3" />
-                        View
-                      </button>
-                    </TableCell>
+                    )}
+                  </div>
+                  <div className="font-mono text-neutral-700 dark:text-neutral-300 truncate">
+                    Target: {log.targetType ? `${log.targetType}: ${log.targetId || "-"}` : "-"}
+                  </div>
+                  {log.reason && (
+                    <p className="text-neutral-600 dark:text-neutral-400 line-clamp-2">{log.reason}</p>
+                  )}
+                  <div className="font-mono text-[11px] text-neutral-600 dark:text-neutral-400 tabular-nums">
+                    {new Date(log.createdAt).toLocaleString()}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Audit Table */}
+            <div className="hidden lg:block overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Timestamp</TableHead>
+                    <TableHead>Admin</TableHead>
+                    <TableHead>Action</TableHead>
+                    <TableHead>Target</TableHead>
+                    <TableHead>Reason / Notes</TableHead>
+                    <TableHead>IP Hash</TableHead>
+                    <TableHead className="text-right">Details</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {logs.map((log) => (
+                    <TableRow key={log.id} className="hover:bg-neutral-50 dark:hover:bg-[#1A1A1A]">
+                      <TableCell className="font-mono text-[11px] tabular-nums text-neutral-600 dark:text-neutral-400 max-w-[115px]">
+                        {new Date(log.createdAt).toLocaleString()}
+                      </TableCell>
+                      <TableCell className="max-w-[155px]">
+                        <div className="font-medium text-neutral-900 dark:text-neutral-100 text-xs truncate">
+                          {log.adminEmail || log.adminId}
+                        </div>
+                        {log.adminRole && (
+                          <span className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-400">
+                            {log.adminRole}
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <span className="inline-flex items-center rounded-md bg-neutral-100 px-2 py-1 text-[11px] font-medium text-neutral-900 dark:bg-[#202020] dark:text-neutral-100 font-mono">
+                          {log.action}
+                        </span>
+                      </TableCell>
+                      <TableCell className="max-w-[130px]">
+                        <div className="text-xs text-neutral-700 dark:text-neutral-300 font-mono truncate">
+                          {log.targetType ? `${log.targetType}: ${log.targetId || "-"}` : "-"}
+                        </div>
+                      </TableCell>
+                      <TableCell className="max-w-[160px] truncate text-xs text-neutral-600 dark:text-neutral-400">
+                        {log.reason || "-"}
+                      </TableCell>
+                      <TableCell className="font-mono text-[11px] text-neutral-600 dark:text-neutral-400">
+                        {log.ipHash ? `${log.ipHash.slice(0, 10)}...` : "-"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <button
+                          onClick={() => setSelectedLog(log)}
+                          className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-semibold text-monologg-red dark:text-[#FF5C5E] hover:bg-red-50 dark:hover:bg-red-950/30"
+                        >
+                          <Eye className="h-3 w-3" />
+                          View
+                        </button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </>
         )}
       </Card>
 

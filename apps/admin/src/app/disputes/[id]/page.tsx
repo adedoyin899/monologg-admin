@@ -201,8 +201,8 @@ export default function DisputeDetailPage() {
                 dispute.status === "RESOLVED"
                   ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200"
                   : dispute.status === "AWAITING_EVIDENCE"
-                  ? "bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 border-purple-200"
-                  : "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border-amber-200"
+                  ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300 border-indigo-200 dark:border-indigo-900"
+                  : "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border-amber-200 dark:border-amber-900"
               }`}
             >
               {dispute.status.replace(/_/g, " ")}
@@ -238,7 +238,7 @@ export default function DisputeDetailPage() {
                 <button
                   onClick={handleApprove}
                   disabled={resolveSubmitting}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-purple-600 hover:bg-purple-700 text-white transition-colors cursor-pointer shadow-2xs"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-indigo-700 hover:bg-indigo-800 text-white transition-colors cursor-pointer shadow-2xs"
                 >
                   <ShieldCheck className="w-3.5 h-3.5" />
                   <span>Approve Resolution (Four-Eyes)</span>
@@ -246,7 +246,7 @@ export default function DisputeDetailPage() {
               ) : (
                 <button
                   onClick={() => setShowResolveModal(true)}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors cursor-pointer shadow-2xs"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-monologg-red hover:bg-monologg-red/90 text-white transition-colors cursor-pointer shadow-2xs"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   <span>Resolve Dispute</span>
@@ -275,19 +275,19 @@ export default function DisputeDetailPage() {
 
       {/* Four-Eyes Governance Alert Banner */}
       {fourEyes.required && (
-        <div className="p-4 rounded-xl border border-purple-200 dark:border-purple-900/60 bg-purple-50/70 dark:bg-purple-950/30 text-xs text-purple-900 dark:text-purple-200">
+        <div className="p-4 rounded-xl border border-amber-200 dark:border-amber-900/60 bg-amber-50/70 dark:bg-amber-950/30 text-xs text-amber-900 dark:text-amber-200">
           <div className="flex items-start gap-2.5">
-            <ShieldAlert className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
+            <ShieldAlert className="w-4 h-4 text-amber-700 dark:text-amber-400 shrink-0 mt-0.5" />
             <div>
               <div className="font-semibold text-sm">
                 Four-Eyes Governance Gate Active
               </div>
-              <p className="mt-0.5 text-purple-800 dark:text-purple-300">
+              <p className="mt-0.5 text-amber-900 dark:text-amber-300">
                 Booking value exceeds the threshold (
                 {booking?.currency} {(fourEyes.thresholdMinor / 100).toLocaleString()}). Resolution requires a written note and approval by two separate administrators before execution.
               </p>
               {fourEyes.resolvedByAdminId && (
-                <div className="mt-2 text-[11px] font-mono text-purple-900 dark:text-purple-200">
+                <div className="mt-2 text-[11px] font-mono text-amber-900 dark:text-amber-200">
                   Proposed by Admin: {fourEyes.resolvedByAdminId}
                   {fourEyes.approvedByAdminId && ` · Approved by Admin: ${fourEyes.approvedByAdminId}`}
                 </div>
@@ -320,10 +320,10 @@ export default function DisputeDetailPage() {
                 {dispute.description}
               </p>
             </div>
-            <div className="text-[11px] text-zinc-400">
+            <div className="text-[11px] text-zinc-600 dark:text-zinc-400 tabular-nums">
               Opened: {new Date(dispute.openedAt).toLocaleString()}
               {dispute.isOverdue && !isResolved && (
-                <span className="ml-2 font-semibold text-red-600 dark:text-red-400">
+                <span className="ml-2 font-semibold text-red-700 dark:text-red-400">
                   (Overdue &gt; 3 days)
                 </span>
               )}
@@ -333,24 +333,24 @@ export default function DisputeDetailPage() {
           {/* Deliverables & Uploaded Files */}
           <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 space-y-3">
             <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-              <FileText className="w-4 h-4 text-blue-500" />
-              Delivery Files & Evidence ({deliveryFiles.length})
+              <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              Delivery Files &amp; Evidence ({deliveryFiles.length})
             </h2>
             {deliveryFiles.length === 0 ? (
-              <p className="text-xs text-zinc-400 py-3">
+              <p className="text-xs text-zinc-600 dark:text-zinc-400 py-3">
                 No deliverable files uploaded in the order room.
               </p>
             ) : (
               <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
                 {deliveryFiles.map((f) => (
-                  <div key={f.id} className="py-2.5 flex items-center justify-between text-xs">
-                    <div>
-                      <div className="font-medium text-zinc-900 dark:text-zinc-100">{f.content}</div>
-                      <div className="text-[10px] text-zinc-400 mt-0.5">
+                  <div key={f.id} className="py-2.5 flex items-center justify-between gap-2 text-xs">
+                    <div className="min-w-0">
+                      <div className="font-medium text-zinc-900 dark:text-zinc-100 truncate">{f.content}</div>
+                      <div className="text-[11px] text-zinc-600 dark:text-zinc-400 mt-0.5 tabular-nums">
                         Uploaded: {new Date(f.createdAt).toLocaleString()} · Sender: {f.senderId}
                       </div>
                     </div>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-500 font-mono">
+                    <span className="text-[11px] px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-mono shrink-0">
                       DOCUMENT
                     </span>
                   </div>
@@ -362,22 +362,22 @@ export default function DisputeDetailPage() {
           {/* State Timeline */}
           <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 space-y-3">
             <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-zinc-500" />
-              Dispute & Booking Timeline
+              <Clock className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
+              Dispute &amp; Booking Timeline
             </h2>
             <div className="space-y-3 relative before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-zinc-200 dark:before:bg-zinc-800 pl-6">
               {timeline.map((t, idx) => (
                 <div key={idx} className="relative">
                   <div className="absolute -left-6 top-1.5 w-2 h-2 rounded-full bg-zinc-400 dark:bg-zinc-600 border-2 border-white dark:border-zinc-900" />
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-1">
                     <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
                       {t.title}
                     </span>
-                    <span className="text-[10px] text-zinc-400">
+                    <span className="text-[11px] text-zinc-600 dark:text-zinc-400 tabular-nums">
                       {new Date(t.timestamp).toLocaleString()}
                     </span>
                   </div>
-                  <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                  <div className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">
                     {t.detail}
                   </div>
                 </div>
@@ -473,7 +473,7 @@ export default function DisputeDetailPage() {
                 )}
               </div>
             ) : (
-              <p className="text-xs text-zinc-400">No booking details available.</p>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400">No booking details available.</p>
             )}
           </div>
 
@@ -483,7 +483,7 @@ export default function DisputeDetailPage() {
               Linked Tickets ({linkedTickets.length})
             </h2>
             {linkedTickets.length === 0 ? (
-              <p className="text-xs text-zinc-400">No linked support tickets.</p>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400">No linked support tickets.</p>
             ) : (
               <div className="space-y-2">
                 {linkedTickets.map((t) => (

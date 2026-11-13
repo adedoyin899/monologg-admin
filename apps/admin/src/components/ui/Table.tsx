@@ -3,8 +3,8 @@ import clsx from "clsx";
 
 export function Table({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={clsx("w-full overflow-x-auto rounded-xl border border-gray-200 dark:border-[#242424]", className)}>
-      <table className="w-full text-left text-sm text-gray-700 dark:text-gray-300">
+    <div className={clsx("w-full max-w-full overflow-x-auto rounded-xl border border-gray-200 dark:border-[#242424] bg-white dark:bg-[#141414]", className)}>
+      <table className="w-full text-left text-sm text-gray-700 dark:text-gray-300 tabular-nums">
         {children}
       </table>
     </div>
@@ -13,7 +13,7 @@ export function Table({ children, className }: { children: React.ReactNode; clas
 
 export function TableHeader({ children }: { children: React.ReactNode }) {
   return (
-    <thead className="border-b border-gray-200 dark:border-[#242424] bg-gray-50 dark:bg-[#181818] text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+    <thead className="border-b border-gray-200 dark:border-[#242424] bg-gray-50 dark:bg-[#181818] text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400">
       {children}
     </thead>
   );
@@ -39,7 +39,7 @@ export function TableRow({ children, className, onClick }: { children: React.Rea
 }
 
 export function TableHead({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <th className={clsx("px-4 py-3.5", className)}>{children}</th>;
+  return <th className={clsx("px-3 py-3 whitespace-nowrap", className)}>{children}</th>;
 }
 
 export function TableCell({
@@ -52,9 +52,8 @@ export function TableCell({
   onClick?: (e: React.MouseEvent) => void;
 }) {
   return (
-    <td onClick={onClick} className={clsx("px-4 py-3.5 text-sm", className)}>
+    <td onClick={onClick} className={clsx("px-3 py-3 text-sm", className)}>
       {children}
     </td>
   );
 }
-

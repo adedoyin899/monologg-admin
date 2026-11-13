@@ -149,7 +149,7 @@ export default function VerificationDetailPage() {
       <div className="space-y-4">
         <Link
           href="/verifications"
-          className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+          className="inline-flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
         >
           <ArrowLeft className="w-4 h-4" /> Back to Queue
         </Link>
@@ -170,7 +170,7 @@ export default function VerificationDetailPage() {
         <div className="space-y-1">
           <Link
             href="/verifications"
-            className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 mb-1"
+            className="inline-flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 mb-1"
           >
             <ArrowLeft className="w-3.5 h-3.5" /> Back to Verifications Queue
           </Link>
@@ -290,7 +290,7 @@ export default function VerificationDetailPage() {
 
           {/* Decision Buttons (COMPLIANCE / SUPER_ADMIN) */}
           <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 space-y-4 shadow-sm">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
               Compliance Review Decision
             </h3>
 
@@ -301,7 +301,7 @@ export default function VerificationDetailPage() {
                   setReviewerNote("");
                   setIsDecisionModalOpen(true);
                 }}
-                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors cursor-pointer shadow-sm"
+                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-semibold bg-emerald-700 text-white hover:bg-emerald-800 transition-colors cursor-pointer shadow-sm"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 Approve Presentation
@@ -421,33 +421,33 @@ export default function VerificationDetailPage() {
           {/* Sanitized KYC Panel (M9 / X3 Invariant) */}
           <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 space-y-3 shadow-sm">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500 flex items-center gap-1.5">
-                <Shield className="w-4 h-4 text-emerald-500" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 flex items-center gap-1.5">
+                <Shield className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 Identity KYC Status
               </h3>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+              <span className="text-[11px] font-mono px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
                 X3 Invariant
               </span>
             </div>
 
             <div className="text-xs space-y-2">
               <div className="flex justify-between items-center">
-                <span className="text-zinc-500">Provider:</span>
+                <span className="text-zinc-600 dark:text-zinc-400">Provider:</span>
                 <span className="font-medium text-zinc-900 dark:text-zinc-100">
                   {detail.kycPanel.provider}
                 </span>
               </div>
 
               <div className="flex justify-between items-center">
-                <span className="text-zinc-500">Verification State:</span>
+                <span className="text-zinc-600 dark:text-zinc-400">Verification State:</span>
                 <span
                   className={`font-semibold px-2 py-0.5 rounded text-[11px] ${
                     detail.kycPanel.status === "VERIFIED"
-                      ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
+                      ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
                       : detail.kycPanel.status === "PROCESSING"
-                      ? "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
+                      ? "bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
                       : detail.kycPanel.status === "FAILED"
-                      ? "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300"
+                      ? "bg-red-50 text-red-800 dark:bg-red-950/40 dark:text-red-300"
                       : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
                   }`}
                 >
@@ -456,16 +456,16 @@ export default function VerificationDetailPage() {
               </div>
 
               <div className="flex justify-between items-center">
-                <span className="text-zinc-500">Total KYC Attempts:</span>
-                <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                <span className="text-zinc-600 dark:text-zinc-400">Total KYC Attempts:</span>
+                <span className="font-medium tabular-nums text-zinc-900 dark:text-zinc-100">
                   {detail.kycPanel.attempts}
                 </span>
               </div>
 
               {detail.kycPanel.failureReasonCode && (
                 <div className="flex justify-between items-center">
-                  <span className="text-zinc-500">Failure Reason Code:</span>
-                  <span className="font-mono text-red-600 dark:text-red-400 font-medium">
+                  <span className="text-zinc-600 dark:text-zinc-400">Failure Reason Code:</span>
+                  <span className="font-mono text-red-700 dark:text-red-400 font-medium">
                     {detail.kycPanel.failureReasonCode}
                   </span>
                 </div>
@@ -473,15 +473,15 @@ export default function VerificationDetailPage() {
 
               {detail.kycPanel.lastAttemptAt && (
                 <div className="flex justify-between items-center">
-                  <span className="text-zinc-500">Last Attempt:</span>
-                  <span className="text-zinc-600 dark:text-zinc-400">
+                  <span className="text-zinc-600 dark:text-zinc-400">Last Attempt:</span>
+                  <span className="text-zinc-600 dark:text-zinc-400 tabular-nums">
                     {new Date(detail.kycPanel.lastAttemptAt).toLocaleDateString()}
                   </span>
                 </div>
               )}
             </div>
 
-            <div className="text-[11px] text-zinc-400 bg-zinc-50 dark:bg-zinc-800/40 p-2.5 rounded-lg border border-zinc-100 dark:border-zinc-800/60">
+            <div className="text-[11px] text-zinc-600 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800/40 p-2.5 rounded-lg border border-zinc-100 dark:border-zinc-800/60">
               Sanitized identity panel: raw provider payloads and identity documents are never exposed in this console.
             </div>
           </div>

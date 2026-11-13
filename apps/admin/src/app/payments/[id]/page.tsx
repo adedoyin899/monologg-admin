@@ -124,12 +124,12 @@ export default function PaymentDetailPage() {
   if (error || !data) {
     return (
       <div className="p-8 text-center bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800">
-        <AlertTriangle className="h-10 w-10 text-rose-500 mx-auto mb-3" />
+        <AlertTriangle className="h-10 w-10 text-rose-600 dark:text-rose-400 mx-auto mb-3" />
         <h2 className="text-lg font-bold text-gray-900 dark:text-white">Payment Record Not Found</h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{error || "Payment not found"}</p>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{error || "Payment not found"}</p>
         <Link
           href="/payments"
-          className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-white bg-primary rounded-lg"
+          className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-monologg-red hover:bg-monologg-red/90 rounded-lg"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Payments
@@ -181,7 +181,7 @@ export default function PaymentDetailPage() {
           }}
           className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm"
         >
-          <Code className="h-4 w-4 text-primary" />
+          <Code className="h-4 w-4 text-monologg-red dark:text-[#FF5C5E]" />
           <span>Inspect Raw Webhooks</span>
         </button>
       </div>
@@ -193,39 +193,39 @@ export default function PaymentDetailPage() {
           {/* Card 1: Payment Details & Associated Booking */}
           <Card className="p-6">
             <h2 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-4 flex items-center gap-2">
-              <CreditCard className="h-4 w-4 text-primary" />
+              <CreditCard className="h-4 w-4 text-monologg-red dark:text-[#FF5C5E]" />
               Payment Summary
             </h2>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pb-6 border-b border-gray-100 dark:border-gray-800 text-xs">
               <div>
-                <span className="text-gray-500 block mb-1">Amount</span>
-                <span className="text-base font-bold text-gray-900 dark:text-white">
+                <span className="text-gray-600 dark:text-gray-400 block mb-1">Amount</span>
+                <span className="text-base font-bold tabular-nums text-gray-900 dark:text-white">
                   {formatCurrency(payment.amount, payment.currency)}
                 </span>
               </div>
               <div>
-                <span className="text-gray-500 block mb-1">Currency</span>
+                <span className="text-gray-600 dark:text-gray-400 block mb-1">Currency</span>
                 <span className="font-semibold text-gray-900 dark:text-white">{payment.currency}</span>
               </div>
               <div>
-                <span className="text-gray-500 block mb-1">Escrow State</span>
-                <span className="flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
+                <span className="text-gray-600 dark:text-gray-400 block mb-1">Escrow State</span>
+                <span className="flex items-center gap-1 font-semibold text-emerald-700 dark:text-emerald-400">
                   {payment.escrowHeld ? (
                     <>
-                      <Lock className="h-3.5 w-3.5 text-emerald-500" />
+                      <Lock className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                       Held in Escrow
                     </>
                   ) : (
                     <>
-                      <Unlock className="h-3.5 w-3.5 text-gray-400" />
+                      <Unlock className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
                       Not Held
                     </>
                   )}
                 </span>
               </div>
               <div>
-                <span className="text-gray-500 block mb-1">Provider Ref</span>
+                <span className="text-gray-600 dark:text-gray-400 block mb-1">Provider Ref</span>
                 <span className="font-mono text-gray-800 dark:text-gray-200 truncate block">
                   {payment.providerRef || "—"}
                 </span>
@@ -241,25 +241,25 @@ export default function PaymentDetailPage() {
                   </span>
                   <Link
                     href={`/bookings/${booking.id}`}
-                    className="text-xs text-primary hover:underline flex items-center gap-1"
+                    className="text-xs font-semibold text-monologg-red dark:text-[#FF5C5E] hover:underline flex items-center gap-1"
                   >
                     View Booking
                     <ExternalLink className="h-3 w-3" />
                   </Link>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs bg-gray-50 dark:bg-gray-800/60 p-4 rounded-xl border border-gray-200/80 dark:border-gray-700">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs bg-gray-50 dark:bg-[#1A1A1A] p-4 rounded-xl border border-gray-200/80 dark:border-[#242424]">
                   <div>
-                    <span className="text-gray-500 block">Payer (Client):</span>
+                    <span className="text-gray-600 dark:text-gray-400 block">Payer (Client):</span>
                     <strong className="text-gray-900 dark:text-white">{booking.client.name}</strong>
-                    <div className="text-[11px] font-mono text-gray-500">{booking.client.email}</div>
+                    <div className="text-[11px] font-mono text-gray-600 dark:text-gray-400">{booking.client.email}</div>
                   </div>
                   <div>
-                    <span className="text-gray-500 block">Recipient (Talent):</span>
+                    <span className="text-gray-600 dark:text-gray-400 block">Recipient (Talent):</span>
                     <strong className="text-gray-900 dark:text-white">{booking.talent.name}</strong>
-                    <div className="text-[11px] font-mono text-gray-500">{booking.talent.email}</div>
+                    <div className="text-[11px] font-mono text-gray-600 dark:text-gray-400">{booking.talent.email}</div>
                   </div>
-                  <div className="col-span-2 pt-2 border-t border-gray-200/60 dark:border-gray-700 flex items-center justify-between text-[11px] text-gray-500">
+                  <div className="col-span-1 sm:col-span-2 pt-2 border-t border-gray-200/60 dark:border-[#262626] flex flex-wrap items-center justify-between gap-2 text-[11px] text-gray-600 dark:text-gray-400">
                     <span>Origin: <strong className="text-gray-800 dark:text-gray-200">{booking.origin}</strong></span>
                     <span>State: <strong className="text-gray-800 dark:text-gray-200">{booking.state}</strong></span>
                     {booking.slotDate && (
@@ -275,16 +275,16 @@ export default function PaymentDetailPage() {
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-                <Clock className="h-4 w-4 text-primary" />
-                Payment Events & Webhook Log
+                <Clock className="h-4 w-4 text-monologg-red dark:text-[#FF5C5E]" />
+                Payment Events &amp; Webhook Log
               </h2>
-              <span className="text-xs text-gray-400 font-mono">
+              <span className="text-xs text-gray-600 dark:text-gray-400 font-mono tabular-nums">
                 {events.length} event(s)
               </span>
             </div>
 
             {events.length === 0 ? (
-              <div className="p-6 text-center text-xs text-gray-500">
+              <div className="p-6 text-center text-xs text-gray-600 dark:text-gray-400">
                 No webhook events recorded for this payment yet.
               </div>
             ) : (
@@ -326,40 +326,40 @@ export default function PaymentDetailPage() {
           {/* Card 3: Fee Breakdown from Stored Amounts */}
           <Card className="p-6">
             <h2 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-4 flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-emerald-600" />
-              Platform Cut & Fees
+              <DollarSign className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />
+              Platform Cut &amp; Fees
             </h2>
 
-            <div className="space-y-3 text-xs">
+            <div className="space-y-3 text-xs tabular-nums">
               <div className="flex items-center justify-between py-1 border-b border-gray-100 dark:border-gray-800">
-                <span className="text-gray-500">Gross Payment Amount</span>
+                <span className="text-gray-600 dark:text-gray-400">Gross Payment Amount</span>
                 <span className="font-bold text-gray-900 dark:text-white">
                   {formatCurrency(payment.amount, payment.currency)}
                 </span>
               </div>
 
               <div className="flex items-center justify-between py-1 border-b border-gray-100 dark:border-gray-800">
-                <span className="text-gray-500">Client Platform Fee (+15%)</span>
-                <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                <span className="text-gray-600 dark:text-gray-400">Client Platform Fee (+15%)</span>
+                <span className="font-semibold text-emerald-700 dark:text-emerald-400">
                   +{formatCurrency(payment.clientFee, payment.currency)}
                 </span>
               </div>
 
               <div className="flex items-center justify-between py-1 border-b border-gray-100 dark:border-gray-800">
-                <span className="text-gray-500">Talent Platform Fee (-11%)</span>
-                <span className="font-semibold text-rose-500">
+                <span className="text-gray-600 dark:text-gray-400">Talent Platform Fee (-11%)</span>
+                <span className="font-semibold text-rose-700 dark:text-rose-400">
                   -{formatCurrency(payment.talentFee, payment.currency)}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between py-2 bg-purple-50 dark:bg-purple-950/30 px-3 rounded-lg font-bold">
-                <span className="text-purple-900 dark:text-purple-200">Total Platform Revenue</span>
-                <span className="text-sm text-purple-700 dark:text-purple-300">
+              <div className="flex items-center justify-between py-2 bg-rose-50 dark:bg-rose-950/30 px-3 rounded-lg font-bold">
+                <span className="text-rose-950 dark:text-rose-200">Total Platform Revenue</span>
+                <span className="text-sm text-[#CF1719] dark:text-[#FF5C5E]">
                   {formatCurrency(payment.platformRevenue, payment.currency)}
                 </span>
               </div>
 
-              <div className="pt-2 text-[10px] text-gray-400 dark:text-gray-500 italic">
+              <div className="pt-2 text-[11px] text-gray-600 dark:text-gray-400 italic">
                 {payment.feeBreakdownLabel}
               </div>
             </div>
@@ -409,7 +409,7 @@ export default function PaymentDetailPage() {
                 <button
                   type="submit"
                   disabled={isRevealing || !rawReason.trim()}
-                  className="px-4 py-2 text-xs font-semibold text-white bg-primary rounded-lg hover:bg-primary/90 disabled:opacity-50"
+                  className="px-4 py-2 text-xs font-semibold text-white bg-monologg-red rounded-lg hover:bg-monologg-red/90 disabled:opacity-50"
                 >
                   {isRevealing ? "Auditing & Decrypting..." : "Reveal Webhook JSON"}
                 </button>
@@ -440,7 +440,7 @@ export default function PaymentDetailPage() {
               <div className="flex justify-end pt-2">
                 <button
                   onClick={() => setRawModalOpen(false)}
-                  className="px-4 py-2 text-xs font-medium text-white bg-primary rounded-lg hover:bg-primary/90"
+                  className="px-4 py-2 text-xs font-semibold text-white bg-monologg-red rounded-lg hover:bg-monologg-red/90"
                 >
                   Done
                 </button>

@@ -184,13 +184,13 @@ function OverviewContent() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="font-mono text-xs font-semibold uppercase text-monologg-red">AD-02</span>
-            <span className="text-gray-300 dark:text-gray-600">/</span>
+            <span className="font-mono text-xs font-semibold uppercase text-monologg-red dark:text-[#FF5C5E]">AD-02</span>
+            <span className="text-gray-500 dark:text-gray-400" aria-hidden="true">/</span>
             <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
               Platform Overview
             </h1>
           </div>
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
             Real-time platform metrics, user activation funnels, and isolated-currency cash flows.
           </p>
         </div>
@@ -201,8 +201,8 @@ function OverviewContent() {
           <span
             className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border ${
               (overview?.freshness.paymentsMode || authData?.env.paymentsMode) === "LIVE"
-                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
-                : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+                ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20"
+                : "bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-500/30"
             }`}
           >
             <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" />
@@ -219,8 +219,8 @@ function OverviewContent() {
             <span
               className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border ${
                 overview.freshness.isStale
-                  ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
-                  : "bg-gray-100 dark:bg-[#1A1A1A] text-gray-500 dark:text-gray-400 border-gray-200 dark:border-[#2A2A2A]"
+                  ? "bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-500/30"
+                  : "bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-gray-400 border-gray-200 dark:border-[#2A2A2A]"
               }`}
               title={`Materialized view refreshed at ${overview.freshness.lastRefreshedAt}`}
             >
@@ -238,7 +238,7 @@ function OverviewContent() {
           <button
             onClick={fetchData}
             disabled={loading}
-            className="p-1.5 rounded-lg border border-gray-200 dark:border-[#2A2A2A] hover:bg-gray-100 dark:hover:bg-[#1E1E1E] text-gray-500 dark:text-gray-400 transition-colors disabled:opacity-50"
+            className="p-2 rounded-lg border border-gray-200 dark:border-[#2A2A2A] hover:bg-gray-100 dark:hover:bg-[#1E1E1E] text-gray-600 dark:text-gray-400 transition-colors disabled:opacity-50"
             title="Refresh overview metrics"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
@@ -250,15 +250,15 @@ function OverviewContent() {
       <div className="rounded-xl border border-gray-200 dark:border-[#242424] bg-white dark:bg-[#141414] p-4 shadow-sm space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           {/* Preset Buttons */}
-          <div className="flex items-center gap-1 bg-gray-100 dark:bg-[#1C1C1C] p-1 rounded-lg">
+          <div className="flex flex-wrap items-center gap-1 bg-gray-100 dark:bg-[#1C1C1C] p-1 rounded-lg max-w-full">
             {["7d", "30d", "90d", "custom"].map((p) => (
               <button
                 key={p}
                 onClick={() => handleRangeChange(p)}
-                className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${
+                className={`px-3 py-1.5 min-h-[34px] text-xs font-semibold rounded-md transition-all ${
                   rangePreset === p
                     ? "bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-white shadow-xs"
-                    : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                    : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
                 }`}
               >
                 {p === "custom" ? "Custom Range" : `Last ${p}`}
@@ -268,27 +268,27 @@ function OverviewContent() {
 
           {/* User Type & Currency Selectors */}
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1.5 text-xs text-gray-500">
+            <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400">
               <Filter className="h-3.5 w-3.5" />
               <span>Type:</span>
             </div>
             <select
               value={userType}
               onChange={(e) => handleUserTypeChange(e.target.value as any)}
-              className="text-xs rounded-lg border border-gray-200 dark:border-[#2A2A2A] bg-gray-50 dark:bg-[#1A1A1A] text-gray-800 dark:text-gray-200 px-2.5 py-1.5 focus:outline-hidden focus:ring-1 focus:ring-monologg-red"
+              className="text-xs min-h-[36px] rounded-lg border border-gray-200 dark:border-[#2A2A2A] bg-gray-50 dark:bg-[#1A1A1A] text-gray-800 dark:text-gray-200 px-2.5 py-1.5 focus:outline-hidden focus:ring-1 focus:ring-monologg-red"
             >
               <option value="ALL">All Users</option>
               <option value="TALENT">Talent Only</option>
               <option value="CLIENT">Clients Only</option>
             </select>
 
-            <div className="flex items-center gap-1.5 text-xs text-gray-500 ml-2">
+            <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 sm:ml-2">
               <span>Currency:</span>
             </div>
             <select
               value={currency}
               onChange={(e) => handleCurrencyChange(e.target.value as any)}
-              className="text-xs rounded-lg border border-gray-200 dark:border-[#2A2A2A] bg-gray-50 dark:bg-[#1A1A1A] text-gray-800 dark:text-gray-200 px-2.5 py-1.5 focus:outline-hidden focus:ring-1 focus:ring-monologg-red"
+              className="text-xs min-h-[36px] rounded-lg border border-gray-200 dark:border-[#2A2A2A] bg-gray-50 dark:bg-[#1A1A1A] text-gray-800 dark:text-gray-200 px-2.5 py-1.5 focus:outline-hidden focus:ring-1 focus:ring-monologg-red"
             >
               <option value="ALL">All Currencies</option>
               <option value="NGN">NGN (₦)</option>
@@ -298,17 +298,17 @@ function OverviewContent() {
           </div>
 
           {/* Cohort Tag Search */}
-          <form onSubmit={handleCohortTagSubmit} className="flex items-center gap-1.5">
+          <form onSubmit={handleCohortTagSubmit} className="flex items-center gap-1.5 w-full sm:w-auto">
             <input
               type="text"
               placeholder="Cohort tag (e.g. alpha)"
               value={cohortTag}
               onChange={(e) => setCohortTag(e.target.value)}
-              className="text-xs rounded-lg border border-gray-200 dark:border-[#2A2A2A] bg-gray-50 dark:bg-[#1A1A1A] text-gray-800 dark:text-gray-200 px-2.5 py-1.5 focus:outline-hidden focus:ring-1 focus:ring-monologg-red w-36 sm:w-44"
+              className="text-xs min-h-[36px] rounded-lg border border-gray-200 dark:border-[#2A2A2A] bg-gray-50 dark:bg-[#1A1A1A] text-gray-800 dark:text-gray-200 px-2.5 py-1.5 focus:outline-hidden focus:ring-1 focus:ring-monologg-red flex-1 sm:flex-initial sm:w-44 min-w-0"
             />
             <button
               type="submit"
-              className="px-2.5 py-1.5 bg-gray-200 dark:bg-[#2A2A2A] text-gray-700 dark:text-gray-200 text-xs font-semibold rounded-lg hover:bg-gray-300 dark:hover:bg-[#333333] transition-colors"
+              className="px-3 py-1.5 min-h-[36px] bg-gray-200 dark:bg-[#2A2A2A] text-gray-800 dark:text-gray-100 text-xs font-semibold rounded-lg hover:bg-gray-300 dark:hover:bg-[#333333] transition-colors shrink-0"
             >
               Filter
             </button>
@@ -367,14 +367,14 @@ function OverviewContent() {
 
       {/* ── KPI Stat Cards Grid ────────────────────────────────────────── */}
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <Skeleton key={i} className="h-32 w-full rounded-xl" />
           ))}
         </div>
       ) : overview ? (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <Stat
               label="Signups"
               value={overview.cards.signups.total}
@@ -395,7 +395,7 @@ function OverviewContent() {
               change={overview.cards.talentActivated.change ?? undefined}
               period="vs previous period"
               suffix="RateCards+Media"
-              icon={<UserCheck className="h-4 w-4 text-monologg-red" />}
+              icon={<UserCheck className="h-4 w-4 text-monologg-red dark:text-[#FF5C5E]" />}
             />
             <Stat
               label="Clients Activated"
@@ -403,12 +403,12 @@ function OverviewContent() {
               change={overview.cards.clientActivated.change ?? undefined}
               period="vs previous period"
               suffix="Brief/Booking"
-              icon={<TrendingUp className="h-4 w-4 text-blue-500" />}
+              icon={<TrendingUp className="h-4 w-4 text-blue-600 dark:text-blue-400" />}
             />
           </div>
 
           {/* Bookings & Operational Strip */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <Stat
               label="Bookings Created"
               value={overview.cards.bookingsCreated.total}
@@ -419,12 +419,12 @@ function OverviewContent() {
             <Stat
               label="Open Tickets"
               value={overview.cards.openTickets.total}
-              icon={<LifeBuoy className="h-4 w-4 text-blue-500" />}
+              icon={<LifeBuoy className="h-4 w-4 text-blue-600 dark:text-blue-400" />}
             />
             <Stat
               label="Active Disputes"
               value={overview.cards.openDisputes.total}
-              icon={<ShieldAlert className="h-4 w-4 text-amber-500" />}
+              icon={<ShieldAlert className="h-4 w-4 text-amber-700 dark:text-amber-400" />}
             />
             <Stat
               label="Critical Alerts"
@@ -432,7 +432,9 @@ function OverviewContent() {
               icon={
                 <AlertTriangle
                   className={`h-4 w-4 ${
-                    overview.cards.criticalAlerts.total > 0 ? "text-red-500" : "text-emerald-500"
+                    overview.cards.criticalAlerts.total > 0
+                      ? "text-red-600 dark:text-red-400"
+                      : "text-emerald-600 dark:text-emerald-400"
                   }`}
                 />
               }
@@ -441,8 +443,8 @@ function OverviewContent() {
 
           {/* ── Monetary KPIs Strictly Per Currency (PRD 4, 6, Appendix B) ── */}
           <div className="space-y-3">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 font-mono">
-              Cash Flow & Revenue by Currency (Isolated Minor Units)
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400 font-mono">
+              Cash Flow &amp; Revenue by Currency (Isolated Minor Units)
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {overview.cards.money.byCurrency.map((m) => (
@@ -454,35 +456,35 @@ function OverviewContent() {
                     <span className="text-xs font-mono font-bold text-gray-900 dark:text-white uppercase tracking-wider">
                       Currency: {m.currency}
                     </span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-sm bg-gray-100 dark:bg-[#202020] text-gray-600 dark:text-gray-400">
+                    <span className="text-[11px] font-mono px-2 py-0.5 rounded-sm bg-gray-100 dark:bg-[#202020] text-gray-700 dark:text-gray-300 tabular-nums">
                       Take Rate: {(m.takeRate * 100).toFixed(1)}%
                     </span>
                   </div>
 
                   <div className="mt-3 space-y-2 text-xs">
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-500 dark:text-gray-400">GMV (Escrow+):</span>
-                      <span className="font-mono font-semibold text-gray-900 dark:text-white">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-gray-600 dark:text-gray-400">GMV (Escrow+):</span>
+                      <span className="font-mono font-semibold tabular-nums text-gray-900 dark:text-white">
                         {formatMoney(m.gmv, m.currency)}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-500 dark:text-gray-400">Escrow Held Now:</span>
-                      <span className="font-mono font-medium text-amber-600 dark:text-amber-400">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-gray-600 dark:text-gray-400">Escrow Held Now:</span>
+                      <span className="font-mono font-medium tabular-nums text-amber-800 dark:text-amber-300">
                         {formatMoney(m.escrowHeld, m.currency)}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-500 dark:text-gray-400">Released Funds:</span>
-                      <span className="font-mono font-medium text-gray-700 dark:text-gray-300">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-gray-600 dark:text-gray-400">Released Funds:</span>
+                      <span className="font-mono font-medium tabular-nums text-gray-700 dark:text-gray-300">
                         {formatMoney(m.released, m.currency)}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-[#1E1E1E]">
-                      <span className="font-medium text-emerald-600 dark:text-emerald-400">
+                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-100 dark:border-[#1E1E1E]">
+                      <span className="font-medium text-emerald-700 dark:text-emerald-400">
                         Platform Revenue:
                       </span>
-                      <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                      <span className="font-mono font-bold tabular-nums text-emerald-700 dark:text-emerald-400">
                         {formatMoney(m.platformRevenue, m.currency)}
                       </span>
                     </div>
@@ -501,7 +503,7 @@ function OverviewContent() {
             >
               <div className="h-64 flex flex-col justify-between pt-4">
                 {overview.charts.signupsByDay.length === 0 ? (
-                  <div className="h-full flex items-center justify-center text-xs text-gray-400">
+                  <div className="h-full flex items-center justify-center text-xs text-gray-600 dark:text-gray-400">
                     No signups in this date range.
                   </div>
                 ) : (
@@ -520,7 +522,6 @@ function OverviewContent() {
                             key={day.date}
                             className="flex flex-col items-center flex-1 min-w-[14px] group relative h-full justify-end"
                           >
-                            {/* Hover tooltip */}
                             <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute bottom-full mb-1 z-10 bg-gray-900 text-white text-[10px] rounded px-1.5 py-0.5 pointer-events-none whitespace-nowrap shadow-md">
                               {day.date}: {day.talent} Talent, {day.client} Client
                             </div>
@@ -534,14 +535,14 @@ function OverviewContent() {
                                 className="w-full bg-monologg-red"
                               />
                             </div>
-                            <span className="text-[9px] font-mono text-gray-400 mt-1 truncate max-w-full">
+                            <span className="text-[9px] font-mono text-gray-600 dark:text-gray-400 mt-1 truncate max-w-full">
                               {day.date.slice(8)}
                             </span>
                           </div>
                         );
                       })}
                     </div>
-                    <div className="flex items-center justify-center gap-6 text-xs text-gray-500 dark:text-gray-400 pt-2 font-mono">
+                    <div className="flex items-center justify-center gap-6 text-xs text-gray-600 dark:text-gray-400 pt-2 font-mono">
                       <div className="flex items-center gap-2">
                         <span className="h-2.5 w-2.5 rounded-xs bg-monologg-red" />
                         <span>Talent ({overview.cards.signups.talent})</span>
@@ -561,9 +562,9 @@ function OverviewContent() {
               title="Bookings Distribution by State"
               subtitle="Breakdown of order lifecycle states in period"
             >
-              <div className="h-64 flex flex-col justify-center space-y-3 px-2">
+              <div className="min-h-[16rem] flex flex-col justify-center space-y-3 px-1 sm:px-2">
                 {overview.charts.bookingsByState.length === 0 ? (
-                  <div className="text-xs text-gray-400 text-center">No bookings recorded.</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 text-center">No bookings recorded.</div>
                 ) : (
                   overview.charts.bookingsByState.map((st) => {
                     const totalBookings = Math.max(overview.cards.bookingsCreated.total, 1);
@@ -571,11 +572,11 @@ function OverviewContent() {
 
                     return (
                       <div key={st.state} className="space-y-1">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="font-mono text-gray-700 dark:text-gray-300">
+                        <div className="flex items-center justify-between text-xs gap-2">
+                          <span className="font-mono text-gray-700 dark:text-gray-300 truncate">
                             {st.state.replace(/_/g, " ")}
                           </span>
-                          <span className="font-mono font-semibold text-gray-900 dark:text-white">
+                          <span className="font-mono font-semibold tabular-nums text-gray-900 dark:text-white shrink-0">
                             {st.count} ({pct}%)
                           </span>
                         </div>
@@ -605,23 +606,25 @@ function OverviewContent() {
               title="Activation Funnel Snapshot"
               subtitle="Conversion flow from onboarding to paid escrow"
             >
-              <div className="h-64 flex flex-col justify-around px-2 text-xs">
+              <div className="min-h-[16rem] flex flex-col justify-around gap-4 px-1 sm:px-2 text-xs">
                 <div>
                   <h4 className="font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-1.5 font-mono">
                     <span className="h-1.5 w-1.5 rounded-full bg-monologg-red" />
                     Talent Funnel
                   </h4>
-                  <div className="grid grid-cols-5 gap-1 text-center font-mono">
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center font-mono">
                     {overview.charts.activationFunnel.talent.map((step, idx) => (
                       <div
                         key={step.stage}
-                        className="p-1.5 rounded-lg bg-gray-50 dark:bg-[#1A1A1A] border border-gray-100 dark:border-[#222222]"
+                        className="p-2 rounded-lg bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#242424]"
                       >
-                        <p className="text-[10px] text-gray-400 truncate">{step.stage}</p>
-                        <p className="font-bold text-sm text-gray-900 dark:text-white mt-0.5">
+                        <p className="text-[11px] text-gray-600 dark:text-gray-400 truncate" title={step.stage}>
+                          {step.stage}
+                        </p>
+                        <p className="font-bold text-sm tabular-nums text-gray-900 dark:text-white mt-0.5">
                           {step.count}
                         </p>
-                        <p className="text-[9px] text-gray-500">
+                        <p className="text-[10px] tabular-nums text-gray-600 dark:text-gray-400">
                           {idx === 0 ? "100%" : `${Math.round(step.conversion * 100)}%`}
                         </p>
                       </div>
@@ -638,13 +641,15 @@ function OverviewContent() {
                     {overview.charts.activationFunnel.client.map((step, idx) => (
                       <div
                         key={step.stage}
-                        className="p-1.5 rounded-lg bg-gray-50 dark:bg-[#1A1A1A] border border-gray-100 dark:border-[#222222]"
+                        className="p-2 rounded-lg bg-gray-50 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#242424]"
                       >
-                        <p className="text-[10px] text-gray-400 truncate">{step.stage}</p>
-                        <p className="font-bold text-sm text-gray-900 dark:text-white mt-0.5">
+                        <p className="text-[11px] text-gray-600 dark:text-gray-400 truncate" title={step.stage}>
+                          {step.stage}
+                        </p>
+                        <p className="font-bold text-sm tabular-nums text-gray-900 dark:text-white mt-0.5">
                           {step.count}
                         </p>
-                        <p className="text-[9px] text-gray-500">
+                        <p className="text-[10px] tabular-nums text-gray-600 dark:text-gray-400">
                           {idx === 0 ? "100%" : `${Math.round(step.conversion * 100)}%`}
                         </p>
                       </div>
@@ -688,17 +693,17 @@ function OverviewContent() {
                             totalGmv > 0 ? "bg-emerald-500" : "bg-gray-200 dark:bg-[#202020]"
                           }`}
                         />
-                        <span className="text-[9px] font-mono text-gray-400 mt-1 truncate">
+                        <span className="text-[9px] font-mono text-gray-600 dark:text-gray-400 mt-1 truncate">
                           {day.date.slice(8)}
                         </span>
                       </div>
                     );
                   })}
                 </div>
-                <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 pt-2 font-mono">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-600 dark:text-gray-400 pt-2 font-mono">
                   <span>Daily volume in escrow</span>
-                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                    Active currencies: {overview.cards.money.byCurrency.map((m) => m.currency).join(", ")}
+                  <span className="font-semibold text-emerald-700 dark:text-emerald-400">
+                    Active: {overview.cards.money.byCurrency.map((m) => m.currency).join(", ")}
                   </span>
                 </div>
               </div>

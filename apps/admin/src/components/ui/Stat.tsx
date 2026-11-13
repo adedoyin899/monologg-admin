@@ -30,33 +30,33 @@ export function Stat({
   return (
     <div
       className={clsx(
-        "rounded-xl border bg-white dark:bg-[#141414] border-gray-200 dark:border-[#242424] p-5 shadow-sm transition-colors",
+        "rounded-xl border bg-white dark:bg-[#141414] border-gray-200 dark:border-[#242424] p-4 sm:p-5 shadow-sm transition-colors min-w-0",
         className,
       )}
     >
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-400 truncate">
           {label}
         </span>
-        {icon && <div className="text-gray-400 dark:text-gray-500">{icon}</div>}
+        {icon && <div className="text-gray-500 dark:text-gray-400 shrink-0">{icon}</div>}
       </div>
 
       <div className="mt-3 flex items-baseline gap-1">
-        {prefix && <span className="text-lg text-gray-500 dark:text-gray-400 font-medium">{prefix}</span>}
-        <span className="text-2xl lg:text-3xl font-bold tracking-tight text-gray-900 dark:text-white font-mono">
+        {prefix && <span className="text-lg text-gray-600 dark:text-gray-400 font-medium">{prefix}</span>}
+        <span className="text-2xl lg:text-3xl font-bold tracking-tight text-gray-900 dark:text-white font-mono tabular-nums">
           {value}
         </span>
-        {suffix && <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">{suffix}</span>}
+        {suffix && <span className="text-sm text-gray-600 dark:text-gray-400 ml-1">{suffix}</span>}
       </div>
 
       {typeof change === "number" && (
-        <div className="mt-3 flex items-center gap-1.5 text-xs font-medium">
+        <div className="mt-3 flex flex-wrap items-center gap-1.5 text-xs font-medium">
           <span
             className={clsx(
-              "inline-flex items-center gap-0.5 rounded px-1.5 py-0.5",
-              isPositive && "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-              isNegative && "bg-red-500/10 text-red-600 dark:text-red-400",
-              isNeutral && "bg-gray-500/10 text-gray-600 dark:text-gray-400",
+              "inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 tabular-nums",
+              isPositive && "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+              isNegative && "bg-red-500/10 text-red-700 dark:text-red-400",
+              isNeutral && "bg-gray-500/10 text-gray-700 dark:text-gray-400",
             )}
           >
             {isPositive && <ArrowUpRight className="h-3 w-3" />}
@@ -64,10 +64,9 @@ export function Stat({
             {isNeutral && <Minus className="h-3 w-3" />}
             {Math.abs(change)}%
           </span>
-          {period && <span className="text-gray-500 dark:text-gray-400">{period}</span>}
+          {period && <span className="text-gray-600 dark:text-gray-400">{period}</span>}
         </div>
       )}
     </div>
   );
 }
-

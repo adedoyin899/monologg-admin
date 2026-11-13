@@ -102,13 +102,13 @@ export default function AdminsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="font-mono text-xs font-semibold uppercase text-monologg-red">AD-31</span>
-            <span className="text-gray-300 dark:text-gray-600">/</span>
+            <span className="font-mono text-xs font-semibold uppercase text-monologg-red dark:text-[#FF5C5E]">AD-31</span>
+            <span className="text-gray-500 dark:text-gray-400" aria-hidden="true">/</span>
             <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
               Admin Users
             </h1>
           </div>
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
             Manage administrative accounts, role-based access control, and active session states.
           </p>
         </div>
@@ -116,7 +116,7 @@ export default function AdminsPage() {
         {isSuperAdmin && (
           <button
             onClick={() => setInviteOpen(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-monologg-red px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-red-600 transition-colors"
+            className="inline-flex items-center gap-2 rounded-lg bg-monologg-red px-4 py-2 min-h-[38px] text-xs font-semibold text-white shadow-sm hover:bg-red-600 transition-colors self-start sm:self-auto"
           >
             <UserPlus className="h-4 w-4" />
             <span>Invite Admin</span>
@@ -124,15 +124,15 @@ export default function AdminsPage() {
         )}
       </div>
 
-      {/* Admin Users Table Card */}
+      {/* Admin Users Card */}
       <Card>
         <div className="flex items-center justify-between pb-4">
-          <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+          <span className="text-xs font-medium text-gray-600 dark:text-gray-400 tabular-nums">
             {admins.length} Total Registered Admin(s)
           </span>
           <button
             onClick={() => fetchAdmins()}
-            className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+            className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             <span>Refresh</span>
@@ -140,41 +140,52 @@ export default function AdminsPage() {
         </div>
 
         {loading ? (
-          <div className="py-12 text-center text-xs text-gray-500">Loading admin users...</div>
+          <div className="py-12 text-center text-xs text-gray-600 dark:text-gray-400">Loading admin users...</div>
         ) : (
-          <Table>
-            <TableHeader>
-              <tr>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>MFA Status</TableHead>
-                <TableHead>Provider</TableHead>
-                <TableHead>Last Seen</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </tr>
-            </TableHeader>
-            <TableBody>
+          <>
+            {/* Mobile & Tablet Admin User Cards */}
+            <div className="lg:hidden divide-y divide-gray-200 dark:divide-[#242424]">
               {admins.map((admin) => {
                 const isCurrent = admin.id === authData?.admin?.id;
                 return (
-                  <TableRow key={admin.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-2 font-mono text-xs font-medium">
-                        <span>{admin.email}</span>
-                        {isCurrent && (
-                          <span className="rounded bg-monologg-red/10 px-1.5 py-0.5 text-[10px] font-semibold text-monologg-red">
-                            YOU
-                          </span>
-                        )}
+                  <div key={admin.id} className="py-3.5 space-y-2.5 text-xs">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 font-mono font-semibold text-gray-900 dark:text-white break-all">
+                          <span>{admin.email}</span>
+                          {isCurrent && (
+                            <span className="rounded bg-monologg-red/10 px-1.5 py-0.5 text-[10px] font-semibold text-monologg-red dark:text-[#FF5C5E] shrink-0">
+                              YOU
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[11px] font-mono text-gray-600 dark:text-gray-400 mt-0.5">
+                          {admin.authProvider} · {admin.status === "ACTIVE" ? "aal2 Verified" : "No MFA"}
+                        </div>
                       </div>
-                    </TableCell>
-                    <TableCell>
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold font-mono shrink-0 ${
+                          admin.status === "ACTIVE"
+                            ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                            : "bg-red-500/10 text-red-700 dark:text-red-400"
+                        }`}
+                      >
+                        <span
+                          className={`h-1.5 w-1.5 rounded-full ${
+                            admin.status === "ACTIVE" ? "bg-emerald-500" : "bg-red-500"
+                          }`}
+                        />
+                        {admin.status}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
                       {isSuperAdmin && !isCurrent ? (
                         <select
+                          aria-label={`Role for ${admin.email}`}
                           value={admin.role}
                           onChange={(e) => handleRoleChange(admin.id, e.target.value as AdminRole)}
-                          className="rounded border border-gray-300 dark:border-[#2C2C2C] bg-white dark:bg-[#1A1A1A] px-2 py-1 text-xs font-mono font-semibold text-gray-900 dark:text-white focus:outline-none"
+                          className="rounded border border-gray-300 dark:border-[#2C2C2C] bg-white dark:bg-[#1A1A1A] px-2.5 py-1.5 text-xs font-mono font-semibold text-gray-900 dark:text-white focus:outline-none"
                         >
                           <option value="SUPER_ADMIN">SUPER_ADMIN</option>
                           <option value="OPS">OPS</option>
@@ -188,51 +199,117 @@ export default function AdminsPage() {
                           {admin.role}
                         </span>
                       )}
-                    </TableCell>
-                    <TableCell>
-                      <span
-                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold font-mono ${
-                          admin.status === "ACTIVE"
-                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                            : "bg-red-500/10 text-red-600 dark:text-red-400"
-                        }`}
-                      >
-                        <span
-                          className={`h-1.5 w-1.5 rounded-full ${
-                            admin.status === "ACTIVE" ? "bg-emerald-500" : "bg-red-500"
-                          }`}
-                        />
-                        {admin.status}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="inline-flex items-center gap-1 rounded bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 text-[11px] font-mono text-neutral-700 dark:text-neutral-300">
-                        <CheckCircle className="h-3 w-3 text-emerald-500" />
-                        {admin.status === "ACTIVE" ? "aal2 Verified" : "None"}
-                      </span>
-                    </TableCell>
-                    <TableCell className="font-mono text-xs text-gray-500">
-                      {admin.authProvider}
-                    </TableCell>
-                    <TableCell className="font-mono text-xs text-gray-500">
-                      {admin.lastSession ? new Date(admin.lastSession.lastSeenAt).toLocaleString() : "No active session"}
-                    </TableCell>
-                    <TableCell className="text-right">
+
                       {isSuperAdmin && !isCurrent && admin.status === "ACTIVE" && (
                         <button
                           onClick={() => handleDisable(admin.id, admin.email)}
-                          className="inline-flex items-center gap-1 text-xs text-red-600 hover:text-red-700 font-medium"
+                          className="inline-flex items-center gap-1 text-xs text-red-700 dark:text-red-400 hover:underline font-medium py-1"
                         >
                           <UserX className="h-3.5 w-3.5" />
                           <span>Disable</span>
                         </button>
                       )}
-                    </TableCell>
-                  </TableRow>
+                    </div>
+                  </div>
                 );
               })}
-            </TableBody>
-          </Table>
+            </div>
+
+            {/* Desktop Admin Users Table */}
+            <div className="hidden lg:block">
+              <Table>
+                <TableHeader>
+                  <tr>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>MFA Status</TableHead>
+                    <TableHead>Provider</TableHead>
+                    <TableHead>Last Seen</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </tr>
+                </TableHeader>
+                <TableBody>
+                  {admins.map((admin) => {
+                    const isCurrent = admin.id === authData?.admin?.id;
+                    return (
+                      <TableRow key={admin.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-2 font-mono text-xs font-medium">
+                            <span>{admin.email}</span>
+                            {isCurrent && (
+                              <span className="rounded bg-monologg-red/10 px-1.5 py-0.5 text-[10px] font-semibold text-monologg-red dark:text-[#FF5C5E]">
+                                YOU
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {isSuperAdmin && !isCurrent ? (
+                            <select
+                              value={admin.role}
+                              onChange={(e) => handleRoleChange(admin.id, e.target.value as AdminRole)}
+                              className="rounded border border-gray-300 dark:border-[#2C2C2C] bg-white dark:bg-[#1A1A1A] px-2 py-1 text-xs font-mono font-semibold text-gray-900 dark:text-white focus:outline-none"
+                            >
+                              <option value="SUPER_ADMIN">SUPER_ADMIN</option>
+                              <option value="OPS">OPS</option>
+                              <option value="SUPPORT">SUPPORT</option>
+                              <option value="FINANCE">FINANCE</option>
+                              <option value="COMPLIANCE">COMPLIANCE</option>
+                              <option value="VIEWER">VIEWER</option>
+                            </select>
+                          ) : (
+                            <span className="font-mono text-xs font-semibold text-gray-700 dark:text-gray-300">
+                              {admin.role}
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <span
+                            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold font-mono ${
+                              admin.status === "ACTIVE"
+                                ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                                : "bg-red-500/10 text-red-700 dark:text-red-400"
+                            }`}
+                          >
+                            <span
+                              className={`h-1.5 w-1.5 rounded-full ${
+                                admin.status === "ACTIVE" ? "bg-emerald-500" : "bg-red-500"
+                              }`}
+                            />
+                            {admin.status}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="inline-flex items-center gap-1 rounded bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 text-[11px] font-mono text-neutral-700 dark:text-neutral-300">
+                            <CheckCircle className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                            {admin.status === "ACTIVE" ? "aal2 Verified" : "None"}
+                          </span>
+                        </TableCell>
+                        <TableCell className="font-mono text-xs text-gray-600 dark:text-gray-400">
+                          {admin.authProvider}
+                        </TableCell>
+                        <TableCell className="font-mono text-xs tabular-nums text-gray-600 dark:text-gray-400">
+                          {admin.lastSession ? new Date(admin.lastSession.lastSeenAt).toLocaleString() : "No active session"}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {isSuperAdmin && !isCurrent && admin.status === "ACTIVE" && (
+                            <button
+                              onClick={() => handleDisable(admin.id, admin.email)}
+                              className="inline-flex items-center gap-1 text-xs text-red-700 dark:text-red-400 hover:underline font-medium"
+                            >
+                              <UserX className="h-3.5 w-3.5" />
+                              <span>Disable</span>
+                            </button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </>
         )}
       </Card>
 

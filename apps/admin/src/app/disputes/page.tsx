@@ -107,56 +107,56 @@ function DisputesContent() {
       {/* KPI Cards Strip */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
-          <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Total Disputes</div>
-          <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-1">{totalCount}</div>
-          <div className="text-[11px] text-zinc-400 mt-0.5">Across all statuses</div>
+          <div className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Total Disputes</div>
+          <div className="text-2xl font-bold tabular-nums text-zinc-900 dark:text-zinc-100 mt-1">{totalCount}</div>
+          <div className="text-[11px] text-zinc-600 dark:text-zinc-400 mt-0.5">Across all statuses</div>
         </div>
 
-        <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
-          <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Open / Under Review</div>
-          <div className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">
+        <div className="p-4 rounded-xl border border-zinc-200 dark:border-[#242424] bg-white dark:bg-[#141414]">
+          <div className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Open / Under Review</div>
+          <div className="text-2xl font-bold tabular-nums text-amber-800 dark:text-amber-300 mt-1">
             {disputes.filter((d) => d.status === "OPEN" || d.status === "UNDER_REVIEW").length}
           </div>
-          <div className="text-[11px] text-zinc-400 mt-0.5">Active mediation</div>
+          <div className="text-[11px] text-zinc-600 dark:text-zinc-400 mt-0.5">Active mediation</div>
         </div>
 
-        <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+        <div className="p-4 rounded-xl border border-zinc-200 dark:border-[#242424] bg-white dark:bg-[#141414]">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Overdue (&gt;3 days)</span>
-            {overdueCount > 0 && <AlertTriangle className="w-3.5 h-3.5 text-red-500" />}
+            <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Overdue (&gt;3 days)</span>
+            {overdueCount > 0 && <AlertTriangle className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />}
           </div>
-          <div className={`text-2xl font-bold mt-1 ${overdueCount > 0 ? "text-red-600 dark:text-red-400" : "text-zinc-900 dark:text-zinc-100"}`}>
+          <div className={`text-2xl font-bold tabular-nums mt-1 ${overdueCount > 0 ? "text-red-700 dark:text-red-400" : "text-zinc-900 dark:text-zinc-100"}`}>
             {overdueCount}
           </div>
-          <div className="text-[11px] text-zinc-400 mt-0.5">Breached 72h SLA target</div>
+          <div className="text-[11px] text-zinc-600 dark:text-zinc-400 mt-0.5">Breached 72h SLA target</div>
         </div>
 
-        <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+        <div className="p-4 rounded-xl border border-zinc-200 dark:border-[#242424] bg-white dark:bg-[#141414]">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Four-Eyes Required</span>
-            {fourEyesCount > 0 && <ShieldAlert className="w-3.5 h-3.5 text-purple-500" />}
+            <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Four-Eyes Required</span>
+            {fourEyesCount > 0 && <ShieldAlert className="w-3.5 h-3.5 text-[#D91B1D] dark:text-[#FF5C5E]" />}
           </div>
-          <div className="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">
+          <div className="text-2xl font-bold tabular-nums text-[#D91B1D] dark:text-[#FF5C5E] mt-1">
             {fourEyesCount}
           </div>
-          <div className="text-[11px] text-zinc-400 mt-0.5">Above currency threshold</div>
+          <div className="text-[11px] text-zinc-600 dark:text-zinc-400 mt-0.5">Above currency threshold</div>
         </div>
       </div>
 
       {/* Filter Tabs & Search Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200 dark:border-zinc-800 pb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200 dark:border-[#242424] pb-3">
         {/* Status Tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
           {STATUS_TABS.map((tab) => {
             const isActive = currentStatus === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => updateFilters({ status: tab.id })}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors cursor-pointer ${
+                className={`px-3 py-2 min-h-[38px] rounded-lg text-xs font-medium whitespace-nowrap transition-colors cursor-pointer ${
                   isActive
-                    ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-semibold"
-                    : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                    ? "bg-monologg-red text-white font-semibold"
+                    : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#1E1E1E]"
                 }`}
               >
                 {tab.label}
@@ -171,16 +171,16 @@ function DisputesContent() {
             e.preventDefault();
             updateFilters({ search: searchTerm.trim() || null });
           }}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 w-full sm:w-auto"
         >
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+          <div className="relative w-full sm:w-64">
+            <Search className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Search disputes…"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8 pr-3 py-1.5 rounded-lg text-xs border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-red-500 w-48 sm:w-64"
+              className="pl-8 pr-3 py-2 min-h-[38px] rounded-lg text-xs border border-zinc-200 dark:border-[#2A2A2A] bg-white dark:bg-[#141414] text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-500 dark:placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-monologg-red w-full"
             />
           </div>
         </form>
@@ -188,47 +188,119 @@ function DisputesContent() {
 
       {/* Error Banner */}
       {error && (
-        <div className="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 rounded-xl text-xs text-red-700 dark:text-red-300 flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 shrink-0 text-red-600" />
+        <div className="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 rounded-xl text-xs text-red-800 dark:text-red-300 flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 shrink-0 text-red-600 dark:text-red-400" />
           <span>{error}</span>
         </div>
       )}
 
-      {/* Disputes Table */}
-      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden shadow-xs">
-        <div className="overflow-x-auto">
+      {/* Disputes Queue */}
+      <div className="rounded-xl border border-zinc-200 dark:border-[#242424] bg-white dark:bg-[#141414] overflow-hidden shadow-xs">
+        {/* Mobile Dispute Cards */}
+        <div className="lg:hidden divide-y divide-zinc-200 dark:divide-[#242424]">
+          {loading ? (
+            <div className="px-4 py-12 text-center text-xs text-zinc-600 dark:text-zinc-400">
+              Loading disputes queue…
+            </div>
+          ) : disputes.length === 0 ? (
+            <div className="px-4 py-12 text-center text-xs text-zinc-600 dark:text-zinc-400">
+              No disputes found for this view.
+            </div>
+          ) : (
+            disputes.map((d) => {
+              const amount = d.booking ? (d.booking.baseAmount / 100).toLocaleString() : "0";
+              const currency = d.booking?.currency || "NGN";
+              return (
+                <div key={d.id} className="p-4 space-y-2.5 text-xs">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <Link
+                        href={`/disputes/${d.id}`}
+                        className="font-mono font-semibold text-[#D91B1D] dark:text-[#FF5C5E] hover:underline"
+                      >
+                        {d.id.slice(0, 12)}…
+                      </Link>
+                      <div className="font-semibold text-sm text-zinc-900 dark:text-zinc-100 mt-0.5">
+                        {d.reason.replace(/_/g, " ")}
+                      </div>
+                    </div>
+                    <span className="font-bold tabular-nums text-sm text-zinc-900 dark:text-zinc-100 shrink-0">
+                      {currency} {amount}
+                    </span>
+                  </div>
+
+                  <div className="text-zinc-600 dark:text-zinc-400 space-y-0.5">
+                    <div>
+                      Talent: <strong className="text-zinc-900 dark:text-zinc-100">{d.booking?.creator?.name || "Unknown"}</strong> · Client: <strong className="text-zinc-900 dark:text-zinc-100">{d.booking?.client?.name || d.booking?.client?.orgName || "Unknown"}</strong>
+                    </div>
+                    {d.description && <p className="line-clamp-2">{d.description}</p>}
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-zinc-100 dark:border-[#202020]">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-[#222222] text-zinc-800 dark:text-zinc-200 font-semibold">
+                        {d.status.replace(/_/g, " ")}
+                      </span>
+                      {d.isFourEyesRequired && (
+                        <span className="inline-flex items-center gap-1 font-medium px-1.5 py-0.5 rounded bg-rose-50 text-rose-800 dark:bg-rose-950/60 dark:text-rose-200">
+                          <ShieldAlert className="w-3 h-3" />
+                          Four-Eyes
+                        </span>
+                      )}
+                      {d.status !== "RESOLVED" && d.isOverdue && (
+                        <span className="font-bold text-red-700 dark:text-red-400 inline-flex items-center gap-0.5">
+                          <AlertTriangle className="w-3 h-3" /> Overdue ({d.ageDays}d)
+                        </span>
+                      )}
+                    </div>
+
+                    <Link
+                      href={`/disputes/${d.id}`}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 font-semibold rounded-md bg-rose-500/10 text-[#D91B1D] dark:text-[#FF5C5E]"
+                    >
+                      Review <ArrowRight className="w-3 h-3" />
+                    </Link>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Desktop Disputes Table */}
+        <div className="hidden lg:block overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-zinc-50 dark:bg-zinc-800/60 border-b border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 font-medium uppercase tracking-wider text-[10px]">
+            <thead className="bg-zinc-50 dark:bg-[#1A1A1A] border-b border-zinc-200 dark:border-[#242424] text-zinc-600 dark:text-zinc-400 font-semibold uppercase tracking-wider text-[11px]">
               <tr>
-                <th className="px-4 py-3">Dispute & Booking</th>
+                <th className="px-4 py-3">Dispute &amp; Booking</th>
                 <th className="px-4 py-3">Parties</th>
-                <th className="px-4 py-3">Reason & Opener</th>
-                <th className="px-4 py-3">Value & Governance</th>
+                <th className="px-4 py-3">Reason &amp; Opener</th>
+                <th className="px-4 py-3">Value &amp; Governance</th>
                 <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Age & SLA</th>
+                <th className="px-4 py-3">Age &amp; SLA</th>
                 <th className="px-4 py-3 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800 text-zinc-700 dark:text-zinc-300">
+            <tbody className="divide-y divide-zinc-200 dark:divide-[#242424] text-zinc-700 dark:text-zinc-300">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-zinc-400">
+                  <td colSpan={7} className="px-4 py-12 text-center text-zinc-600 dark:text-zinc-400">
                     Loading disputes queue…
                   </td>
                 </tr>
               ) : disputes.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-zinc-400">
+                  <td colSpan={7} className="px-4 py-12 text-center text-zinc-600 dark:text-zinc-400">
                     No disputes found for this view.
                   </td>
                 </tr>
               ) : (
                 disputes.map((d) => {
                   const statusColors: Record<string, string> = {
-                    OPEN: "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border-amber-200 dark:border-amber-900/60",
-                    UNDER_REVIEW: "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border-blue-200 dark:border-blue-900/60",
-                    AWAITING_EVIDENCE: "bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 border-purple-200 dark:border-purple-900/60",
-                    RESOLVED: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900/60",
+                    OPEN: "bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300 border-amber-200 dark:border-amber-900/60",
+                    UNDER_REVIEW: "bg-blue-100 text-blue-900 dark:bg-blue-950/60 dark:text-blue-300 border-blue-200 dark:border-blue-900/60",
+                    AWAITING_EVIDENCE: "bg-indigo-100 text-indigo-900 dark:bg-indigo-950/60 dark:text-indigo-300 border-indigo-200 dark:border-indigo-900/60",
+                    RESOLVED: "bg-emerald-100 text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900/60",
                   };
 
                   const amount = d.booking ? (d.booking.baseAmount / 100).toLocaleString() : "0";
@@ -237,21 +309,21 @@ function DisputesContent() {
                   return (
                     <tr
                       key={d.id}
-                      className="hover:bg-zinc-50 dark:hover:bg-zinc-800/40 transition-colors"
+                      className="hover:bg-zinc-50 dark:hover:bg-[#1A1A1A] transition-colors"
                     >
                       {/* ID & Booking */}
                       <td className="px-4 py-3 font-mono">
                         <Link
                           href={`/disputes/${d.id}`}
-                          className="font-semibold text-zinc-900 dark:text-zinc-100 hover:text-red-600 dark:hover:text-red-400"
+                          className="font-semibold text-zinc-900 dark:text-zinc-100 hover:text-monologg-red dark:hover:text-[#FF5C5E]"
                         >
                           {d.id.slice(0, 10)}…
                         </Link>
-                        <div className="text-[11px] text-zinc-400 font-sans mt-0.5">
+                        <div className="text-[11px] text-zinc-600 dark:text-zinc-400 font-sans mt-0.5">
                           Booking:{" "}
                           <Link
                             href={`/bookings/${d.bookingId}`}
-                            className="underline hover:text-zinc-600 dark:hover:text-zinc-200 font-mono"
+                            className="underline hover:text-zinc-900 dark:hover:text-zinc-100 font-mono"
                           >
                             {d.bookingId.slice(0, 8)}…
                           </Link>
@@ -263,7 +335,7 @@ function DisputesContent() {
                         <div className="font-medium text-zinc-900 dark:text-zinc-100">
                           Talent: {d.booking?.creator?.name || "Unknown"}
                         </div>
-                        <div className="text-[11px] text-zinc-400 mt-0.5">
+                        <div className="text-[11px] text-zinc-600 dark:text-zinc-400 mt-0.5">
                           Client: {d.booking?.client?.name || d.booking?.client?.orgName || "Unknown"}
                         </div>
                       </td>
@@ -275,27 +347,27 @@ function DisputesContent() {
                             {d.reason.replace(/_/g, " ")}
                           </span>
                           <span
-                            className={`text-[9px] font-bold px-1.5 py-0.2 rounded uppercase ${
+                            className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${
                               d.openedByRole === "TALENT"
-                                ? "bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-400"
-                                : "bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-400"
+                                ? "bg-red-50 text-red-800 dark:bg-red-950 dark:text-red-300"
+                                : "bg-blue-50 text-blue-800 dark:bg-blue-950 dark:text-blue-300"
                             }`}
                           >
                             by {d.openedByRole}
                           </span>
                         </div>
-                        <div className="text-[11px] text-zinc-400 line-clamp-1 mt-0.5 max-w-xs">
+                        <div className="text-[11px] text-zinc-600 dark:text-zinc-400 line-clamp-1 mt-0.5 max-w-xs">
                           {d.description}
                         </div>
                       </td>
 
                       {/* Value & Governance */}
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 tabular-nums">
                         <div className="font-semibold text-zinc-900 dark:text-zinc-100">
                           {currency} {amount}
                         </div>
                         {d.isFourEyesRequired && (
-                          <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-medium px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60">
+                          <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-medium px-1.5 py-0.5 rounded bg-rose-50 text-rose-800 dark:bg-rose-950/60 dark:text-rose-200 border border-rose-200 dark:border-rose-800/60">
                             <ShieldAlert className="w-2.5 h-2.5" />
                             Four-Eyes
                           </span>
@@ -312,26 +384,26 @@ function DisputesContent() {
                           {d.status.replace(/_/g, " ")}
                         </span>
                         {d.resolution && (
-                          <div className="text-[10px] text-zinc-400 mt-0.5">
+                          <div className="text-[11px] text-zinc-600 dark:text-zinc-400 mt-0.5">
                             Outcome: {d.resolution.replace(/_/g, " ")}
                           </div>
                         )}
                       </td>
 
                       {/* Age & SLA */}
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 tabular-nums">
                         <div className="flex items-center gap-1 font-medium">
-                          <Clock className="w-3 h-3 text-zinc-400" />
+                          <Clock className="w-3 h-3 text-zinc-500 dark:text-zinc-400" />
                           <span>{d.ageDays}d ({d.ageHours}h)</span>
                         </div>
                         {d.status !== "RESOLVED" && (
                           <div className="mt-0.5">
                             {d.isOverdue ? (
-                              <span className="text-[10px] font-bold text-red-600 dark:text-red-400 flex items-center gap-0.5">
+                              <span className="text-[11px] font-bold text-red-700 dark:text-red-400 flex items-center gap-0.5">
                                 <AlertTriangle className="w-2.5 h-2.5" /> Overdue (&gt;3d)
                               </span>
                             ) : (
-                              <span className="text-[10px] text-emerald-600 dark:text-emerald-400">
+                              <span className="text-[11px] text-emerald-700 dark:text-emerald-400">
                                 Within 3d SLA
                               </span>
                             )}
@@ -343,7 +415,7 @@ function DisputesContent() {
                       <td className="px-4 py-3 text-right">
                         <Link
                           href={`/disputes/${d.id}`}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 transition-colors cursor-pointer"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-[#222222] dark:hover:bg-[#2C2C2C] text-zinc-900 dark:text-zinc-100 transition-colors cursor-pointer"
                         >
                           <span>Review</span>
                           <ArrowRight className="w-3 h-3" />

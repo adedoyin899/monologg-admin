@@ -11,7 +11,8 @@ const config: Config = {
     extend: {
       colors: {
         monologg: {
-          red: "#F92729",
+          red: "#CF1719",
+          redBright: "#F92729",
           purple: "#7700FD",
           green: "#004F34",
           gold: "#FEBC2D",
